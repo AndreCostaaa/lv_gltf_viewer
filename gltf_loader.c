@@ -141,6 +141,8 @@ static gltf_data_t * load_gltf(const char * gltf_path)
     jsmntok_t * meshes0 = unwrap(array_index(0, meshes, past_end_token));
     jsmntok_t * primitives = unwrap(search_obj(gltf_json, "primitives", meshes0, past_end_token));
     jsmntok_t * primitives0 = unwrap(array_index(0, primitives, past_end_token));
+    jsmntok_t * mode = search_obj(gltf_json, "mode", primitives0, past_end_token);
+    LV_ASSERT(mode == NULL || strtoul(gltf_json + mode->start, NULL, 10) == 4); /* triangles mode */
     jsmntok_t * indices = unwrap(search_obj(gltf_json, "indices", primitives0, past_end_token));
     uint32_t indices_accessor_index = strtoul(gltf_json + indices->start, NULL, 10);
     jsmntok_t * attributes = unwrap(search_obj(gltf_json, "attributes", primitives0, past_end_token));
