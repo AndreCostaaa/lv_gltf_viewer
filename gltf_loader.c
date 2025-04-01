@@ -3,10 +3,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "lvgl/src/draw/opengles/lv_draw_opengles.h"
-#include "lvgl/src/drivers/glfw/lv_opengles_debug.h"
-#include "lvgl/src/drivers/glfw/lv_opengles_texture.h"
-#include "lvgl/src/drivers/glfw/lv_opengles_driver.h"
+#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
 #define JSMN_STRICT
 #define JSMN_STATIC
@@ -16,7 +13,7 @@
 
 #include <stdlib.h> /* exit, strtoul, atof */
 #include <math.h> /* fabsf, fmaxf */
-#include <stdio.h> /* file IO */
+#include <stdio.h> /* perror, file IO */
 
 #define BUFFER_URI_START "data:application/octet-stream;base64,"
 
@@ -33,43 +30,43 @@ typedef struct {
 
 static jsmntok_t * search_obj(const char * json, const char * search_str, jsmntok_t * obj_tok, jsmntok_t * past_end_tok) {
     LV_ASSERT(obj_tok->type == JSMN_OBJECT);
-	jsmntok_t * tok = obj_tok + 1;
+    jsmntok_t * tok = obj_tok + 1;
     int search_str_len = lv_strlen(search_str);
-	while(tok < past_end_tok) {
-		LV_ASSERT(tok->type == JSMN_STRING);
-		jsmntok_t * value_tok = tok + 1;
-		int key_len = tok->end - tok->start;
-		if(key_len == search_str_len && 0 == lv_memcmp(search_str, json + tok->start, search_str_len)) {
-			return value_tok;
-		}
-		tok += 2;
-		while(tok < past_end_tok && tok->start < value_tok->end) {
-			tok++;
-		};
-	}
-	return NULL;
+    while(tok < past_end_tok) {
+        LV_ASSERT(tok->type == JSMN_STRING);
+        jsmntok_t * value_tok = tok + 1;
+        int key_len = tok->end - tok->start;
+        if(key_len == search_str_len && 0 == lv_memcmp(search_str, json + tok->start, search_str_len)) {
+            return value_tok;
+        }
+        tok += 2;
+        while(tok < past_end_tok && tok->start < value_tok->end) {
+            tok++;
+        };
+    }
+    return NULL;
 }
 
 static jsmntok_t * array_index(uint32_t index, jsmntok_t * array_tok, jsmntok_t * past_end_tok)
 {
     LV_ASSERT(array_tok->type == JSMN_ARRAY);
-	jsmntok_t * tok = array_tok + 1;
-	while(tok < past_end_tok && tok->start < array_tok->end) {
+    jsmntok_t * tok = array_tok + 1;
+    while(tok < past_end_tok && tok->start < array_tok->end) {
         jsmntok_t * element_token = tok;
         if(index-- == 0) {
             return element_token;
         }
-		tok++;
-		while(tok < past_end_tok && tok->start < element_token->end) {
-			tok++;
-		};
-	}
-	return NULL;
+        tok++;
+        while(tok < past_end_tok && tok->start < element_token->end) {
+            tok++;
+        };
+    }
+    return NULL;
 }
 
 static jsmntok_t * unwrap(jsmntok_t * x) {
-	LV_ASSERT(x);
-	return x;
+    LV_ASSERT(x);
+    return x;
 }
 
 static gltf_data_t * load_gltf(const char * gltf_path)
@@ -79,7 +76,7 @@ static gltf_data_t * load_gltf(const char * gltf_path)
     FILE * f = fopen(gltf_path, "r");
     if(f == NULL) {
         perror("fopen");
-        fprintf(stderr, "could not open '%s'\n", gltf_path);
+        LV_LOG_ERROR("could not open '%s'", gltf_path);
         exit(1);
     }
 
@@ -112,33 +109,33 @@ static gltf_data_t * load_gltf(const char * gltf_path)
 
     jsmntok_t * past_end_token = tokens + token_count;
 
-	jsmntok_t * asset = unwrap(search_obj(gltf_json, "asset", tokens, past_end_token));
-	jsmntok_t * version = unwrap(search_obj(gltf_json, "version", asset, past_end_token));
-	int version_len = version->end - version->start;
+    jsmntok_t * asset = unwrap(search_obj(gltf_json, "asset", tokens, past_end_token));
+    jsmntok_t * version = unwrap(search_obj(gltf_json, "version", asset, past_end_token));
+    int version_len = version->end - version->start;
     char * version_str = gltf_json + version->start;
-	if(version_len != 3 || 0 != lv_memcmp(gltf_json + version->start, "2.0", 3)) {
-        fprintf(stderr, "gltf version '%.*s' not supported. Only 2.0 supported.\n", version_len, version_str);
+    if(version_len != 3 || 0 != lv_memcmp(gltf_json + version->start, "2.0", 3)) {
+        LV_LOG_ERROR("gltf version '%.*s' not supported. Only 2.0 supported.", version_len, version_str);
         exit(1);
     }
 
-	jsmntok_t * buffers = unwrap(search_obj(gltf_json, "buffers", tokens, past_end_token));
-	LV_ASSERT(buffers->type == JSMN_ARRAY);
-	jsmntok_t * buffer0 = buffers + 1;
-	LV_ASSERT(buffer0->type == JSMN_OBJECT);
-	jsmntok_t * uri = unwrap(search_obj(gltf_json, "uri", buffer0, past_end_token));
-	uint32_t uri_len = uri->end - uri->start;
-	LV_ASSERT(uri_len >= sizeof(BUFFER_URI_START) - 1);
-	LV_ASSERT(0 == lv_memcmp(BUFFER_URI_START, gltf_json + uri->start, sizeof(BUFFER_URI_START) - 1));
-	char * b64 = gltf_json + (uri->start + (sizeof(BUFFER_URI_START) - 1));
-	uint32_t b64_len = uri_len - (sizeof(BUFFER_URI_START) - 1);
+    jsmntok_t * buffers = unwrap(search_obj(gltf_json, "buffers", tokens, past_end_token));
+    LV_ASSERT(buffers->type == JSMN_ARRAY);
+    jsmntok_t * buffer0 = buffers + 1;
+    LV_ASSERT(buffer0->type == JSMN_OBJECT);
+    jsmntok_t * uri = unwrap(search_obj(gltf_json, "uri", buffer0, past_end_token));
+    uint32_t uri_len = uri->end - uri->start;
+    LV_ASSERT(uri_len >= sizeof(BUFFER_URI_START) - 1);
+    LV_ASSERT(0 == lv_memcmp(BUFFER_URI_START, gltf_json + uri->start, sizeof(BUFFER_URI_START) - 1));
+    char * b64 = gltf_json + (uri->start + (sizeof(BUFFER_URI_START) - 1));
+    uint32_t b64_len = uri_len - (sizeof(BUFFER_URI_START) - 1);
 
-	uint32_t decoded_len = B64_REV(b64_len);
-	uint8_t * decoded = lv_malloc(decoded_len);
+    uint32_t decoded_len = B64_REV(b64_len);
+    uint8_t * decoded = lv_malloc(decoded_len);
 
-	b64Decode(decoded, (uint8_t *) b64, b64_len);
+    b64Decode(decoded, (uint8_t *) b64, b64_len);
 
-	jsmntok_t * byteLength = unwrap(search_obj(gltf_json, "byteLength", buffer0, past_end_token));
-	LV_ASSERT(strtoul(gltf_json + byteLength->start, NULL, 10) <= decoded_len);
+    jsmntok_t * byteLength = unwrap(search_obj(gltf_json, "byteLength", buffer0, past_end_token));
+    LV_ASSERT(strtoul(gltf_json + byteLength->start, NULL, 10) <= decoded_len);
 
     jsmntok_t * meshes = unwrap(search_obj(gltf_json, "meshes", tokens, past_end_token));
     jsmntok_t * meshes0 = unwrap(array_index(0, meshes, past_end_token));
@@ -161,7 +158,7 @@ static gltf_data_t * load_gltf(const char * gltf_path)
     accessor_bufferview = unwrap(search_obj(gltf_json, "bufferView", accessor, past_end_token));
     uint32_t vertices_bufferview_index = strtoul(gltf_json + accessor_bufferview->start, NULL, 10);
     accessor_component_type = unwrap(search_obj(gltf_json, "componentType", accessor, past_end_token));
-	LV_ASSERT(strtoul(gltf_json + accessor_component_type->start, NULL, 10) == 5126);
+    LV_ASSERT(strtoul(gltf_json + accessor_component_type->start, NULL, 10) == 5126);
     accessor_count = unwrap(search_obj(gltf_json, "count", accessor, past_end_token));
     data->vertex_count = strtoul(gltf_json + accessor_count->start, NULL, 10);
     jsmntok_t * accessor_max = unwrap(search_obj(gltf_json, "max", accessor, past_end_token));
@@ -179,7 +176,7 @@ static gltf_data_t * load_gltf(const char * gltf_path)
     accessor_bufferview = unwrap(search_obj(gltf_json, "bufferView", accessor, past_end_token));
     uint32_t indices_bufferview_index = strtoul(gltf_json + accessor_bufferview->start, NULL, 10);
     accessor_component_type = unwrap(search_obj(gltf_json, "componentType", accessor, past_end_token));
-	LV_ASSERT(strtoul(gltf_json + accessor_component_type->start, NULL, 10) == 5123);
+    LV_ASSERT(strtoul(gltf_json + accessor_component_type->start, NULL, 10) == 5123);
     accessor_count = unwrap(search_obj(gltf_json, "count", accessor, past_end_token));
     data->index_count = strtoul(gltf_json + accessor_count->start, NULL, 10);
     accessor_type = unwrap(search_obj(gltf_json, "type", accessor, past_end_token));
@@ -195,7 +192,7 @@ static gltf_data_t * load_gltf(const char * gltf_path)
 
     bufferview = unwrap(array_index(vertices_bufferview_index, bufferviews, past_end_token));
     bufferview_buffer = unwrap(search_obj(gltf_json, "buffer", bufferview, past_end_token));
-	LV_ASSERT(strtoul(gltf_json + bufferview_buffer->start, NULL, 10) == 0);
+    LV_ASSERT(strtoul(gltf_json + bufferview_buffer->start, NULL, 10) == 0);
     bufferview_bytelength = unwrap(search_obj(gltf_json, "byteLength", bufferview, past_end_token));
     length = strtoul(gltf_json + bufferview_bytelength->start, NULL, 10);
     bufferview_byteoffset = unwrap(search_obj(gltf_json, "byteOffset", bufferview, past_end_token));
@@ -205,7 +202,7 @@ static gltf_data_t * load_gltf(const char * gltf_path)
 
     bufferview = unwrap(array_index(indices_bufferview_index, bufferviews, past_end_token));
     bufferview_buffer = unwrap(search_obj(gltf_json, "buffer", bufferview, past_end_token));
-	LV_ASSERT(strtoul(gltf_json + bufferview_buffer->start, NULL, 10) == 0);
+    LV_ASSERT(strtoul(gltf_json + bufferview_buffer->start, NULL, 10) == 0);
     bufferview_bytelength = unwrap(search_obj(gltf_json, "byteLength", bufferview, past_end_token));
     length = strtoul(gltf_json + bufferview_bytelength->start, NULL, 10);
     bufferview_byteoffset = unwrap(search_obj(gltf_json, "byteOffset", bufferview, past_end_token));
@@ -213,7 +210,7 @@ static gltf_data_t * load_gltf(const char * gltf_path)
     data->index_array = lv_malloc(length);
     lv_memcpy(data->index_array, decoded + offset, length);
 
-	lv_free(decoded);
+    lv_free(decoded);
     lv_free(tokens);
     lv_free(gltf_json);
 
@@ -228,7 +225,7 @@ static void free_gltf_data(gltf_data_t * gltf_data)
 }
 
 unsigned int render_gltf_model_to_opengl_texture(const char * gltf_path, uint32_t texture_w,
-                                           uint32_t texture_h, lv_color_t color)
+                                                 uint32_t texture_h, lv_color_t color)
 {
     unsigned int texture;
 
@@ -380,7 +377,6 @@ unsigned int render_gltf_model_to_opengl_texture(const char * gltf_path, uint32_
 
     // Enable depth test
     GL_CALL(glEnable(GL_DEPTH_TEST));
-    // glDepthMask(GL_FALSE);
     GL_CALL(glDepthFunc(GL_LESS));
 
     // Clear whole screen (front buffer)

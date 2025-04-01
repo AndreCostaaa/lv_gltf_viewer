@@ -17,4 +17,4 @@ For demonstration purposes, there is a very simple
 glTF loader implemented in `gltf_loader.c`. It can only
 handle very simple glTFs with one mesh described by
 a `float` triangle vertex array and a `uint16_t` index array.
-Mesh textures are ignored.
+Textured meshes are ignored.

@@ -16,7 +16,7 @@
 #define TEXTURE_HEIGHT 100
 
 static lv_obj_t * lv_3dtexture_from_gltf_model(lv_obj_t * parent, const char * path, uint32_t w, uint32_t h,
-                                         lv_color_t color, lv_opa_t opa)
+                                               lv_color_t color, lv_opa_t opa)
 {
     lv_obj_t * tex = lv_3dtexture_create(parent);
     lv_3dtexture_id_t gltf_texture = render_gltf_model_to_opengl_texture(path, w, h, color);
