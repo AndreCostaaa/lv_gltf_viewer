@@ -274,7 +274,6 @@ unsigned int render_gltf_model_to_opengl_texture(const char * gltf_path, uint32_
         else           tp[i] /= scale_factor;
     }
 
-    // The following are GLSL shaders for rendering a triangle on the screen
     static const char *vertexShaderCode =
             "#version 300 es\n"
         STRINGIFY(
@@ -300,12 +299,10 @@ unsigned int render_gltf_model_to_opengl_texture(const char * gltf_path, uint32_
             }
         );
 
-    // Set GL Viewport size, always needed!
     GL_CALL(glViewport(0, 0, texture_w, texture_h));
 
     int shader_compiled;
 
-    // Create a shader program
     unsigned int program;
     GL_CALL(program = glCreateProgram());
 
@@ -317,7 +314,6 @@ unsigned int render_gltf_model_to_opengl_texture(const char * gltf_path, uint32_
     GL_CALL(glGetShaderiv(vert, GL_COMPILE_STATUS, &shader_compiled));
     if (!shader_compiled)
     {
-        //error
         GLchar InfoLog[512];
         GL_CALL(glGetShaderInfoLog(vert, sizeof(InfoLog), NULL, InfoLog));
         LV_LOG_ERROR("%s", InfoLog);
@@ -332,7 +328,6 @@ unsigned int render_gltf_model_to_opengl_texture(const char * gltf_path, uint32_
     GL_CALL(glGetShaderiv(frag, GL_COMPILE_STATUS, &shader_compiled));
     if (!shader_compiled)
     {
-        //error
         GLchar InfoLog[512];
         GL_CALL(glGetShaderInfoLog(frag, sizeof(InfoLog), NULL, InfoLog));
         LV_LOG_ERROR("%s", InfoLog);
@@ -344,17 +339,14 @@ unsigned int render_gltf_model_to_opengl_texture(const char * gltf_path, uint32_
     GL_CALL(glLinkProgram(program));
     GL_CALL(glUseProgram(program));
 
-    // Create Vertex Buffer Object
     unsigned int vbo;
     GL_CALL(glGenBuffers(1, &vbo));
     GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, vbo));
     GL_CALL(glBufferData(GL_ARRAY_BUFFER, gltf_data->vertex_count * (3 * sizeof(float)), gltf_data->vertex_array, GL_STATIC_DRAW));
 
-    // Get vertex attribute and uniform locations
     int pos_loc;
     GL_CALL(pos_loc = glGetAttribLocation(program, "pos"));
 
-    // Set our vertex data
     GL_CALL(glEnableVertexAttribArray(pos_loc));
     GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, vbo));
     GL_CALL(glVertexAttribPointer(pos_loc, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL));
@@ -362,7 +354,6 @@ unsigned int render_gltf_model_to_opengl_texture(const char * gltf_path, uint32_
     int color_loc;
     GL_CALL(color_loc = glGetUniformLocation(program, "color"));
 
-    // Set the desired color of the triangle
     GL_CALL(glUniform4f(color_loc,
                         ((float) color.red) / 255.0f,
                         ((float) color.green) / 255.0f,
@@ -375,11 +366,9 @@ unsigned int render_gltf_model_to_opengl_texture(const char * gltf_path, uint32_
     GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, gltf_data->index_count * sizeof(uint16_t), gltf_data->index_array, GL_STATIC_DRAW));
     GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo));
 
-    // Enable depth test
     GL_CALL(glEnable(GL_DEPTH_TEST));
     GL_CALL(glDepthFunc(GL_LESS));
 
-    // Clear whole screen (front buffer)
     GL_CALL(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
     GL_CALL(glClearDepth(1.0f));
     GL_CALL(glDepthMask(true));
@@ -389,7 +378,6 @@ unsigned int render_gltf_model_to_opengl_texture(const char * gltf_path, uint32_
 
     GL_CALL(glDisable(GL_DEPTH_TEST));
 
-    // unbind everything
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
     GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
@@ -397,7 +385,7 @@ unsigned int render_gltf_model_to_opengl_texture(const char * gltf_path, uint32_
     GL_CALL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
     GL_CALL(glUseProgram(0));
 
-    // delete everything except the texture
+    /* delete everything except the texture */
     GL_CALL(glDeleteBuffers(1, &ebo));
     GL_CALL(glDeleteBuffers(1, &vbo));
     GL_CALL(glDeleteRenderbuffers(1, &renderbuffer));
