@@ -1,0 +1,9 @@
+[submodule "lib/b64"]
+	path = lib/b64
+	url = https://github.com/liamHowatt/b64.git
+[submodule "lib/jsmn"]
+	path = lib/jsmn
+	url = https://github.com/zserge/jsmn.git
+[submodule "lvgl"]
+	path = lvgl
+	url = https://github.com/liamHowatt/lvgl.git
