@@ -98,8 +98,9 @@ int main()
     create_list_item(list, "gltfs/torusknot.gltf", lv_color_hex(0x7f7f7f), LV_OPA_20, "translucent torus knot", "translucent", "active");
 
     lv_obj_t * scroll_down_label = lv_label_create(lv_screen_active());
-    lv_obj_align_to(scroll_down_label, list, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
     lv_label_set_text_static(scroll_down_label, "scroll down");
+    lv_obj_update_layout(lv_screen_active());
+    lv_obj_align_to(scroll_down_label, list, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
 
     while(true) {
         uint32_t ms_delay = lv_timer_handler();

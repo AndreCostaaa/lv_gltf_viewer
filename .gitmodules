@@ -6,4 +6,4 @@
 	url = https://github.com/zserge/jsmn.git
 [submodule "lvgl"]
 	path = lvgl
-	url = https://github.com/liamHowatt/lvgl.git
+	url = https://github.com/lvgl/lvgl.git
