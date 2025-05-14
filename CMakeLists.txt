@@ -34,6 +34,7 @@ target_link_libraries(lvgl_workspace m)
 target_link_libraries(lvgl_workspace GL)
 target_link_libraries(lvgl_workspace GLEW)
 target_link_libraries(lvgl_workspace glfw)
+target_link_libraries(lvgl_workspace fastgltf)
 
 # target_link_libraries(lvgl_workspace jpeg)
 # target_link_libraries(lvgl_workspace png)
