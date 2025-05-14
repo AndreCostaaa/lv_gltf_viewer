@@ -17,6 +17,7 @@ add_executable(lvgl_workspace
     mouse_cursor_icon.c
     gltf_loader.c
     lvgl_icon_40px_ARGB888.c
+    gl_shader_includes.cpp
 )
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wunused-parameter -Wshadow")
