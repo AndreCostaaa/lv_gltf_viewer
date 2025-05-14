@@ -8,6 +8,8 @@
 #include <signal.h>     /* to trap ctrl-break */
 #include <GL/glew.h>    /* For window size restrictions */
 #include <GLFW/glfw3.h> /* For window size / title */
+#include <stdio.h>      /* printf */
+#include <math.h>       /* pow */
 
 //#define SOFTWARE_ONLY
 
@@ -79,6 +81,7 @@ static void elev_slider_event_cb(lv_event_t * e)
 
 static void spin_checkbox_event_cb(lv_event_t * e)
 {
+    LV_UNUSED(e);
     animate_spin = (lv_obj_get_state(spin_checkbox) & LV_STATE_CHECKED);
     if (animate_spin) {
         lv_obj_clear_flag(spin_slider, LV_OBJ_FLAG_HIDDEN);
@@ -89,6 +92,10 @@ static void spin_checkbox_event_cb(lv_event_t * e)
 
 static void load_progress_callback(const char* phase_title, const char* sub_phase_title, float phase_progress, float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max)
 {
+    LV_UNUSED(sub_phase_title);
+    LV_UNUSED(sub_phase_progress);
+    LV_UNUSED(sub_phase_progress_max);
+
     lv_label_set_text(progText1, phase_title);
     lv_obj_add_flag(progbar2, LV_OBJ_FLAG_HIDDEN);
     if (phase_progress_max != 0.f) {
@@ -103,12 +110,11 @@ static void load_progress_callback(const char* phase_title, const char* sub_phas
     usleep(1000);
 }
 
-
-//static void ext_draw_size_event_cb(lv_event_t * e)
-//{
-//    lv_coord_t * cur_size = (lv_coord_t*)lv_event_get_param(e);
-//    *cur_size = LV_MAX(*cur_size, LV_HOR_RES);
-//}
+static void ext_draw_size_event_cb(lv_event_t * e)
+{
+    lv_coord_t * cur_size = (lv_coord_t*)lv_event_get_param(e);
+    *cur_size = LV_MAX(*cur_size, LV_HOR_RES);
+}
 
 void lv_loading_info_objects(void)
 {
@@ -124,7 +130,7 @@ void lv_loading_info_objects(void)
     lv_obj_clear_flag(grp_loading, LV_OBJ_FLAG_CLICKABLE  );
     lv_obj_add_flag(grp_loading, LV_OBJ_FLAG_OVERFLOW_VISIBLE );
     lv_obj_clear_flag(grp_loading, LV_OBJ_FLAG_SCROLLABLE );
-    //lv_obj_add_event_cb(grp_loading, ext_draw_size_event_cb, LV_EVENT_REFR_EXT_DRAW_SIZE, NULL);
+    lv_obj_add_event_cb(grp_loading, ext_draw_size_event_cb, LV_EVENT_REFR_EXT_DRAW_SIZE, NULL);
 
     lv_obj_t * loading_bg = lv_obj_create(grp_loading);
     lv_obj_set_size(loading_bg, 320, 60);
@@ -270,13 +276,40 @@ void lv_pitch_yaw_distance_sliders(void)
     }      
 }
 
-void handle_sigint(int sig) {
+void lv_background_objects(void) 
+{
+    lv_obj_t * background = lv_obj_create(lv_screen_active());
+    lv_obj_set_size(background, WINDOW_WIDTH+20, WINDOW_HEIGHT+20);
+    lv_obj_center(background);
+    lv_obj_clear_flag(background, LV_OBJ_FLAG_CLICKABLE  );
+
+    lv_obj_t * inner_background = lv_obj_create(lv_screen_active());
+    lv_obj_set_size(inner_background, WINDOW_WIDTH-120, WINDOW_HEIGHT-90);
+    lv_obj_center(inner_background);
+    lv_obj_align(inner_background, LV_ALIGN_TOP_MID, 0, 30);
+    lv_obj_set_style_bg_color(inner_background, lv_color_hex(0xf0faff), LV_PART_MAIN);
+    lv_obj_set_style_border_color(inner_background, lv_color_hex(LVGL_BLUE), LV_PART_MAIN);
+    lv_obj_set_style_border_width(inner_background, 1, LV_PART_MAIN);
+    lv_obj_clear_flag(inner_background, LV_OBJ_FLAG_CLICKABLE  );
+    lv_obj_set_style_bg_grad_color(inner_background, lv_color_hex(0xd0dce6), LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_dir(inner_background, LV_GRAD_DIR_VER, LV_PART_MAIN);
+     
+    LV_IMAGE_DECLARE(lvgl_icon_40px);
+    lv_obj_t * img1 = lv_image_create(lv_screen_active());
+    lv_image_set_src(img1, &lvgl_icon_40px);
+    lv_obj_align(img1, LV_ALIGN_TOP_LEFT, 10, 9);
+}
+
+void handle_sigint(int sig)
+{
+    LV_UNUSED(sig);
     printf("\nShutting down app (from ctrl-c)...\n");
     glfwSetWindowShouldClose(glfw_window, GLFW_TRUE);
 }
 
-void window_close_callback(GLFWwindow* window)
+void window_close_callback(GLFWwindow* _window)
 {
+    LV_UNUSED(_window);
     printf("\nShutting down app (from window close)...\n");
     glfwSetWindowShouldClose(glfw_window, GLFW_TRUE);
 }
@@ -286,7 +319,8 @@ int main()
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     lv_init();
     
-    // TO FORCE SOFTWARE ONLY RENDERING MODE UNCOMMENT BELOW
+    // To force software rendering, find the #define SOFTWARE_ONLY line 
+    // that's commented out at start of this file and uncomment it
     #ifdef SOFTWARE_ONLY
     setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
     #endif
@@ -304,14 +338,50 @@ int main()
     lv_display_t * texture = lv_opengles_texture_create(WINDOW_WIDTH, WINDOW_HEIGHT);
     lv_display_set_default(texture);
 
+    lv_background_objects();
+
     /* add the texture to the window */
     unsigned int display_texture = lv_opengles_texture_get_texture_id(texture);
     lv_glfw_texture_t * window_texture = lv_glfw_window_add_texture(window, display_texture, WINDOW_WIDTH, WINDOW_HEIGHT);
+    LV_UNUSED(window_texture); // Temporary while refactoring
+    
+    lv_obj_clear_flag(lv_screen_active(), LV_OBJ_FLAG_SCROLLABLE );
+
+    lv_loading_info_objects();
+    
+    lv_obj_t * tex = lv_3dtexture_create(lv_screen_active());
+    lv_obj_set_size(tex, BIG_TEXTURE_WIDTH, BIG_TEXTURE_HEIGHT);   
+    lv_obj_add_flag(tex, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_align(tex, LV_ALIGN_TOP_LEFT, 0, 0);
+    lv_obj_clear_flag(tex, LV_OBJ_FLAG_CLICKABLE  );
+   
+    lv_pitch_yaw_distance_sliders();
+  
+    lv_obj_add_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
+    //lv_obj_clear_flag(tex, LV_OBJ_FLAG_HIDDEN);
+
+    signal(SIGINT, handle_sigint);
 
     while(!glfwWindowShouldClose(glfw_window)) {
         uint32_t ms_delay = lv_timer_handler();
         usleep(ms_delay * 1000);
+
+        glfwSetWindowSize(glfw_window, WINDOW_WIDTH, WINDOW_HEIGHT);
+        //gltf_texture = render_gltf_model_to_opengl_texture(view_desc, elevation, shaderCache, _viewer, _model_data, BIG_TEXTURE_WIDTH, BIG_TEXTURE_HEIGHT, lv_color_hex(0xFFFFFF));
+        //lv_3dtexture_set_src(tex, gltf_texture);
+        //lv_obj_invalidate(tex);
+        glfwPollEvents();
+
     }
+    lv_obj_clear_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
+    //lv_obj_add_flag(tex, LV_OBJ_FLAG_HIDDEN);
+    load_progress_callback("Closing Application", "", 0.f, 0.f, 0.f, 0.f);
+    usleep(10 * 1000);
+    
+    lv_obj_invalidate(grp_loading);
+    lv_refr_now(NULL);
+    lv_timer_handler();
+    lv_task_handler();
 
     return 0;
 }
