@@ -7,3 +7,6 @@
 [submodule "lvgl"]
 	path = lvgl
 	url = https://github.com/lvgl/lvgl.git
+[submodule "lib/fastgltf"]
+	path = lib/fastgltf
+	url = https://github.com/spnda/fastgltf.git
