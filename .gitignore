@@ -1,1 +1,6 @@
 /build/
+lvgl_newer_bugged.tar.gz
+/CMakeFiles/
+Makefile
+cmake_install.cmake_install
+CMakeCache.txt

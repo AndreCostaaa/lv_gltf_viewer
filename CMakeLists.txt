@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.25.1)
 
 project(lvgl_workspace LANGUAGES C CXX)
 
@@ -16,8 +16,12 @@ add_executable(lvgl_workspace
     main.c
     mouse_cursor_icon.c
     gltf_loader.c
-    lvgl_icon_40px_ARGB888.c
+    gl_renwin.cpp
     gl_shader_includes.cpp
+    lib/mathc/mathc.c
+    ibl_sampler.cpp
+    shader_cache.cpp
+    lvgl_icon_40px_ARGB888.c
 )
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wunused-parameter -Wshadow")

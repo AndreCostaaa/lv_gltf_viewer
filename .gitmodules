@@ -10,3 +10,6 @@
 [submodule "lib/fastgltf"]
 	path = lib/fastgltf
 	url = https://github.com/spnda/fastgltf.git
+[submodule "lib/mathc"]
+	path = lib/mathc
+	url = https://github.com/felselva/mathc.git

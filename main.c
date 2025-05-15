@@ -4,12 +4,20 @@
 
 #include "gltf_loader.h"
 
+#include "gl_renwin.h"
+#include "shader_cache.h"
+#include "gl_shader_includes.h"
+#include "gl_shaderdef_v1.h"
+
 #include <unistd.h>     /* usleep */
 #include <signal.h>     /* to trap ctrl-break */
 #include <GL/glew.h>    /* For window size restrictions */
 #include <GLFW/glfw3.h> /* For window size / title */
-#include <stdio.h>      /* printf */
-#include <math.h>       /* pow */
+//#include <stdio.h>      /* printf */
+//#include <math.h>       /* pow */
+//#include <stdlib.h>     /* exit */
+
+#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
 //#define SOFTWARE_ONLY
 
@@ -38,6 +46,10 @@ GLFWwindow * glfw_window;
 lv_obj_t * progbar1;
 lv_obj_t * progbar2;
 lv_obj_t * progText1;
+
+bool setIBLLoadPhaseCallback(void (*_load_progress_callback)(const char*, const char* , float, float, float, float));
+gl_environment_textures setup_environment(gl_environment_textures* _lastEnv, const char* _env_filename );
+static void load_progress_callback(const char* phase_title, const char* sub_phase_title, float phase_progress, float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max);
 
 static void yaw_slider_event_cb(lv_event_t * e)
 {
@@ -314,11 +326,11 @@ void window_close_callback(GLFWwindow* _window)
     glfwSetWindowShouldClose(glfw_window, GLFW_TRUE);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     lv_init();
-    
+
     // To force software rendering, find the #define SOFTWARE_ONLY line 
     // that's commented out at start of this file and uncomment it
     #ifdef SOFTWARE_ONLY
@@ -343,45 +355,100 @@ int main()
     /* add the texture to the window */
     unsigned int display_texture = lv_opengles_texture_get_texture_id(texture);
     lv_glfw_texture_t * window_texture = lv_glfw_window_add_texture(window, display_texture, WINDOW_WIDTH, WINDOW_HEIGHT);
-    LV_UNUSED(window_texture); // Temporary while refactoring
-    
+    //LV_UNUSED(window_texture); // Temporary while refactoring
+
+    //lv_obj_clear_flag(window_texture, LV_OBJ_FLAG_CLICKABLE  );
+
     lv_obj_clear_flag(lv_screen_active(), LV_OBJ_FLAG_SCROLLABLE );
 
-    lv_loading_info_objects();
+    lv_obj_t * title = lv_label_create(lv_screen_active());
+    lv_obj_align(title, LV_ALIGN_TOP_LEFT, 70, 10);
+    lv_obj_set_style_text_opa(title, LV_OPA_50, LV_PART_MAIN);
+    lv_obj_set_style_text_color(title, lv_color_hex(LVGL_BLUE), LV_PART_MAIN);
+    lv_label_set_text(title, "3D Models");
+
+    char* filename = "gltfs/torusknot.gltf";
+    if (argc > 1) {
+        filename = argv[1];
+        printf("Loading ");
+        printf(filename);
+        printf("...\n");
+        const char* isofilename = getIsolatedFilename(filename);
+        lv_label_set_text(title, isofilename);
+    }
+
+
+
     
+    lv_loading_info_objects();
+    setIBLLoadPhaseCallback(load_progress_callback);
+    setLoadPhaseCallback(load_progress_callback);
+    lv_obj_clear_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
+
+    lv_timer_handler();
+    lv_task_handler();
+
+    ShaderCache_struct _shaderCache = ShaderCache(src_includes, sizeof(src_includes)/sizeof(key_value), src_vertex(), src_frag() );
+    pShaderCache shaderCache = &_shaderCache;
+    gl_environment_textures _environment = setup_environment(NULL, "hdr/footprint_court.hdr" );
+    _shaderCache.lastEnv = &_environment;
+
     lv_obj_t * tex = lv_3dtexture_create(lv_screen_active());
     lv_obj_set_size(tex, BIG_TEXTURE_WIDTH, BIG_TEXTURE_HEIGHT);   
     lv_obj_add_flag(tex, LV_OBJ_FLAG_HIDDEN);
     lv_obj_align(tex, LV_ALIGN_TOP_LEFT, 0, 0);
     lv_obj_clear_flag(tex, LV_OBJ_FLAG_CLICKABLE  );
-   
+
     lv_pitch_yaw_distance_sliders();
   
+    pGltf_data_t _model_data = lv_malloc(get_gltf_datastruct_datasize() );
+    pViewer _viewer = lv_malloc(get_viewer_datasize() );
+
+    load_gltf((const char*)filename, _model_data, _viewer, shaderCache);
+
     lv_obj_add_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
-    //lv_obj_clear_flag(tex, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(tex, LV_OBJ_FLAG_HIDDEN);
+
+    lv_3dtexture_id_t gltf_texture;
+    float temp_inc = 0.f;
+    gl_viewer_desc_t view_desc;
+    view_desc.pitch = pitch_degrees;
+    view_desc.yaw = temp_inc + yaw_degree_offset;
+    view_desc.distance = distance;
+
+    gltf_texture = new_render_gltf_model_to_opengl_texture(view_desc, elevation, shaderCache, _viewer, _model_data, BIG_TEXTURE_WIDTH, BIG_TEXTURE_HEIGHT, lv_color_hex(0xFFFFFF));
+    lv_3dtexture_set_src(tex, gltf_texture);
 
     signal(SIGINT, handle_sigint);
 
     while(!glfwWindowShouldClose(glfw_window)) {
         uint32_t ms_delay = lv_timer_handler();
+        lv_task_handler();
         usleep(ms_delay * 1000);
-
-        glfwSetWindowSize(glfw_window, WINDOW_WIDTH, WINDOW_HEIGHT);
-        //gltf_texture = render_gltf_model_to_opengl_texture(view_desc, elevation, shaderCache, _viewer, _model_data, BIG_TEXTURE_WIDTH, BIG_TEXTURE_HEIGHT, lv_color_hex(0xFFFFFF));
-        //lv_3dtexture_set_src(tex, gltf_texture);
-        //lv_obj_invalidate(tex);
+        if (animate_spin) {
+            temp_inc += spin_rate;
+        }
+        view_desc.pitch = pitch_degrees;
+        view_desc.yaw = temp_inc + yaw_degree_offset;
+        view_desc.distance = distance;
+        gltf_texture = new_render_gltf_model_to_opengl_texture(view_desc, elevation, shaderCache, _viewer, _model_data, BIG_TEXTURE_WIDTH, BIG_TEXTURE_HEIGHT, lv_color_hex(0xFFFFFF));
+        lv_3dtexture_set_src(tex, gltf_texture);
+        lv_obj_invalidate(tex);
         glfwPollEvents();
 
     }
     lv_obj_clear_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
-    //lv_obj_add_flag(tex, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(tex, LV_OBJ_FLAG_HIDDEN);
     load_progress_callback("Closing Application", "", 0.f, 0.f, 0.f, 0.f);
-    usleep(10 * 1000);
+    usleep(20 * 1000);
     
     lv_obj_invalidate(grp_loading);
     lv_refr_now(NULL);
     lv_timer_handler();
     lv_task_handler();
-
-    return 0;
+    
+    DestroyDataStructs(_viewer, _model_data, shaderCache);
+    lv_free(_viewer);
+    exit(0);
+    //return 0;
 }
