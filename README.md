@@ -46,6 +46,22 @@ The STB Image library is included temporarily, just copied from the latest build
 ---
 
 
+To make this the default gltf / glb file viewer on your Raspberry Pi, you can do the following:
+
+(from the root directory of this project)
+```bash
+cp ./EXAMPLE_gltf-view.desktop ~/.local/share/applications/gltf-view.desktop
+xdg-mime default gltf-view.desktop model/gltf-binary
+xdg-mime default gltf-view.desktop model/gltf-json
+```
+
+Now when you double click a gltf file in your file-manager, it should open glTF-View.
+
+You can confirm the mime-types are setup correctly by viewing 
+```
+~/.config/mimeapps.list
+```
+
 ![example running screenclip two](screenshot_image1.png)
 
 
