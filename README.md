@@ -21,16 +21,7 @@ are many known issues.
 
 ---
 
-
-There is some issue with the latest LVGL that break things in this app, so for now you'll need to not use the main LVGL branch and instead delete the LVGL folder and extract the older version with the bash commands below:
-
-```bash
-rm ./LVGL -rf
-tar -xvzf lvgl_known_good.tar.gz -C ./
-```
-This will extract the known good copy into the LVGL folder (it will create a new LVGL folder).
-
-This app requires a non-standard function within lvgl/src/drivers/glfw/lv_glfw_window.c / .h, but if you did the steps above, don't worry about it, it's in there.  Otherwise, you may need to add this function (and it's declaration) to lv_glfw_window.c/h:
+This app requires a non-standard function within lvgl/src/drivers/glfw/lv_glfw_window.c / .h, you may need to add this function (and it's declaration) to lv_glfw_window.c/h:
 
 ```c
 void * lv_glfw_window_get_glfw_window(lv_glfw_window_t * window) {
@@ -61,6 +52,9 @@ You can confirm the mime-types are setup correctly by viewing
 ```
 ~/.config/mimeapps.list
 ```
+
+---
+More Samples:
 
 ![example running screenclip two](screenshot_image1.png)
 

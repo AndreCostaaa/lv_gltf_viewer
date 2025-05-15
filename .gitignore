@@ -4,3 +4,4 @@ lvgl_newer_bugged.tar.gz
 Makefile
 cmake_install.cmake_install
 CMakeCache.txt
+/lib/
