@@ -1,7 +1,9 @@
 /build/
-lvgl_newer_bugged.tar.gz
 /CMakeFiles/
 Makefile
 cmake_install.cmake_install
 CMakeCache.txt
-/lib/
+/lib/b64
+/lib/fastgltf
+/lib/jsmn
+/lib/*.a

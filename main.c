@@ -13,9 +13,9 @@
 #include <signal.h>     /* to trap ctrl-break */
 #include <GL/glew.h>    /* For window size restrictions */
 #include <GLFW/glfw3.h> /* For window size / title */
-//#include <stdio.h>      /* printf */
+#include <stdio.h>      /* printf */
 //#include <math.h>       /* pow */
-//#include <stdlib.h>     /* exit */
+#include <stdlib.h>     /* exit */
 
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 

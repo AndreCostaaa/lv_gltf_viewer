@@ -1039,7 +1039,7 @@ void make_viewProj_matrix(gl_viewer_desc_t view_desc, float temp_elevation, pGlt
     
     // Create Perspective Matrix
     mfloat_t perspective[MAT4_SIZE];
-    mat4_perspective_fov(perspective,to_radians(45.0), 256, 192, 0.001f, gltf_data->bound_radius * std::max(2.0, 4.0 * view_desc.distance));
+    mat4_perspective_fov(perspective,to_radians(45.0), 256, 192, gltf_data->bound_radius * 0.05f, gltf_data->bound_radius * std::max(2.0, 4.0 * view_desc.distance));
     mfloat_t viewProj[MAT4_SIZE];
     mat4_multiply(viewProj, perspective, view);
 
@@ -1439,6 +1439,9 @@ void drawMesh(gl_viewer_desc_t view_desc, float temp_elevation, pViewer viewer, 
         GL_CALL(glUniformMatrix4fv(uniforms.modelMatrixUniform, 1, GL_FALSE, &matrix[0][0]));
         make_viewProj_matrix( view_desc, temp_elevation, gltf_data, program );
 
+        // To-do: only face cull for 100% opaque faces
+        GL_CALL(glEnable(GL_CULL_FACE));  
+
         GL_CALL(glBindVertexArray(prim.vertexArray));
 		GL_CALL(glUniform1f(uniforms.exposure, 1.25f));
         GL_CALL(glBindTextureUnit(0, prim.albedoTexture));
@@ -1572,6 +1575,8 @@ void drawMesh(gl_viewer_desc_t view_desc, float temp_elevation, pViewer viewer, 
         if (indexAccessor.bufferViewIndex.has_value()) {
             index_count = (uint32_t)indexAccessor.count; }
         GL_CALL(glDrawElements(prim.primitiveType, index_count, prim.indexType, 0));
+        GL_CALL(glDisable(GL_CULL_FACE));  
+
      }
 }
 
