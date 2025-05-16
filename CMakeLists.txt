@@ -15,7 +15,6 @@ include_directories(${CMAKE_CURRENT_LIST_DIR})
 add_executable(lvgl_workspace
     main.c
     mouse_cursor_icon.c
-    gltf_loader.c
     gl_renwin.cpp
     gl_shader_includes.cpp
     lib/mathc/mathc.c

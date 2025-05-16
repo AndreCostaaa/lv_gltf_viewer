@@ -25,7 +25,7 @@ This app requires a non-standard function within lvgl/src/drivers/glfw/lv_glfw_w
 
 ```c
 void * lv_glfw_window_get_glfw_window(lv_glfw_window_t * window) {
-    return (void*)(window->window);
+    return (void *)(window->window);
 }
 ```
 
