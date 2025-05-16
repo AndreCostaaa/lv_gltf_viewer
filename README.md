@@ -19,23 +19,19 @@ For demonstration purposes, there is a very simple
 glTF loader.  This is a proof of concept build and there
 are many known issues.
 
----
-
-This app requires a non-standard function within lvgl/src/drivers/glfw/lv_glfw_window.c / .h, you may need to add this function (and it's declaration) to lv_glfw_window.c/h:
-
-```c
-void * lv_glfw_window_get_glfw_window(lv_glfw_window_t * window) {
-    return (void *)(window->window);
-}
+to build:
+```bash
+./prebuild.sh
+./full_build.sh
 ```
 
-I'll put in a PR to get that added in properly but if you encounter compilation errors you 
-might need to patch that function in manually for now.
+Run from within it's root directory, so it can find the HDR folder and load an environment.
+
+---
 
 The STB Image library is included temporarily, just copied from the latest build.  Ultimately it should probably be added as a git submodule, but it seems like that will add a few other things that aren't necessary so I'd like to look into a more minimal install for that.
 
 ---
-
 
 To make this the default gltf / glb file viewer on your Raspberry Pi, you can do the following:
 
