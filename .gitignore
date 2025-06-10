@@ -8,3 +8,4 @@ CMakeCache.txt
 /lib/mathc
 /lib/*.a
 /render_frames/*
+/lvgl/*

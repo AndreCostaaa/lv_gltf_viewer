@@ -1,10 +1,10 @@
-[submodule "lvgl"]
-	path = lvgl
-	url = https://github.com/FishOfTheNorthStar/lvgl_pr_patch_func.git
-	branch = pr_3_mouse_ex
 [submodule "lib/fastgltf"]
 	path = lib/fastgltf
 	url = https://github.com/spnda/fastgltf.git
 [submodule "lib/mathc"]
 	path = lib/mathc
 	url = https://github.com/felselva/mathc.git
+[submodule "lvgl"]
+	path = lvgl
+	url = https://github.com/FishOfTheNorthStar/lvgl_pr_patch_func.git
+	branch = pr_3_mouse_ex
