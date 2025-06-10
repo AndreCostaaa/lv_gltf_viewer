@@ -406,6 +406,8 @@ float lv_gltfview_get_focal_x (pViewer viewer) { return get_viewer_desc(viewer)-
 float lv_gltfview_get_focal_y (pViewer viewer) { return get_viewer_desc(viewer)->focal_y; }
 float lv_gltfview_get_focal_z (pViewer viewer) { return get_viewer_desc(viewer)->focal_z; }
 float lv_gltfview_get_spin_degree_offset(pViewer viewer){ return get_viewer_desc(viewer)->spin_degree_offset; }
+uint32_t lv_gltfview_get_aa_mode(pViewer viewer) { return get_viewer_desc(viewer)->aa_mode; }
+uint32_t lv_gltfview_get_bg_mode(pViewer viewer) { return get_viewer_desc(viewer)->bg_mode; }
 
 void lv_gltfview_set_pitch (pViewer viewer, int pitch_degrees_x10 ) {
     auto desc = get_viewer_desc(viewer);
@@ -500,6 +502,13 @@ void lv_gltfview_inc_focal_z (pViewer viewer, float focal_z_inc ) {
         desc->dirty = true;
     }
 }
+void lv_gltfview_inc_spin_degree_offset(pViewer viewer, float spin_degree_inc ){
+    auto desc = get_viewer_desc(viewer);
+    if (std::abs(spin_degree_inc) > 0.0001f ) {
+        desc->spin_degree_offset += spin_degree_inc;
+        desc->dirty = true;
+    }
+}
 void lv_gltfview_set_camera (pViewer viewer, int camera_number ) {
     auto desc = get_viewer_desc(viewer);
     if (desc->camera != camera_number ) {
@@ -516,36 +525,36 @@ void lv_gltfview_set_timestep (pViewer viewer, float timestep ) {
 }
 void lv_gltfview_set_width (pViewer viewer, uint32_t new_width ) {
     auto desc = get_viewer_desc(viewer);
-    if (desc->width  != new_width) {
-        desc->width = new_width;
+    if (desc->width  != (int32_t)new_width) {
+        desc->width = (int32_t)new_width;
         desc->dirty = true;
     }
 }
 void lv_gltfview_set_height (pViewer viewer, uint32_t new_height ) {
     auto desc = get_viewer_desc(viewer);
-    if (desc->height  != new_height) {
-        desc->height = new_height;
+    if (desc->height  != (int32_t)new_height) {
+        desc->height = (int32_t)new_height;
         desc->dirty = true;
     }
 }
 void lv_gltfview_set_anim(pViewer viewer, uint32_t anim_num ){
     auto desc = get_viewer_desc(viewer);
-    if (desc->anim  != anim_num) {
-        desc->anim = anim_num;
+    if (desc->anim  != (int32_t)anim_num) {
+        desc->anim = (int32_t)anim_num;
         desc->dirty = true;
     }
 }
 void lv_gltfview_set_bg_mode(pViewer viewer, uint32_t bg_mode ){
     auto desc = get_viewer_desc(viewer);
-    if (desc->bg_mode != bg_mode) {
-        desc->bg_mode = bg_mode;
+    if (desc->bg_mode != (int32_t)bg_mode) {
+        desc->bg_mode = (int32_t)bg_mode;
         desc->dirty = true;
     }
 }
 void lv_gltfview_set_aa_mode(pViewer viewer, uint32_t aa_mode ){
     auto desc = get_viewer_desc(viewer);
-    if (desc->aa_mode != aa_mode) {
-        desc->aa_mode = aa_mode;
+    if (desc->aa_mode != (int32_t)aa_mode) {
+        desc->aa_mode = (int32_t)aa_mode;
         desc->dirty = true;
     }
 }

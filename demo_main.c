@@ -61,7 +61,7 @@ double min(double a, double b) {
     return (a < b) ? a : b;
 }
 
-static void load_progress_callback(const char* phase_title, const char* sub_phase_title, float phase_progress, float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max)
+void demo_load_progress_callback(const char* phase_title, const char* sub_phase_title, float phase_progress, float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max)
 {
     LV_UNUSED(sub_phase_title);
     LV_UNUSED(sub_phase_progress);
@@ -179,15 +179,15 @@ void update_camera_turn( int mouse_x, int mouse_y,int last_mouse_x, int last_mou
     // Calculate pitch and yaw changes
     float pitchChange = deltaY * -sensitivity;
     float yawChange = deltaX * -sensitivity;
-    bool viewChanged = false;
+    //bool viewChanged = false;
     // Update camera rotation
     if (fabs(pitchChange) > 0.001f) {
         lv_gltfview_inc_pitch(_viewer, pitchChange);
-        viewChanged = true;
+        //viewChanged = true;
     }
     if (fabs(yawChange) > 0.001f) {
         lv_gltfview_inc_yaw(_viewer, yawChange);
-        viewChanged = true;
+        //viewChanged = true;
     }
     // if (viewChanged) printf("Pitch Change: %f, Yaw Change: %f\n", pitchChange, yawChange);
 }
@@ -201,9 +201,9 @@ void update_camera_drag_xz(float unit_distance, int mouse_x, int mouse_y, int la
     float sensitivity = 0.0025f * unit_distance;
     // Calculate strafing and forward/backward motion
     float offset_yaw = lv_gltfview_get_yaw(_viewer) + spin_counter_degrees;  // The yaw in the view description will not represent the actual visible yaw if the platter has spun the orientation off base 0
-    bool viewChanged = false;
+    //bool viewChanged = false;
     if (fabs(deltaY) > 0.001f) {
-        viewChanged = true;
+        //viewChanged = true;
         // Calculate the direction based on the current yaw angle
         // Update camera position based on strafing and forward/backward motion
         float forwardBackwardAmount = deltaY * sensitivity;
@@ -212,7 +212,7 @@ void update_camera_drag_xz(float unit_distance, int mouse_x, int mouse_y, int la
         lv_gltfview_inc_focal_z(_viewer, -cosf(forwardRadians) * forwardBackwardAmount);
     }
     if (fabs(deltaX) > 0.001f) {
-        viewChanged = true;
+        //viewChanged = true;
         float strafeAmount = deltaX * sensitivity;
         float strafeRadians = (offset_yaw + 90.0f) * PI_TO_RAD; // Convert right yaw to radians
         lv_gltfview_inc_focal_x(_viewer, -sinf(strafeRadians) * strafeAmount);
@@ -258,8 +258,8 @@ int main(int argc, char *argv[])
     bool passedParamChecks = true;
     char gltfFilePath[MAX_PATH_LENGTH] = {0};
     char hdrFilePath[MAX_PATH_LENGTH] = "media/hdr/directional.jpg";
-    AntialiasingMode aaMode = ANTIALIAS_NOT_MOVING;
-    BackgroundMode   bgMode = BG_CLEAR;
+    //AntialiasingMode aaMode = ANTIALIAS_NOT_MOVING;
+    //BackgroundMode   bgMode = BG_CLEAR;
 
     // Set the defaults
     lv_gltfview_set_env_pow(_viewer, 1.8f );
@@ -268,6 +268,8 @@ int main(int argc, char *argv[])
     lv_gltfview_set_yaw(_viewer, 420 );
     lv_gltfview_set_pitch(_viewer, -200 );
     lv_gltfview_set_blur_bg(_viewer, 0.25f );
+    lv_gltfview_set_aa_mode(_viewer, ANTIALIAS_NOT_MOVING );
+    lv_gltfview_set_bg_mode(_viewer, BG_CLEAR);
     // Check if at least one argument is provided
     if (argc < 2) {
         printUsage();
@@ -311,24 +313,24 @@ int main(int argc, char *argv[])
                 i++;
             } else if (strcmp(argv[i], "-aa") == 0 && (i + 1) < argc) {
                 if ((strcmp(argv[i + 1], "ANTIALIAS_OFF") == 0) || (strcmp(argv[i + 1], "0") == 0)) {
-                    aaMode = ANTIALIAS_OFF;
+                    lv_gltfview_set_aa_mode(_viewer, ANTIALIAS_OFF );
                 } else if ((strcmp(argv[i + 1], "ANTIALIAS_CONSTANT") == 0) || (strcmp(argv[i + 1], "1") == 0)) {
-                    aaMode = ANTIALIAS_CONSTANT;
+                    lv_gltfview_set_aa_mode(_viewer, ANTIALIAS_CONSTANT );
                 } else if ((strcmp(argv[i + 1], "ANTIALIAS_NOT_MOVING") == 0) || (strcmp(argv[i + 1], "2") == 0)) {
-                    aaMode = ANTIALIAS_NOT_MOVING;
+                    lv_gltfview_set_aa_mode(_viewer, ANTIALIAS_NOT_MOVING );
                 } else {
-                    aaMode = ANTIALIAS_NOT_MOVING;
+                    lv_gltfview_set_aa_mode(_viewer, ANTIALIAS_NOT_MOVING );
                 }
                 i++;
             } else if (strcmp(argv[i], "-bg") == 0 && (i + 1) < argc) {
                 if ((strcmp(argv[i + 1], "BG_CLEAR") == 0) || (strcmp(argv[i + 1], "0") == 0)) {
-                    bgMode = BG_CLEAR;
+                    lv_gltfview_set_bg_mode(_viewer, BG_CLEAR);
                 } else if ((strcmp(argv[i + 1], "BG_SOLID") == 0) || (strcmp(argv[i + 1], "1") == 0)) {
-                    bgMode = BG_SOLID;
+                    lv_gltfview_set_bg_mode(_viewer, BG_SOLID);
                 } else if ((strcmp(argv[i + 1], "BG_ENVIRONMENT") == 0) || (strcmp(argv[i + 1], "2") == 0)) {
-                    bgMode = BG_ENVIRONMENT;
+                    lv_gltfview_set_bg_mode(_viewer, BG_ENVIRONMENT);
                 } else {
-                    bgMode = BG_CLEAR;
+                    lv_gltfview_set_bg_mode(_viewer, BG_CLEAR);
                 }
                 i++;
             } else if (strcmp(argv[i], "-blur_bg") == 0 && (i + 1) < argc) {
@@ -420,8 +422,8 @@ int main(int argc, char *argv[])
         // Output the parsed parameters
         printf("glTF File Path: %s\n", gltfFilePath[0] ? gltfFilePath : "None provided");
         printf("HDR File Path: %s\n", hdrFilePath[0] ? hdrFilePath : "None provided");
-        printf("Antialiasing Mode: %d\n", aaMode);
-        printf("Background Mode: %d\n", bgMode);
+        printf("Antialiasing Mode: %d\n", lv_gltfview_get_aa_mode(_viewer));
+        printf("Background Mode: %d\n",  lv_gltfview_get_bg_mode(_viewer));
         printf("Pitch: %.2f\n", lv_gltfview_get_pitch(_viewer));
         printf("Yaw: %.2f\n", lv_gltfview_get_yaw(_viewer));
         printf("Frame Count: %d\n", frameCount);
@@ -478,8 +480,8 @@ int main(int argc, char *argv[])
         lv_label_set_text(titleText, "3D Models");
 
         lv_loading_info_objects();
-        setIBLLoadPhaseCallback(load_progress_callback);
-        lv_gltfview_set_load_phase_callback(load_progress_callback);
+        setIBLLoadPhaseCallback(demo_load_progress_callback);
+        lv_gltfview_set_load_phase_callback(demo_load_progress_callback);
 
         lv_obj_t * tex = lv_3dtexture_create(tab_pages[TAB_VIEW]);
         lv_obj_set_size(tex, BIG_TEXTURE_WIDTH, BIG_TEXTURE_HEIGHT);   
@@ -521,12 +523,11 @@ int main(int argc, char *argv[])
         __apply_anim_button_visibility(_model_data);
 
         lv_3dtexture_id_t gltf_texture;
-        gl_viewer_desc_t view_desc;
+        //gl_viewer_desc_t view_desc;
 
-        view_desc.error_frames = 0;
-        view_desc.recenter_flag = true;
+        //view_desc.error_frames = 0;
+        //view_desc.recenter_flag = true;
 
-        //lv_gltfview_set_elevation(_viewer, elevation);
         lv_gltfview_set_camera(_viewer, use_scenecam ? camera : -1);
         lv_gltfview_set_width(_viewer, BIG_TEXTURE_WIDTH);
         lv_gltfview_set_height(_viewer, BIG_TEXTURE_HEIGHT);
@@ -534,8 +535,6 @@ int main(int argc, char *argv[])
         lv_gltfview_set_focal_y (_viewer, 0.f);
         lv_gltfview_set_focal_z (_viewer, 0.f);
         lv_gltfview_set_anim(_viewer, anim_enabled ? anim : -1);
-        lv_gltfview_set_bg_mode(_viewer, bgMode);
-        lv_gltfview_set_aa_mode(_viewer, aaMode);
 
         gltf_texture = lv_gltfview_render( shaderCache, _viewer, _model_data );
         lv_3dtexture_set_src(tex, gltf_texture);
@@ -619,7 +618,7 @@ int main(int argc, char *argv[])
                 spin_counter_degrees += (spin_rate * sec_span);
                 lv_gltfview_set_spin_degree_offset(_viewer, spin_counter_degrees);
             }
-            
+
             mouse_state = lv_indev_get_state(mouse);
             mouse_state_ex = mouse_state & 0xF0;
             mouse_state = mouse_state & 0x0F;
@@ -663,12 +662,12 @@ int main(int argc, char *argv[])
                 MEASURED_CLOCKS_PER_SEC = ((MEASURED_CLOCKS_PER_SEC * 3.0f) + ((float)ticks_this_second)) / 4.0f;
                 ROLLING_FPS = ((ROLLING_FPS * 3.0f) + ((float)frames_this_second)) / 4.0f;
                 if (frames_rendered_this_second > 0) {
-                    printf("Frames Drawn: %d | Average FPS: %2.1f | Ticks per sec: %2.1f\n", frames_rendered_this_second, ROLLING_FPS, MEASURED_CLOCKS_PER_SEC);
+                    printf("Frames Drawn: %ld | Average FPS: %2.1f | Ticks per sec: %2.1f\n", frames_rendered_this_second, ROLLING_FPS, MEASURED_CLOCKS_PER_SEC);
                 }
                 ticks_this_second = 0;
                 frames_this_second = 0;
                 frames_rendered_this_second = 0;
-                view_desc.error_frames = 0;
+                //view_desc.error_frames = 0;
             }
 
             lv_gltfview_set_timestep(_viewer, anim_enabled ? sec_span * anim_rate : 0.f );
@@ -713,7 +712,7 @@ int main(int argc, char *argv[])
         
         lv_obj_clear_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(tex, LV_OBJ_FLAG_HIDDEN);
-        load_progress_callback("Closing Application", "", 0.f, 0.f, 0.f, 0.f);
+        demo_load_progress_callback("Closing Application", "", 0.f, 0.f, 0.f, 0.f);
         usleep(20 * 1000);
         
         lv_obj_invalidate(grp_loading);

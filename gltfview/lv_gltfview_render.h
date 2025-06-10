@@ -34,6 +34,8 @@ float lv_gltfview_get_focal_x (pViewer viewer);
 float lv_gltfview_get_focal_y (pViewer viewer);
 float lv_gltfview_get_focal_z (pViewer viewer);
 float lv_gltfview_get_spin_degree_offset(pViewer viewer);
+uint32_t lv_gltfview_get_aa_mode(pViewer viewer);
+uint32_t lv_gltfview_get_bg_mode(pViewer viewer);
 
 void lv_gltfview_set_pitch (pViewer viewer, int pitch_degrees_x10 );
 void lv_gltfview_set_yaw (pViewer viewer, int yaw_degrees_x10 );
@@ -47,6 +49,7 @@ void lv_gltfview_inc_distance (pViewer viewer, float distance_inc_units );
 void lv_gltfview_inc_focal_x (pViewer viewer, float focal_x_inc );
 void lv_gltfview_inc_focal_y (pViewer viewer, float focal_y_inc );
 void lv_gltfview_inc_focal_z (pViewer viewer, float focal_z_inc );
+void lv_gltfview_inc_spin_degree_offset(pViewer viewer, float spin_degree_inc );
 
 void lv_gltfview_set_camera (pViewer viewer, int camera_number );
 void lv_gltfview_set_anim(pViewer viewer, uint32_t anim_num );

@@ -227,14 +227,14 @@ static void ov_stick_slider_event_cb(lv_event_t * e){
     float normval = ((float)lv_slider_get_value(slider) / 1000.0f ) ;
     ov_stick->data2 = ( normval * (MAX_STICK - MIN_STICK) ) + MIN_STICK;
 }
-
+/*
 static void ov_bucket_slider_event_cb(lv_event_t * e){
     const float MIN_BUCKET = -70.0f;
     const float MAX_BUCKET = 30.0f;
     lv_obj_t * slider = lv_event_get_target_obj(e);
     float normval = ((float)lv_slider_get_value(slider) / 1000.0f ) ;
     ov_bucket->data2 = ( normval * (MAX_BUCKET - MIN_BUCKET) ) + MIN_BUCKET;
-}
+}*/
 
 static void ext_draw_size_event_cb(lv_event_t * e){
     lv_coord_t * cur_size = (lv_coord_t*)lv_event_get_param(e);

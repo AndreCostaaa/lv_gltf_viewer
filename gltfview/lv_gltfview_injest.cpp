@@ -109,7 +109,7 @@ struct Vertex {
         if (GLTF_MATERIAL_VAR.value().transform) addDefine(TEXUV_DEFINE_TO_ADD, NULL); } 
 
         
-void (*load_progress_callback)(const char*, const char* , float, float, float, float) = NULL;
+void (*lv_gltfview_load_progress_callback)(const char*, const char* , float, float, float, float) = NULL;
 
 //void lv_gltf_discover_defines(pGltf_data_t data_obj, fastgltf::Node *node, fastgltf::Primitive *prim) {
 void lv_gltf_discover_defines(pGltf_data_t data_obj, void *node, void *prim) {
@@ -707,7 +707,7 @@ void fill_probe_info(gltf_probe_info *p_probe_info, pGltf_data_t data){
 }
 
 bool lv_gltfview_set_load_phase_callback(void (*_load_progress_callback)(const char*, const char* , float, float, float, float)) {
-    load_progress_callback= _load_progress_callback;
+    lv_gltfview_load_progress_callback= _load_progress_callback;
     return true;
 }
 
@@ -739,7 +739,7 @@ void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, pViewer vie
 
     fastgltf::Parser parser(supportedExtensions);
 
-    if (load_progress_callback != NULL) { load_progress_callback("Initializing...", "SUBTEST1234", 2.0f, 5.f, 23.0f, 100.f); }
+    if (lv_gltfview_load_progress_callback != NULL) { lv_gltfview_load_progress_callback("Initializing...", "SUBTEST1234", 2.0f, 5.f, 23.0f, 100.f); }
 
     auto gltfFile = fastgltf::MappedGltfFile::FromPath(gltfFilePath);
     if (!bool(gltfFile)) {
@@ -764,7 +764,7 @@ void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, pViewer vie
     gltf_probe_info _probe;
     fill_probe_info(&_probe, _retdata);
     set_probe(_retdata, _probe);
-    if (load_progress_callback != NULL) { load_progress_callback("Loading glTF file...", "SUBTEST1234", 2.0f, 5.f, 23.0f, 100.f); }
+    if (lv_gltfview_load_progress_callback != NULL) { lv_gltfview_load_progress_callback("Loading glTF file...", "SUBTEST1234", 2.0f, 5.f, 23.0f, 100.f); }
 
     // We load images first.
     const auto& asset = GET_ASSET(_retdata);
@@ -799,13 +799,13 @@ void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, pViewer vie
     // ---------
     
     { uint32_t i = 0; for (auto& image : asset->images) { load_image(shaders, viewer, _retdata, image, i); i++; 
-        if (load_progress_callback != NULL) { load_progress_callback("Loading Images", "SUBTEST1234", 2.f + (((float)i / (float)(_probe.imageCount) ) * 3.0f), 5.f, 23.0f, 100.f); }
+        if (lv_gltfview_load_progress_callback != NULL) { lv_gltfview_load_progress_callback("Loading Images", "SUBTEST1234", 2.f + (((float)i / (float)(_probe.imageCount) ) * 3.0f), 5.f, 23.0f, 100.f); }
     } }
     //for (auto& material : asset.materials)  { loadMaterial(viewer, material); }
     for (auto& mesh : asset->meshes)         { load_mesh(viewer, _retdata, mesh); }
     for (auto& camera : asset->cameras)      { lv_gltf_load_camera(viewer, camera); }      // Loading the cameras (possibly) requires knowing the viewport size, which we get using glfwGetWindowSize above.
 
-    if (load_progress_callback != NULL) { load_progress_callback("Done.", "SUBTEST1234", 5.0, 5.f, 23.0f, 100.f); }
+    if (lv_gltfview_load_progress_callback != NULL) { lv_gltfview_load_progress_callback("Done.", "SUBTEST1234", 5.0, 5.f, 23.0f, 100.f); }
 
     get_viewer_state(viewer)->load_success = true;
 
