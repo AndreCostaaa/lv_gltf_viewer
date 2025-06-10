@@ -1,6 +1,7 @@
 [submodule "lvgl"]
 	path = lvgl
-	url = https://github.com/lvgl/lvgl.git
+	url = https://github.com/FishOfTheNorthStar/lvgl_pr_patch_func.git
+	branch = pr_3_mouse_ex
 [submodule "lib/fastgltf"]
 	path = lib/fastgltf
 	url = https://github.com/spnda/fastgltf.git
