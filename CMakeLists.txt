@@ -1,44 +1,60 @@
 cmake_minimum_required(VERSION 3.25.1)
+# set(CMAKE_CXX_STANDARD 11)  # or 14, 17, etc.
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(lvgl_workspace LANGUAGES C CXX)
 
 set(CONFIG_LV_BUILD_EXAMPLES 1)
 set(CONFIG_LV_BUILD_DEMOS 1)
+set(FASTGLTF_ENABLE_DEPRECATED_EXT 1)
+# set(CMAKE_VERBOSE_MAKEFILE ON)
+
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+#set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
 
 # LVGL
 include(${CMAKE_CURRENT_LIST_DIR}/lvgl/CMakeLists.txt)
-include_directories(${CMAKE_CURRENT_LIST_DIR})
-
-# find_package(Freetype REQUIRED)
-# include_directories(${FREETYPE_INCLUDE_DIRS})
-
-add_executable(lvgl_workspace
-    main.c
-    mouse_cursor_icon.c
-    gl_renwin.cpp
-    gl_shader_includes.cpp
-    lib/mathc/mathc.c
-    ibl_sampler.cpp
-    shader_cache.cpp
-    lvgl_icon_40px_ARGB888.c
+include_directories(
+    ${CMAKE_CURRENT_LIST_DIR}
 )
 
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wunused-parameter -Wshadow")
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -std=c++17")
-set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address -Wno-unused-parameter")
+add_library(lvgl_gltfview 
+    gltfview/lv_gltfview_render.cpp
+    gltfview/lv_gltfview_shader_includes.cpp
+    gltfview/lv_gltfview_ibl_sampler.cpp
+    gltfview/lv_gltfview_shader_cache.cpp
+    gltfview/lv_gltfview_internal_datatypes.cpp
+    gltfview/lv_gltfview_reports.cpp
+    gltfview/lv_gltfview_utils.cpp
+    gltfview/lv_gltfview_setup.cpp
+    gltfview/lv_gltfview_injest.cpp
+    gltfview/lv_gltfview_animation.cpp
+    lib/mathc/mathc.c
+)
 
+add_executable(lvgl_workspace
+    demo_main.c
+    demo_ui.c
+    mouse_cursor_icon.c
+    lvgl_icon_40px_ARGB888.c
+    sprites1_32x32x7.c
+)
+
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
+set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas")
+
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/fastgltf)
+target_link_libraries(lvgl_workspace fastgltf)
+target_link_libraries(lvgl_gltfview fastgltf)
+
+target_link_libraries(lvgl_workspace lvgl_gltfview)
+target_link_libraries(lvgl_workspace webp)
 target_link_libraries(lvgl_workspace lvgl)
 target_link_libraries(lvgl_workspace pthread)
 target_link_libraries(lvgl_workspace m)
-# target_link_libraries(lvgl_workspace lvgl_thorvg)
-# target_link_libraries(lvgl_workspace lvgl_examples)
-# target_link_libraries(lvgl_workspace lvgl_demos)
-
 target_link_libraries(lvgl_workspace GL)
 target_link_libraries(lvgl_workspace GLEW)
 target_link_libraries(lvgl_workspace glfw)
-target_link_libraries(lvgl_workspace fastgltf)
-
-# target_link_libraries(lvgl_workspace jpeg)
-# target_link_libraries(lvgl_workspace png)
-# target_link_libraries(lvgl_workspace ${FREETYPE_LIBRARIES})

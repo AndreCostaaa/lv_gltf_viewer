@@ -5,5 +5,6 @@ cmake_install.cmake_install
 CMakeCache.txt
 /lib/b64
 /lib/fastgltf
-/lib/jsmn
+/lib/mathc
 /lib/*.a
+/render_frames/*
