@@ -617,7 +617,9 @@ int main(int argc, char *argv[])
 
             if (animate_spin) {
                 spin_counter_degrees += (spin_rate * sec_span);
+                lv_gltfview_set_spin_degree_offset(_viewer, spin_counter_degrees);
             }
+            
             mouse_state = lv_indev_get_state(mouse);
             mouse_state_ex = mouse_state & 0xF0;
             mouse_state = mouse_state & 0x0F;

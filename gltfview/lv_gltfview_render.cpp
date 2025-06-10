@@ -405,6 +405,7 @@ float lv_gltfview_get_distance (pViewer viewer) { return get_viewer_desc(viewer)
 float lv_gltfview_get_focal_x (pViewer viewer) { return get_viewer_desc(viewer)->focal_x; }
 float lv_gltfview_get_focal_y (pViewer viewer) { return get_viewer_desc(viewer)->focal_y; }
 float lv_gltfview_get_focal_z (pViewer viewer) { return get_viewer_desc(viewer)->focal_z; }
+float lv_gltfview_get_spin_degree_offset(pViewer viewer){ return get_viewer_desc(viewer)->spin_degree_offset; }
 
 void lv_gltfview_set_pitch (pViewer viewer, int pitch_degrees_x10 ) {
     auto desc = get_viewer_desc(viewer);
@@ -566,6 +567,13 @@ void lv_gltfview_set_exposure(pViewer viewer, float exposure ){
     auto desc = get_viewer_desc(viewer);
     if (std::abs(desc->exposure - exposure) > 0.0001f ) {
         desc->exposure = exposure;
+        desc->dirty = true;
+    }
+}
+void lv_gltfview_set_spin_degree_offset(pViewer viewer, float spin_degree_offset ){
+    auto desc = get_viewer_desc(viewer);
+    if (std::abs(desc->spin_degree_offset - spin_degree_offset) > 0.0001f ) {
+        desc->spin_degree_offset = spin_degree_offset;
         desc->dirty = true;
     }
 }

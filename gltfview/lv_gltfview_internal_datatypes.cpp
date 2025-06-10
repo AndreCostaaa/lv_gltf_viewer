@@ -171,6 +171,7 @@ void init_viewer_struct(pViewer _ViewerMem) {
         _newDesc->aa_mode = 2;
         _newDesc->camera = 0;
         _newDesc->anim = 0;
+        _newDesc->spin_degree_offset = 0.f;        
         _newDesc->timestep = 0.f;
         _newDesc->error_frames = 0;
         _newDesc->dirty = true;

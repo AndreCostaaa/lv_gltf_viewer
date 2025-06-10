@@ -33,6 +33,7 @@ float lv_gltfview_get_distance (pViewer viewer);
 float lv_gltfview_get_focal_x (pViewer viewer);
 float lv_gltfview_get_focal_y (pViewer viewer);
 float lv_gltfview_get_focal_z (pViewer viewer);
+float lv_gltfview_get_spin_degree_offset(pViewer viewer);
 
 void lv_gltfview_set_pitch (pViewer viewer, int pitch_degrees_x10 );
 void lv_gltfview_set_yaw (pViewer viewer, int yaw_degrees_x10 );
@@ -54,6 +55,7 @@ void lv_gltfview_set_aa_mode(pViewer viewer, uint32_t aa_mode );
 void lv_gltfview_set_blur_bg(pViewer viewer, float blur_bg_amount );
 void lv_gltfview_set_env_pow(pViewer viewer, float env_pow);
 void lv_gltfview_set_exposure(pViewer viewer, float exposure);
+void lv_gltfview_set_spin_degree_offset(pViewer viewer, float spin_degree_offset );
 
 bool lv_gltfview_check_frame_was_cached(pViewer viewer);
 bool lv_gltfview_check_frame_was_antialiased(pViewer viewer);

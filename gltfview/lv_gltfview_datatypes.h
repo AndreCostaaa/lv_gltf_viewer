@@ -119,6 +119,8 @@ typedef struct {
     int32_t render_width;  // If anti-aliasing is not applied this frame, these are the same as width/height, if antialiasing
     int32_t render_height; // is enabled, these are width/height * antialias upscale power (currently 2.0)
     bool recenter_flag;
+    float spin_degree_offset;   // This amount is added to the yaw and can be incremented overtime for a spinning platter effect
+
     float focal_x;
     float focal_y;
     float focal_z;

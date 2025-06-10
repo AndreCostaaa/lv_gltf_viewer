@@ -531,7 +531,7 @@ void make_view_proj_matrix( pViewer viewer, gl_viewer_desc_t * view_desc, pGltf_
     mfloat_t rotation[MAT3_SIZE];
     mat3_identity(rotation);
     mat3_rotation_x(rotation, to_radians(view_desc->pitch));
-    mat3_rotation_y(rotation, to_radians(view_desc->yaw));
+    mat3_rotation_y(rotation, to_radians(view_desc->yaw + view_desc->spin_degree_offset));
     vec3_multiply_mat3(rcam_dir, rcam_dir, rotation);
 
     mfloat_t ncam_dir[VEC3_SIZE];

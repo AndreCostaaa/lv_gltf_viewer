@@ -175,6 +175,7 @@ void lv_gltf_copy_viewer_desc(gl_viewer_desc_t* from, gl_viewer_desc_t* to) {
     to->blur_bg = from->blur_bg;
     to->exposure = from->exposure;
     to->env_pow = from->env_pow;
+    to->spin_degree_offset = from->spin_degree_offset;
 }
 
 bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t* from, gl_viewer_desc_t* to){
@@ -191,6 +192,7 @@ bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t* from, gl_viewer_desc_t* to){
        (to->bg_mode       != from->bg_mode) || 
        (to->blur_bg       != from->blur_bg) || 
        (to->exposure      != from->exposure) || 
+       (to->spin_degree_offset != from->spin_degree_offset) || 
        (to->env_pow       != from->env_pow) ) { return true; }    
     // These will be handled elsewhere
     //if (to->width        != from->width) { printf("width diff\n"); return true; }
