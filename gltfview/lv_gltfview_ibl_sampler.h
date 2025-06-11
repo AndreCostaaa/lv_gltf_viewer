@@ -77,8 +77,8 @@ class iblSampler
 extern "C" {
 #endif
 
-void setIBLLoadPhaseCallback(void (*_load_progress_callback)(const char*, const char* , float, float, float, float));
-gl_environment_textures setup_environment(gl_environment_textures* _lastEnv, const char* _env_filename, int _env_rotation_degreesX10 );
+void lv_gltfview_ibl_set_loadphase_callback(void (*_load_progress_callback)(const char*, const char* , float, float, float, float));
+gl_environment_textures lv_gltfview_ibl_sampler_setup(gl_environment_textures* _lastEnv, const char* _env_filename, int _env_rotation_degreesX10 );
 
 #ifdef __cplusplus
 } /*extern "C"*/

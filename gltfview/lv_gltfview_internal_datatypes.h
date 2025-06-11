@@ -50,8 +50,6 @@ typedef NodePtr         _NODE;
     MeshData*           lv_gltf_get_new_meshdata( _VIEW _viewer );
     void                lv_gltf_set_node_at_path(_DATA _data, std::string _path, NodePtr node);
     void                lv_gltf_set_node_index(_DATA _data, _UINT I, NodePtr node);
-
-//    void                lv_gltf_allocate_index(_DATA D, _UINT I);
     int64_t             lv_gltf_get_int_radiusX1000 (_DATA gltf_data);
 
 #ifdef __cplusplus

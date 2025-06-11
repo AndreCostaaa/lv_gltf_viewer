@@ -4,16 +4,16 @@
 #include "lvgl/demos/lv_demos.h"
 #include "lvgl/examples/lv_examples.h"
 
-#include "gltfview/lv_gltfview_datatypes.h"
-#include "gltfview/lv_gltfview_internal_interface.hpp"
-#include "gltfview/lv_gltfview_reports.h"
-#include "gltfview/lv_gltfview_render.h"
-#include "gltfview/lv_gltfview_shader_cache.h"
-#include "gltfview/lv_gltfview_shader_includes.h"
-#include "gltfview/lv_gltfview_shader_v1.h"
+#include "gltfview/lv_gltfview.h"
+//#include "gltfview/lv_gltfview_datatypes.h"
+//#include "gltfview/lv_gltfview_internal_interface.hpp"
+//#include "gltfview/lv_gltfview_reports.h"
+//#include "gltfview/lv_gltfview_render.h"
+//#include "gltfview/lv_gltfview_shader_cache.h"
+//#include "gltfview/lv_gltfview_shader_includes.h"
+//#include "gltfview/lv_gltfview_shader_v1.h"
 
 #include <unistd.h>     /* usleep */
-#include <signal.h>     /* to trap ctrl-break */
 #include <GL/glew.h>    /* For window size restrictions */
 //#define GLFW_INCLUDE_ES31 
 #include <GLFW/glfw3.h> /* For window size / title */
@@ -49,16 +49,11 @@
 
 extern bool animate_spin;
 extern float spin_rate;
-extern float elevation;
 extern float anim_rate;
 extern int camera;
 extern int anim;
-
 extern unsigned int _current_tab;
-
-extern bool camselection_changed;
 extern bool use_scenecam;
-extern bool animselection_changed;
 extern bool anim_enabled;
 
 extern lv_obj_t * grp_loading;
@@ -79,28 +74,26 @@ extern pOverride ov_bucket;
 extern pOverride ov_swing;
 extern pOverride ov_cursor;
 
+extern pGltf_data_t demo_gltfdata;
 extern pViewer demo_gltfview;
+extern GLFWwindow * glfw_window;
 
 LV_IMAGE_DECLARE(lvgl_icon_40px);
 LV_IMAGE_DECLARE(sprites1_32x32x7);
 
-void lv_loading_info_objects(void);
-void lv_pitch_yaw_distance_sliders(lv_obj_t * container);
-void lv_camera_select(lv_obj_t * container);
-void lv_animation_select(lv_obj_t * container);
-void __fill_in_InfoTab( pGltf_data_t _data );
-void __add_override_controls(lv_obj_t * container);
+void demo_ui_loading_info_objects(void);
+void demo_ui_pitch_yaw_distance_sliders(lv_obj_t * container);
+void demo_ui_camera_select(lv_obj_t * container);
+void demo_ui_animation_select(lv_obj_t * container);
+void demo_ui_fill_in_InfoTab( pGltf_data_t _data );
+void demo_ui_add_override_controls(lv_obj_t * container);
 void demo_ui_apply_camera_button_visibility( pGltf_data_t _data);
 void demo_ui_apply_anim_button_visibility( pGltf_data_t _data);
 void demo_ui_set_tab(unsigned int _tabnum);
 void demo_ui_make_underlayer(void);
+void demo_ui_load_progress_callback(const char* phase_title, const char* sub_phase_title, float phase_progress, float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max);
 bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char * hdrFile, int * frame_count, bool * software_only, float * _anim_rate, int argc, char *argv[] );
-void demo_nav_turn( int mouse_x, int mouse_y,int last_mouse_x, int last_mouse_y);
-void demo_nav_drag_xz(float unit_distance, int mouse_x, int mouse_y, int last_mouse_x, int last_mouse_y);
-void demo_nav_drag_y(float unit_distance, int mouse_y, int last_mouse_y);
-void demo_nav_zoom( int mouse_y, int last_mouse_y);
-
-
-
+void demo_nav_process_drag(float movement_power, uint32_t mouse_state_ex, int mouse_x, int mouse_y, int last_mouse_x, int last_mouse_y);
+void demo_os_integrate_setup_glfw_window(GLFWwindow * _window);
 
 #endif // MAINUI_SHARED_H

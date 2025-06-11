@@ -149,16 +149,34 @@ static void tab_clicked_event_cb(lv_event_t * e){
     demo_ui_set_tab(idx - 1);
 }
 
+void demo_ui_apply_camera_button_visibility(pGltf_data_t _data){
+    gltf_probe_info * probe = lv_gltfview_get_probe(_data);
+    for (unsigned int i=0; i<MAX_CAM_BUTTONS; i++)
+        if (use_scenecam && (i < probe->cameraCount)) lv_obj_clear_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
+            else lv_obj_add_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
+    if (probe->cameraCount > 0) lv_obj_clear_flag(use_scenecam_checkbox, LV_OBJ_FLAG_HIDDEN);
+        else lv_obj_add_flag(use_scenecam_checkbox, LV_OBJ_FLAG_HIDDEN);
+}
+
+void demo_ui_apply_anim_button_visibility(pGltf_data_t _data){
+    gltf_probe_info * probe = lv_gltfview_get_probe(_data);
+    for (unsigned int i=0; i<MAX_ANIM_BUTTONS; i++)
+        if (anim_enabled && i < probe->animationCount) lv_obj_clear_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
+            else lv_obj_add_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
+    if (probe->animationCount > 0) lv_obj_clear_flag(anim_checkbox, LV_OBJ_FLAG_HIDDEN);
+        else lv_obj_add_flag(anim_checkbox, LV_OBJ_FLAG_HIDDEN);
+}
+
 static void use_scenecam_checkbox_event_cb(lv_event_t * e){
     LV_UNUSED(e);
     use_scenecam = (lv_obj_get_state(use_scenecam_checkbox) & LV_STATE_CHECKED);
-    camselection_changed = true;
+    demo_ui_apply_camera_button_visibility(demo_gltfdata);
 }
 
 static void anim_checkbox_event_cb(lv_event_t * e){
     LV_UNUSED(e);
     anim_enabled = (lv_obj_get_state(anim_checkbox) & LV_STATE_CHECKED);
-    animselection_changed = true;
+    demo_ui_apply_anim_button_visibility(demo_gltfdata);
 }
 
 // default value means no preference, it will use the first available scene camera if defined, otherwise the generated platter camera
@@ -241,7 +259,7 @@ static void ext_draw_size_event_cb(lv_event_t * e){
     *cur_size = LV_MAX(*cur_size, LV_HOR_RES);
 }
 
-void lv_loading_info_objects(void){
+void demo_ui_loading_info_objects(void){
     grp_loading = lv_obj_create(lv_screen_active());
     lv_obj_set_size(grp_loading, 320, 60);
 
@@ -298,7 +316,7 @@ void lv_loading_info_objects(void){
 }
 
 #define TBUF_SIZE 32768
-void __fill_in_InfoTab( pGltf_data_t _data ) {
+void demo_ui_fill_in_InfoTab( pGltf_data_t _data ) {
     int _cury = 40;
     const int LABEL_HEIGHT = 16;
     int _ll = 0;
@@ -502,7 +520,7 @@ void __customize_last_tab(lv_obj_t * _tabview, lv_obj_t * _tabContents) {
 
 }
 
-void lv_main_tabview(void) {
+void __make_main_tabview(void) {
     tabview = lv_tabview_create(lv_screen_active());
     lv_tabview_set_tab_bar_position(tabview, LV_DIR_LEFT);
     lv_tabview_set_tab_bar_size(tabview, 60);
@@ -528,7 +546,7 @@ void lv_main_tabview(void) {
    }
 }
 
-void lv_pitch_yaw_distance_sliders(lv_obj_t * _cont){
+void demo_ui_pitch_yaw_distance_sliders(lv_obj_t * _cont){
     if (!__styles_ready) {__make_styles();}
 
     {
@@ -621,7 +639,7 @@ void lv_pitch_yaw_distance_sliders(lv_obj_t * _cont){
     }*/     
 }
 
-void lv_camera_select(lv_obj_t * _cont){
+void demo_ui_camera_select(lv_obj_t * _cont){
     if (!__styles_ready) {__make_styles();}
 
     {
@@ -674,18 +692,7 @@ void lv_camera_select(lv_obj_t * _cont){
     lv_obj_add_event_cb(cam_buttons[15], __select_camera_16_cb, LV_EVENT_CLICKED, NULL);
 }
 
-void demo_ui_apply_camera_button_visibility(pGltf_data_t _data){
-    camselection_changed = false;
-    //gltf_probe_info * probe = (gltf_probe_info*)lv_gltfview_get_probe(_data);
-    gltf_probe_info * probe = lv_gltfview_get_probe(_data);
-    for (unsigned int i=0; i<MAX_CAM_BUTTONS; i++)
-        if (use_scenecam && (i < probe->cameraCount)) lv_obj_clear_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
-            else lv_obj_add_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
-    if (probe->cameraCount > 0) lv_obj_clear_flag(use_scenecam_checkbox, LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(use_scenecam_checkbox, LV_OBJ_FLAG_HIDDEN);
-}
-
-void __add_override_controls( lv_obj_t * _cont ) {
+void demo_ui_add_override_controls( lv_obj_t * _cont ) {
     if (!__styles_ready) {__make_styles();}
     {   // Boom (lower left)
         lv_obj_t * slider = lv_slider_create(_cont);
@@ -731,8 +738,7 @@ void __add_override_controls( lv_obj_t * _cont ) {
     }
 }
 
-
-void lv_animation_select(lv_obj_t * _cont){
+void demo_ui_animation_select(lv_obj_t * _cont){
     if (!__styles_ready) {__make_styles();}
 
     {
@@ -783,22 +789,33 @@ void lv_animation_select(lv_obj_t * _cont){
     lv_obj_add_event_cb(anim_buttons[13], __select_anim_14_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(anim_buttons[14], __select_anim_15_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(anim_buttons[15], __select_anim_16_cb, LV_EVENT_CLICKED, NULL);
-    animselection_changed=true;
+    //animselection_changed=true;
 }
 
-void demo_ui_apply_anim_button_visibility(pGltf_data_t _data){
-    animselection_changed = false;
-    //gltf_probe_info * probe = (gltf_probe_info*)lv_gltfview_get_probe(_data);
-    gltf_probe_info * probe = lv_gltfview_get_probe(_data);
-    for (unsigned int i=0; i<MAX_ANIM_BUTTONS; i++)
-        if (anim_enabled && i < probe->animationCount) lv_obj_clear_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
-            else lv_obj_add_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
-    if (probe->animationCount > 0) lv_obj_clear_flag(anim_checkbox, LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(anim_checkbox, LV_OBJ_FLAG_HIDDEN);
+
+
+void demo_ui_load_progress_callback(const char* phase_title, const char* sub_phase_title, float phase_progress, float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max)
+{
+    LV_UNUSED(sub_phase_title);
+    LV_UNUSED(sub_phase_progress);
+    LV_UNUSED(sub_phase_progress_max);
+
+    lv_label_set_text(progText1, phase_title);
+    lv_obj_add_flag(progbar2, LV_OBJ_FLAG_HIDDEN);
+    if (phase_progress_max != 0.f) {
+        lv_obj_clear_flag(progbar1, LV_OBJ_FLAG_HIDDEN);
+        lv_bar_set_value(progbar1, (int)((phase_progress / phase_progress_max) * 100.0f), LV_ANIM_OFF);
+    } else {
+        lv_obj_add_flag(progbar1, LV_OBJ_FLAG_HIDDEN);
+    }
+    lv_timer_handler();
+    lv_obj_invalidate(grp_loading);
+    lv_refr_now(NULL);
+    usleep(1000);
 }
 
 void demo_ui_make_underlayer( void ) {
-    lv_main_tabview();
+    __make_main_tabview();
     demo_ui_set_tab(TAB_VIEW);
     __make_ViewTab();
     __make_InfoTab();

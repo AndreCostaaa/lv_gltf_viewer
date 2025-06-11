@@ -1,18 +1,28 @@
-#include "lv_gltfview_datatypes.h"
-//#include "lv_gltfview_internal_interface.hpp"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wredundant-move"
-//#include "lib/fastgltf/include/fastgltf/core.hpp"
 #include "lib/fastgltf/include/fastgltf/types.hpp"
-//#include "lib/fastgltf/include/fastgltf/tools.hpp"
-#pragma GCC diagnostic pop
 
-#include <vector>
-#include <map>
-#include <algorithm>
+#include "lv_gltfview_datatypes.h"
 #include "lv_gltfview_internal_datatypes.h"
-struct gltf_data_t {
+#include <algorithm>
+
+#ifndef __MESH_DATA_DEFINED
+#define __MESH_DATA_DEFINED
+struct MeshData {
+    _GLUINT drawsBuffer;
+    std::vector<Primitive> primitives;
+};
+#endif /* __MESH_DATA_DEFINED */
+
+typedef pViewer         _VIEW;
+typedef pGltf_data_t    _DATA;
+typedef FVEC3           _VEC3;
+typedef FVEC4           _VEC4;
+typedef FMAT4           _MAT4;
+typedef uint64_t        _UINT;
+typedef MeshData        _MESH;
+typedef NodePtr         _NODE;
+#define _RET return
+
+struct lv_gltfdata_t {
     ASSET asset;
     bool load_success;
     gltf_probe_info probe;
@@ -55,23 +65,13 @@ struct gltf_data_t {
     //bool render_state_ready;
 };
 
-struct MeshData;
 struct _MatrixSet {
     FMAT4 viewMatrix = FMAT4(1.0f);
     FMAT4 projectionMatrix = FMAT4(1.0f);
     FMAT4 viewProjectionMatrix = FMAT4(1.0f);
 };
 
-
-#ifndef __MESH_DATA_DEFINED
-#define __MESH_DATA_DEFINED
-struct MeshData {
-    _GLUINT drawsBuffer;
-    std::vector<Primitive> primitives;
-};
-#endif /* __MESH_DATA_DEFINED */
-
-struct _Viewer {
+struct lv_gltfview_t {
     ASSET asset;
     
     _ViewerState state;
@@ -102,11 +102,11 @@ MeshData* lv_gltf_get_new_meshdata(pViewer _viewer) {
 }
 
 uint32_t get_gltf_datastruct_datasize(void) {
-    return sizeof(gltf_data_t);
+    return sizeof(lv_gltfdata_t);
 }
 
 uint32_t get_viewer_datasize(void) {
-    return sizeof(_Viewer);
+    return sizeof(lv_gltfview_t);
 }
 
 uint32_t get_primitive_datasize(void) {
@@ -116,12 +116,12 @@ uint32_t get_primitive_datasize(void) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 void __init_gltf_datastruct(pGltf_data_t _DataStructMem, const char * gltf_path) {
-    gltf_data_t _newDataStruct;
+    lv_gltfdata_t _newDataStruct;
     _newDataStruct.asset = ASSET();
     _newDataStruct.filename = gltf_path;
     _newDataStruct.load_success = false;  
 
-    memcpy (_DataStructMem, &_newDataStruct, sizeof (gltf_data_t));
+    memcpy (_DataStructMem, &_newDataStruct, sizeof (lv_gltfdata_t));
     _DataStructMem->overrides = new std::map<fastgltf::Node *, _Override>();
     _DataStructMem->node_by_path = new StringNodeMap();
     _DataStructMem->index_by_node = new NodeIntMap();
@@ -135,22 +135,8 @@ void __init_gltf_datastruct(pGltf_data_t _DataStructMem, const char * gltf_path)
     _DataStructMem->local_mesh_to_center_points_by_primitive = new std::map<uint32_t, std::map<uint32_t, FVEC4>>();  
 }
 
-void __free_data_struct(pGltf_data_t _data) {
-    _data->overrides->clear(); delete _data->overrides;
-    _data->node_by_path->clear(); delete _data->node_by_path;
-    _data->index_by_node->clear(); delete _data->index_by_node;
-    _data->node_by_index->clear(); delete _data->node_by_index; 
-    _data->node_transform_cache->clear(); delete _data->node_transform_cache;
-    _data->opaque_nodes_by_materialIndex->clear(); delete _data->opaque_nodes_by_materialIndex;
-    _data->blended_nodes_by_materialIndex->clear(); delete _data->blended_nodes_by_materialIndex;
-    _data->distance_sort_nodes->clear(); delete _data->distance_sort_nodes;
-    _data->ibmBySkinThenNode->clear(); delete _data->ibmBySkinThenNode;
-    _data->validated_skins->clear(); delete _data->validated_skins;
-    _data->local_mesh_to_center_points_by_primitive->clear();delete _data->local_mesh_to_center_points_by_primitive;
-}
-
 void init_viewer_struct(pViewer _ViewerMem) {
-    _Viewer _newViewer;
+    lv_gltfview_t _newViewer;
     auto _newMetrics = &_newViewer.state.metrics;
         _newMetrics->opaqueFramebufferWidth = 256;
         _newMetrics->opaqueFramebufferHeight = 256;
@@ -185,9 +171,23 @@ void init_viewer_struct(pViewer _ViewerMem) {
     _newViewer.state.renderOpaqueBuffer = false;
     _newViewer.cameraIndex = std::nullopt;
     _newViewer.envRotationAngle = 0.0f;
-    memcpy (_ViewerMem, &_newViewer, sizeof (_Viewer));
+    memcpy (_ViewerMem, &_newViewer, sizeof (lv_gltfview_t));
 }
 #pragma GCC diagnostic pop
+
+void __free_data_struct(pGltf_data_t _data) {
+    _data->overrides->clear(); delete _data->overrides;
+    _data->node_by_path->clear(); delete _data->node_by_path;
+    _data->index_by_node->clear(); delete _data->index_by_node;
+    _data->node_by_index->clear(); delete _data->node_by_index; 
+    _data->node_transform_cache->clear(); delete _data->node_transform_cache;
+    _data->opaque_nodes_by_materialIndex->clear(); delete _data->opaque_nodes_by_materialIndex;
+    _data->blended_nodes_by_materialIndex->clear(); delete _data->blended_nodes_by_materialIndex;
+    _data->distance_sort_nodes->clear(); delete _data->distance_sort_nodes;
+    _data->ibmBySkinThenNode->clear(); delete _data->ibmBySkinThenNode;
+    _data->validated_skins->clear(); delete _data->validated_skins;
+    _data->local_mesh_to_center_points_by_primitive->clear();delete _data->local_mesh_to_center_points_by_primitive;
+}
 
 void __free_viewer_struct(pViewer V) {
     V->meshes.erase(V->meshes.begin(), V->meshes.end());V->meshes.clear(); V->meshes.shrink_to_fit();
@@ -198,16 +198,6 @@ void __free_viewer_struct(pViewer V) {
     V->shaderSets.erase(V->shaderSets.begin(), V->shaderSets.end());V->shaderSets.clear();V->shaderSets.shrink_to_fit();
     V->shaderUniforms.erase(V->shaderUniforms.begin(), V->shaderUniforms.end());V->shaderUniforms.clear();V->shaderUniforms.shrink_to_fit();
 }
-
-typedef pViewer         _VIEW;
-typedef pGltf_data_t    _DATA;
-typedef FVEC3           _VEC3;
-typedef FVEC4           _VEC4;
-typedef FMAT4           _MAT4;
-typedef uint64_t        _UINT;
-typedef MeshData        _MESH;
-typedef NodePtr         _NODE;
-#define _RET return
 
 FVEC4 lv_gltf_get_primitive_centerpoint(pGltf_data_t ret_data, fastgltf::Mesh& mesh, uint32_t prim_num);
 
@@ -241,24 +231,17 @@ Texture*        get_texdata                 (_VIEW V,_UINT I) {_RET &(V->texture
 UniformLocs*    get_uniform_ids             (_VIEW V,_UINT I) {_RET &(V->shaderUniforms[I]);}
 uint64_t        get_texdata_glid            (_VIEW V,_UINT I) {_RET get_texdata(V, I)->texture;}
 void            allocate_index              (_DATA D,_UINT I) {(*D->node_by_index).resize(I);}
-void            set_probe                   (_DATA D,gltf_probe_info _probe){D->probe = std::move(_probe);}
-void            lv_gltf_set_node_index      (_DATA D,_UINT I,_NODE N) {(*D->node_by_index)[I] = N;  (*D->index_by_node)[N] = I;}
-void            lv_gltf_set_node_at_path    (_DATA D, std::string P, _NODE N) {(*D->node_by_path)[P] = N; }
-void*           get_prim_from_mesh          (MeshData* M, uint64_t I) {_RET &(M->primitives[I]);}
+void            set_probe                   (_DATA D,gltf_probe_info _probe)    {D->probe = std::move(_probe);}
+void            lv_gltf_set_node_at_path    (_DATA D,std::string P,_NODE N)   {(*D->node_by_path)[P] = N; }
+void            lv_gltf_set_node_index      (_DATA D,_UINT I,_NODE N)   {(*D->node_by_index)[I] = N;  (*D->index_by_node)[N] = I;}
+void*           get_prim_from_mesh          (MeshData* M, uint64_t I)   {_RET &(M->primitives[I]);}
 
-_MAT4           get_cached_transform        (_DATA D,_NODE N)         {_RET ((*D->node_transform_cache)[N]);}
-void            set_cached_transform        (_DATA D,_NODE N,_MAT4 M) {(*D->node_transform_cache)[N] = M;}
-void            clear_transform_cache       (_DATA D)                 { D->node_transform_cache->clear();}
+_MAT4           get_cached_transform        (_DATA D,_NODE N)           {_RET ((*D->node_transform_cache)[N]);}
+void            set_cached_transform        (_DATA D,_NODE N,_MAT4 M)   {(*D->node_transform_cache)[N] = M;}
+void            clear_transform_cache       (_DATA D)                   { D->node_transform_cache->clear();}
 
-void            recache_centerpoint         (_DATA D,_UINT I,int32_t P)            { (*D->local_mesh_to_center_points_by_primitive)[I][P] = lv_gltf_get_primitive_centerpoint(D, D->asset.meshes[I], P); }
-bool            centerpoint_cache_contains  (_DATA D,_UINT I,int32_t P)  {_RET ((D->local_mesh_to_center_points_by_primitive->find(I) == D->local_mesh_to_center_points_by_primitive->end()) || ( (*D->local_mesh_to_center_points_by_primitive)[I].find(P) == (*D->local_mesh_to_center_points_by_primitive)[I].end())) ? false : true; }    
-_VEC3           get_cached_centerpoint(_DATA D, _UINT I, int32_t P, _MAT4 M) {
-                    FVEC4 tv = FVEC4((*D->local_mesh_to_center_points_by_primitive)[I][P]);
-                    tv[3] = 1.f;
-                    tv = M * tv ;
-                    return FVEC3(tv[0], tv[1], tv[2]);
-}
-
+void            recache_centerpoint         (_DATA D,_UINT I,int32_t P) { (*D->local_mesh_to_center_points_by_primitive)[I][P] = lv_gltf_get_primitive_centerpoint(D, D->asset.meshes[I], P); }
+bool            centerpoint_cache_contains  (_DATA D,_UINT I,int32_t P) {_RET ((D->local_mesh_to_center_points_by_primitive->find(I) == D->local_mesh_to_center_points_by_primitive->end()) || ( (*D->local_mesh_to_center_points_by_primitive)[I].find(P) == (*D->local_mesh_to_center_points_by_primitive)[I].end())) ? false : true; }    
 bool            validated_skins_contains    (_DATA D,int64_t I)  {_RET ((std::find(D->validated_skins->begin(), D->validated_skins->end(),I) != D->validated_skins->end()));}
 void            validate_skin               (_DATA D,int64_t I)  {D->validated_skins->push_back(I);}
 _UINT           get_skins_size              (_DATA D)  {_RET D->validated_skins->size();}
@@ -278,6 +261,13 @@ NodeDistanceVector::iterator get_distance_sort_begin(_DATA D) {_RET D->distance_
 NodeDistanceVector::iterator get_distance_sort_end(_DATA D) {_RET D->distance_sort_nodes->end(); }
 
 gl_renwin_shaderset_t* get_shader_set (_VIEW V,_UINT I) {_RET &(V->shaderSets[I]);}
+
+_VEC3 get_cached_centerpoint(_DATA D, _UINT I, int32_t P, _MAT4 M) {
+    FVEC4 tv = FVEC4((*D->local_mesh_to_center_points_by_primitive)[I][P]);
+    tv[3] = 1.f;
+    tv = M * tv ;
+    return FVEC3(tv[0], tv[1], tv[2]);
+}
 
 void set_shader(_VIEW V, uint64_t _index, UniformLocs _uniforms, gl_renwin_shaderset_t _shaderset) {
     V->shaderUniforms[_index] = _uniforms;

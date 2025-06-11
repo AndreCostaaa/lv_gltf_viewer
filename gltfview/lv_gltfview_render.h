@@ -7,6 +7,8 @@ extern "C" {
 
 #include "lv_gltfview_datatypes.h"
 #include "lv_gltfview_shader_cache.h"
+gl_environment_textures lv_gltfview_ibl_sampler_setup(gl_environment_textures* _lastEnv, const char* _env_filename, int _env_rotation_degreesX10 );
+void lv_gltfview_ibl_set_loadphase_callback(void (*_load_progress_callback)(const char*, const char* , float, float, float, float));
 
 uint32_t            lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t gltf_data );
 void                lv_gltfview_destroy(pViewer _viewer, pGltf_data_t _data, pShaderCache _shaders);

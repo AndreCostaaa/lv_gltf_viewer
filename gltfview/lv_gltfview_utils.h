@@ -3,19 +3,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#include "lib/mathc/mathc.h"
-
-/**
- * @brief Push the current OpenGL state onto the stack.
- */
-inline void lv_gltf_opengl_state_push(void);
-
-/**
- * @brief Pop the last OpenGL state from the stack.
- */
-inline void lv_gltf_opengl_state_pop(void);
 
 /**
  * @brief Get the center point of a primitive in the mesh.
@@ -26,15 +13,6 @@ inline void lv_gltf_opengl_state_pop(void);
  * @return The center point of the primitive as a fvec4.
  */
 FVEC4 lv_gltf_get_primitive_centerpoint(pGltf_data_t ret_data, fastgltf::Mesh& mesh, uint32_t prim_num);
-
-/**
- * @brief Get the isolated filename from a full path.
- *
- * @param filename The full filename.
- * @param out_buffer Buffer to store the isolated filename.
- * @param max_out_length Maximum length of the output buffer.
- */
-void lv_gltf_get_isolated_filename(const char* filename, char* out_buffer, uint32_t max_out_length);
 
 /**
  * @brief Print a summary of the transformation matrix.
@@ -51,6 +29,31 @@ void lv_gltf_print_matrix_summary(FMAT4 matrix);
  * @param depth The depth in the hierarchy for indentation.
  */
 void lv_gltf_debug_print_node(ASSET& asset, fastgltf::Node node, std::size_t depth);
+
+FVEC3 lv_gltf_get_centerpoint(pGltf_data_t gltf_data, FMAT4 matrix, uint32_t meshIndex, int32_t elem);
+
+/**
+ * @brief Push the current OpenGL state onto the stack.
+ */
+inline void lv_gltf_opengl_state_push(void);
+
+/**
+ * @brief Pop the last OpenGL state from the stack.
+ */
+inline void lv_gltf_opengl_state_pop(void);
+#endif
+
+#include "lib/mathc/mathc.h"
+
+
+/**
+ * @brief Get the isolated filename from a full path.
+ *
+ * @param filename The full filename.
+ * @param out_buffer Buffer to store the isolated filename.
+ * @param max_out_length Maximum length of the output buffer.
+ */
+void lv_gltf_get_isolated_filename(const char* filename, char* out_buffer, uint32_t max_out_length);
 
 /**
  * @brief Raycast to find the ground position based on mouse coordinates.
@@ -82,9 +85,6 @@ void lv_gltf_copy_viewer_desc(gl_viewer_desc_t* from_state, gl_viewer_desc_t* to
  * @return true if the descriptors are equal, false otherwise.
  */
 bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t* from_state, gl_viewer_desc_t* to_state);
-
-
-FVEC3 lv_gltf_get_centerpoint(pGltf_data_t gltf_data, FMAT4 matrix, uint32_t meshIndex, int32_t elem);
 
 
 #ifdef __cplusplus

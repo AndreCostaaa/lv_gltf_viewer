@@ -31,14 +31,7 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 #pragma GCC diagnostic pop
 #endif
 
-#include "gltfview/lv_gltfview_render.h"
-// These actually export public functions
-#include "lv_gltfview_shader_cache.h"
-#include "lv_gltfview_ibl_sampler.h"
-#include "lv_gltfview_datatypes.h"
-#include "lv_gltfview_utils.h"
-#include "lv_gltfview_reports.h"
-#include "lv_gltfview_injest.h"
+#include "gltfview/lv_gltfview.h"
 // These have to be included (for now) or else the linker won't be able to resolve references to their functions.
 #include "lv_gltfview_internal_datatypes.cpp"
 #include "lv_gltfview_utils.cpp"
@@ -46,7 +39,6 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 #include "lv_gltfview_reports.cpp"
 #include "lv_gltfview_setup.cpp"
 #include "lv_gltfview_animation.cpp"
-
 #include "lv_gltfview_internal_interface.hpp"
 
 #define __GLFW_SAMPLES 0x0002100D
@@ -586,11 +578,9 @@ void lv_gltfview_set_spin_degree_offset(pViewer viewer, float spin_degree_offset
         desc->dirty = true;
     }
 }
-
 bool lv_gltfview_check_frame_was_cached(pViewer viewer) {
     return get_viewer_desc(viewer)->frame_was_cached;
 }
-
 bool lv_gltfview_check_frame_was_antialiased(pViewer viewer) {
     return get_viewer_desc(viewer)->frame_was_antialiased;
 }
@@ -671,7 +661,7 @@ uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t 
                     int64_t materialIndex = (!mappings.empty() && mappings[vopts->materialVariant]) ?  mappings[vopts->materialVariant].value() + 1 : ( ( _prim_gltf_data.materialIndex) ? ( _prim_gltf_data.materialIndex.value() + 1 ) : 0 );
                     const auto& _ss = get_shader_set(viewer, materialIndex);
                     if (materialIndex > -1 && _ss->ready == false) {
-                        lv_gltf_discover_defines(gltf_data, &node, &_prim_gltf_data);
+                        discover_defines(gltf_data, &node, &_prim_gltf_data);
                         auto _shaderset  = compile_and_load_shaders(shaders);
                         auto _unilocs = UniformLocs();
                         get_uniform_locations(&_unilocs, _shaderset.program); 

@@ -111,8 +111,14 @@ struct Vertex {
         
 void (*lv_gltfview_load_progress_callback)(const char*, const char* , float, float, float, float) = NULL;
 
-//void lv_gltf_discover_defines(pGltf_data_t data_obj, fastgltf::Node *node, fastgltf::Primitive *prim) {
-void lv_gltf_discover_defines(pGltf_data_t data_obj, void *node, void *prim) {
+/**
+ * @brief Discover defines for the given GLTF data object and node.
+ *
+ * @param data_obj Pointer to the GLTF data object.
+ * @param node Pointer to the GLTF node.
+ * @param prim Pointer to the GLTF primitive.
+ */
+ void discover_defines(pGltf_data_t data_obj, void *node, void *prim) {
     const auto& asset = GET_ASSET(data_obj);
     auto it = (fastgltf::Primitive *)prim;
     clearDefines();
@@ -706,7 +712,7 @@ void fill_probe_info(gltf_probe_info *p_probe_info, pGltf_data_t data){
     p_probe_info->animationCount = asset->animations.size();
 }
 
-bool lv_gltfview_set_load_phase_callback(void (*_load_progress_callback)(const char*, const char* , float, float, float, float)) {
+bool lv_gltfview_set_loadphase_callback(void (*_load_progress_callback)(const char*, const char* , float, float, float, float)) {
     lv_gltfview_load_progress_callback= _load_progress_callback;
     return true;
 }

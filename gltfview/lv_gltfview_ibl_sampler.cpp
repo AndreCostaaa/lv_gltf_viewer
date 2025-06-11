@@ -469,15 +469,15 @@ void iblSampler::destroy_iblSampler(void) {
 
 void (*ibl_load_progress_callback)(const char*, const char* , float, float, float, float) = NULL;
 
-void setIBLLoadPhaseCallback(void (*_ibl_load_progress_callback)(const char*, const char* , float, float, float, float)) {
+void lv_gltfview_ibl_set_loadphase_callback(void (*_ibl_load_progress_callback)(const char*, const char* , float, float, float, float)) {
     ibl_load_progress_callback= _ibl_load_progress_callback;
 }
 
-void envFilterCallback(const char* phase_title, float phase_current, float phase_max) {
+void env_filter_callback(const char* phase_title, float phase_current, float phase_max) {
     if (ibl_load_progress_callback != NULL) { ibl_load_progress_callback(phase_title, "SUBTEST1234", 0.f + ((phase_current / phase_max)*2.0f), 5.f, 0.f, 0.f); }
 }
 
-gl_environment_textures setup_environment(gl_environment_textures* _lastEnv, const char* _env_filename, int32_t _env_rotation_degreesX10 )
+gl_environment_textures lv_gltfview_ibl_sampler_setup(gl_environment_textures* _lastEnv, const char* _env_filename, int32_t _env_rotation_degreesX10 )
 {
     gl_environment_textures _ret = gl_environment_textures();
     if ((_lastEnv != NULL) && (_lastEnv->loaded == true)) { 
@@ -494,7 +494,7 @@ gl_environment_textures setup_environment(gl_environment_textures* _lastEnv, con
     }
     auto environmentFiltering = iblSampler();
     environmentFiltering.doinit(NULL, _env_filename);
-    environmentFiltering.filterAll(envFilterCallback);
+    environmentFiltering.filterAll(env_filter_callback);
 
     _ret.loaded             = true;
     _ret.angle = (float)_env_rotation_degreesX10 / 10.0f;

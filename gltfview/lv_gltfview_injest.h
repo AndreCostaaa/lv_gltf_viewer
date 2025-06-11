@@ -6,15 +6,6 @@ extern "C" {
 #endif
 
 /**
- * @brief Discover defines for the given GLTF data object and node.
- *
- * @param data_obj Pointer to the GLTF data object.
- * @param node Pointer to the GLTF node.
- * @param prim Pointer to the GLTF primitive.
- */
-void lv_gltf_discover_defines(pGltf_data_t data_obj, void *node, void *prim);
-
-/**
  * @brief Load the gltf file at the specified filepath
  *
  * @param gltf_path The gltf filename
@@ -29,7 +20,7 @@ void lv_gltfview_load(const char * gltf_path, pGltf_data_t ret_data, pViewer vie
  *
  * @param load_progress_callback The callback function with these parameters (const char*, const char* , float, float, float, float) and no return value.
  */
-bool lv_gltfview_set_load_phase_callback(void (*load_progress_callback)(const char*, const char* , float, float, float, float));
+bool lv_gltfview_set_loadphase_callback(void (*load_progress_callback)(const char*, const char* , float, float, float, float));
 
 #ifdef __cplusplus
 } /*extern "C"*/
