@@ -37,6 +37,8 @@ add_library(lvgl_gltfview
 add_executable(lvgl_workspace
     demo_main.c
     demo_ui.c
+    demo_cli.c
+    demo_nav.c
     mouse_cursor_icon.c
     lvgl_icon_40px_ARGB888.c
     sprites1_32x32x7.c

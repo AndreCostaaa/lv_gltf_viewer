@@ -85,18 +85,25 @@ LV_IMAGE_DECLARE(lvgl_icon_40px);
 LV_IMAGE_DECLARE(sprites1_32x32x7);
 
 void lv_loading_info_objects(void);
-//void load_progress_callback(const char* phase_title, const char* sub_phase_title, float phase_progress, float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max);
-void __fill_in_InfoTab( pGltf_data_t _data );
-void __make_InfoTab(void);
-void __make_ViewTab(void);
 void lv_main_tabview(void);
-void __make_WindowBevelsAndIcon(void);
 void lv_pitch_yaw_distance_sliders(lv_obj_t * container);
 void lv_camera_select(lv_obj_t * container);
 void lv_animation_select(lv_obj_t * container);
+void __fill_in_InfoTab( pGltf_data_t _data );
+void __make_InfoTab(void);
+void __make_ViewTab(void);
+void __make_WindowBevelsAndIcon(void);
 void __add_override_controls(lv_obj_t * container);
 void __apply_camera_button_visibility( pGltf_data_t _data);
 void __apply_anim_button_visibility( pGltf_data_t _data);
 void set_tab(unsigned int _tabnum);
+bool apply_commandline_options( pViewer viewer, char * gltfFile, char * hdrFile, int * frame_count, float * _anim_rate, int argc, char *argv[] );
+void update_camera_turn( int mouse_x, int mouse_y,int last_mouse_x, int last_mouse_y);
+void update_camera_drag_xz(float unit_distance, int mouse_x, int mouse_y, int last_mouse_x, int last_mouse_y);
+void update_camera_drag_y(float unit_distance, int mouse_y, int last_mouse_y);
+void update_camera_zoom( int mouse_y, int last_mouse_y);
+
+
+
 
 #endif // MAINUI_SHARED_H
