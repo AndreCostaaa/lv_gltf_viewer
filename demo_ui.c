@@ -82,7 +82,7 @@ lv_obj_t * __make_sprite(unsigned int _spriteNum, lv_obj_t * _parent){
     return img1;
 }
 
-void set_tab(unsigned int _tabnum) {
+void demo_ui_set_tab(unsigned int _tabnum) {
     _current_tab = _tabnum;
     lv_tabview_set_active(tabview, _current_tab + 1, LV_ANIM_OFF);
     for (unsigned int i=0; i<MAX_TABS; i++) {
@@ -101,13 +101,13 @@ static void yaw_slider_event_cb(lv_event_t * e){
         lv_obj_add_flag(spin_slider, LV_OBJ_FLAG_HIDDEN);
     }
     lv_obj_t * slider = lv_event_get_target_obj(e);
-    lv_gltfview_set_yaw(_viewer, (int)(((float)lv_slider_get_value(slider) / 1000.0f ) * 3600.f));
+    lv_gltfview_set_yaw(demo_gltfview, (int)(((float)lv_slider_get_value(slider) / 1000.0f ) * 3600.f));
     //yaw_degree_offset = ((float)lv_slider_get_value(slider) / 1000.0f ) * 360.f;
 }
 
 static void pitch_slider_event_cb(lv_event_t * e){
     lv_obj_t * slider = lv_event_get_target_obj(e);
-    lv_gltfview_set_pitch(_viewer, (int)(((float)lv_slider_get_value(slider) / 100.0f ) * 1800.f));
+    lv_gltfview_set_pitch(demo_gltfview, (int)(((float)lv_slider_get_value(slider) / 100.0f ) * 1800.f));
     //pitch_degrees = ((float)lv_slider_get_value(slider) / 100.0f ) * 180.f;
 }
 
@@ -124,14 +124,15 @@ static void distance_slider_event_cb(lv_event_t * e){
     } else {
         _distance = pow(_distance, 2.0);
     }
-    lv_gltfview_set_distance(_viewer, (int)(_distance * 1000.0f));
+    lv_gltfview_set_distance(demo_gltfview, (int)(_distance * 1000.0f));
 
 }
 
+/*
 static void elev_slider_event_cb(lv_event_t * e){
     lv_obj_t * slider = lv_event_get_target_obj(e);
     elevation = ((float)lv_slider_get_value(slider) / 100.0f ) * 0.5f;
-}
+} */
 
 static void spin_checkbox_event_cb(lv_event_t * e){
     LV_UNUSED(e);
@@ -146,7 +147,7 @@ static void spin_checkbox_event_cb(lv_event_t * e){
 static void tab_clicked_event_cb(lv_event_t * e){
     lv_obj_t * button = lv_event_get_current_target(e);
     int32_t idx = lv_obj_get_index_by_type(button, &lv_button_class);
-    set_tab(idx - 1);
+    demo_ui_set_tab(idx - 1);
 }
 
 static void use_scenecam_checkbox_event_cb(lv_event_t * e){
@@ -604,7 +605,7 @@ void lv_pitch_yaw_distance_sliders(lv_obj_t * _cont){
         lv_slider_set_mode(spin_slider, LV_SLIDER_MODE_SYMMETRICAL);
         lv_obj_add_style(spin_slider, &style_bg_horiz, LV_PART_MAIN);
     }
-    {
+    /*{
         // Elevation nudge (lower left)
         lv_obj_t * elev_slider = lv_slider_create(_cont);
         lv_obj_set_size(elev_slider, 10, 200);
@@ -618,7 +619,7 @@ void lv_pitch_yaw_distance_sliders(lv_obj_t * _cont){
         lv_slider_set_value(elev_slider, 0.f, 0);
         lv_slider_set_mode(elev_slider, LV_SLIDER_MODE_SYMMETRICAL);
         lv_obj_add_style(elev_slider, &style_bg_vert, LV_PART_MAIN);
-    }      
+    }*/     
 }
 
 void lv_camera_select(lv_obj_t * _cont){
@@ -674,7 +675,7 @@ void lv_camera_select(lv_obj_t * _cont){
     lv_obj_add_event_cb(cam_buttons[15], __select_camera_16_cb, LV_EVENT_CLICKED, NULL);
 }
 
-void __apply_camera_button_visibility(pGltf_data_t _data){
+void demo_ui_apply_camera_button_visibility(pGltf_data_t _data){
     camselection_changed = false;
     //gltf_probe_info * probe = (gltf_probe_info*)lv_gltfview_get_probe(_data);
     gltf_probe_info * probe = lv_gltfview_get_probe(_data);
@@ -786,7 +787,7 @@ void lv_animation_select(lv_obj_t * _cont){
     animselection_changed=true;
 }
 
-void __apply_anim_button_visibility(pGltf_data_t _data){
+void demo_ui_apply_anim_button_visibility(pGltf_data_t _data){
     animselection_changed = false;
     //gltf_probe_info * probe = (gltf_probe_info*)lv_gltfview_get_probe(_data);
     gltf_probe_info * probe = lv_gltfview_get_probe(_data);
@@ -795,4 +796,12 @@ void __apply_anim_button_visibility(pGltf_data_t _data){
             else lv_obj_add_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
     if (probe->animationCount > 0) lv_obj_clear_flag(anim_checkbox, LV_OBJ_FLAG_HIDDEN);
         else lv_obj_add_flag(anim_checkbox, LV_OBJ_FLAG_HIDDEN);
+}
+
+void demo_ui_make_underlayer( void ) {
+    lv_main_tabview();
+    demo_ui_set_tab(TAB_VIEW);
+    __make_ViewTab();
+    __make_InfoTab();
+    __make_WindowBevelsAndIcon();
 }

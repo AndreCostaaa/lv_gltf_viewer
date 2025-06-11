@@ -35,7 +35,7 @@ add_library(lvgl_gltfview
 )
 
 add_executable(lvgl_workspace
-    demo_main.c
+    demo.c
     demo_ui.c
     demo_cli.c
     demo_nav.c
