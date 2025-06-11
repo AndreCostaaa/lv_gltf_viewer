@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25.1)
-# set(CMAKE_CXX_STANDARD 11)  # or 14, 17, etc.
-# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#set(CMAKE_CXX_STANDARD 11)  # or 14, 17, etc.
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(lvgl_workspace LANGUAGES C CXX)
 
@@ -20,11 +20,7 @@ include_directories(
 
 add_library(lvgl_gltfview 
     gltfview/lv_gltfview.c
-    gltfview/lv_gltfview_render.cpp
-    gltfview/lv_gltfview_shader_includes.cpp
-    gltfview/lv_gltfview_ibl_sampler.cpp
-    gltfview/lv_gltfview_shader_cache.cpp
-    gltfview/lv_gltfview_internal_datatypes.cpp
+    gltfview/lv_gltfview.cpp
 )
 
 add_executable(lvgl_workspace
