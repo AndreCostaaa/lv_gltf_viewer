@@ -125,7 +125,6 @@ static void distance_slider_event_cb(lv_event_t * e){
         _distance = pow(_distance, 2.0);
     }
     lv_gltfview_set_distance(demo_gltfview, (int)(_distance * 1000.0f));
-
 }
 
 /*
