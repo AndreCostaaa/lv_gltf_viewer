@@ -31,7 +31,8 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 #pragma GCC diagnostic pop
 #endif
 
-#include "gltfview/lv_gltfview.h"
+#include "lv_gltfview.h"
+#include "lv_gltfview_private.h"
 // These have to be included (for now) or else the linker won't be able to resolve references to their functions.
 #include "lv_gltfview_internal_datatypes.cpp"
 #include "lv_gltfview_utils.cpp"
@@ -57,6 +58,7 @@ static bool _lastFrameWasAntialiased = false;
 static bool _lastFrameNoMotion = false;
 static bool __lastFrameNoMotion = false;
 static gl_viewer_desc_t _lastViewDesc;
+
 static fastgltf::Node * foundCam = NULL;
 static FMAT4 viewMat;
 static FVEC3 viewPos;
@@ -391,205 +393,11 @@ void draw_primitive(  int32_t prim_num,
     }
 }
 
-float lv_gltfview_get_pitch (pViewer viewer) { return get_viewer_desc(viewer)->pitch; }
-float lv_gltfview_get_yaw (pViewer viewer) { return get_viewer_desc(viewer)->yaw; }
-float lv_gltfview_get_distance (pViewer viewer) { return get_viewer_desc(viewer)->distance; }
-float lv_gltfview_get_focal_x (pViewer viewer) { return get_viewer_desc(viewer)->focal_x; }
-float lv_gltfview_get_focal_y (pViewer viewer) { return get_viewer_desc(viewer)->focal_y; }
-float lv_gltfview_get_focal_z (pViewer viewer) { return get_viewer_desc(viewer)->focal_z; }
-float lv_gltfview_get_spin_degree_offset(pViewer viewer){ return get_viewer_desc(viewer)->spin_degree_offset; }
-uint32_t lv_gltfview_get_aa_mode(pViewer viewer) { return get_viewer_desc(viewer)->aa_mode; }
-uint32_t lv_gltfview_get_bg_mode(pViewer viewer) { return get_viewer_desc(viewer)->bg_mode; }
-
-void lv_gltfview_set_pitch (pViewer viewer, int pitch_degrees_x10 ) {
-    auto desc = get_viewer_desc(viewer);
-    float _newval = pitch_degrees_x10 * 0.1f; 
-    if (std::abs(desc->pitch - _newval) > 0.0001f ) {
-        desc->pitch = _newval;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_yaw (pViewer viewer, int yaw_degrees_x10 ) {
-    auto desc = get_viewer_desc(viewer);
-    float _newval = yaw_degrees_x10 * 0.1f; 
-    if (std::abs(desc->yaw - _newval) > 0.0001f ) {
-        desc->yaw = _newval;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_distance (pViewer viewer, int distance_units_x1000 ) {
-    auto desc = get_viewer_desc(viewer);
-    float _newval = distance_units_x1000 * 0.001f; 
-    if (std::abs(desc->distance - _newval) > 0.00001f ) {
-        desc->distance = _newval;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_focal_x (pViewer viewer, float focal_x ) {
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(desc->focal_x - focal_x) > 0.00001f ) {
-        desc->focal_x = focal_x;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_focal_y (pViewer viewer, float focal_y ) {
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(desc->focal_y - focal_y) > 0.00001f ) {
-        desc->focal_y = focal_y;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_focal_z (pViewer viewer, float focal_z ) {
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(desc->focal_z - focal_z) > 0.00001f ) {
-        desc->focal_z = focal_z;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_inc_pitch (pViewer viewer, float pitch_inc_degrees ) {
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(pitch_inc_degrees) > 0.0001f ) {
-        desc->pitch += pitch_inc_degrees;
-        if (desc->pitch > 89.0f) {
-            desc->pitch = 89.0f;
-        } else if (desc->pitch < -89.0f) {
-            desc->pitch = -89.0f;
-        }
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_inc_yaw (pViewer viewer, float yaw_inc_degrees ) {
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(yaw_inc_degrees) > 0.0001f ) {
-        desc->yaw += yaw_inc_degrees;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_inc_distance (pViewer viewer, float distance_inc_units ) {
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(distance_inc_units) != 0.f ) {
-        desc->distance += distance_inc_units;
-        if (desc->distance < 0.01f) { desc->distance = 0.01f; }
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_inc_focal_x (pViewer viewer, float focal_x_inc ) {
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(focal_x_inc) > 0.0001f ) {
-        desc->focal_x += focal_x_inc;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_inc_focal_y (pViewer viewer, float focal_y_inc ) {
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(focal_y_inc) > 0.0001f ) {
-        desc->focal_y += focal_y_inc;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_inc_focal_z (pViewer viewer, float focal_z_inc ) {
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(focal_z_inc) > 0.0001f ) {
-        desc->focal_z += focal_z_inc;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_inc_spin_degree_offset(pViewer viewer, float spin_degree_inc ){
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(spin_degree_inc) > 0.0001f ) {
-        desc->spin_degree_offset += spin_degree_inc;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_camera (pViewer viewer, int camera_number ) {
-    auto desc = get_viewer_desc(viewer);
-    if (desc->camera != camera_number ) {
-        desc->camera = camera_number;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_timestep (pViewer viewer, float timestep ) {
-    auto desc = get_viewer_desc(viewer);
-    desc->timestep = timestep;
-    if (std::abs(timestep) > 0.00001f ) {
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_width (pViewer viewer, uint32_t new_width ) {
-    auto desc = get_viewer_desc(viewer);
-    if (desc->width  != (int32_t)new_width) {
-        desc->width = (int32_t)new_width;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_height (pViewer viewer, uint32_t new_height ) {
-    auto desc = get_viewer_desc(viewer);
-    if (desc->height  != (int32_t)new_height) {
-        desc->height = (int32_t)new_height;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_anim(pViewer viewer, uint32_t anim_num ){
-    auto desc = get_viewer_desc(viewer);
-    if (desc->anim  != (int32_t)anim_num) {
-        desc->anim = (int32_t)anim_num;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_bg_mode(pViewer viewer, uint32_t bg_mode ){
-    auto desc = get_viewer_desc(viewer);
-    if (desc->bg_mode != (int32_t)bg_mode) {
-        desc->bg_mode = (int32_t)bg_mode;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_aa_mode(pViewer viewer, uint32_t aa_mode ){
-    auto desc = get_viewer_desc(viewer);
-    if (desc->aa_mode != (int32_t)aa_mode) {
-        desc->aa_mode = (int32_t)aa_mode;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_blur_bg(pViewer viewer, float blur_bg_amount ){
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(desc->blur_bg - blur_bg_amount) > 0.0001f ) {
-        desc->blur_bg = blur_bg_amount;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_env_pow(pViewer viewer, float env_pow ){
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(desc->env_pow - env_pow) > 0.0001f ) {
-        desc->env_pow = env_pow;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_exposure(pViewer viewer, float exposure ){
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(desc->exposure - exposure) > 0.0001f ) {
-        desc->exposure = exposure;
-        desc->dirty = true;
-    }
-}
-void lv_gltfview_set_spin_degree_offset(pViewer viewer, float spin_degree_offset ){
-    auto desc = get_viewer_desc(viewer);
-    if (std::abs(desc->spin_degree_offset - spin_degree_offset) > 0.0001f ) {
-        desc->spin_degree_offset = spin_degree_offset;
-        desc->dirty = true;
-    }
-}
-bool lv_gltfview_check_frame_was_cached(pViewer viewer) {
-    return get_viewer_desc(viewer)->frame_was_cached;
-}
-bool lv_gltfview_check_frame_was_antialiased(pViewer viewer) {
-    return get_viewer_desc(viewer)->frame_was_antialiased;
-}
-
 uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t gltf_data ) {
     const auto& asset =     GET_ASSET(gltf_data);
     const auto& probe =     PROBE(gltf_data);
     const auto& vstate =    get_viewer_state(viewer);
-    const auto view_desc = get_viewer_desc(viewer);
+    const auto view_desc = lv_gltfview_get_desc(viewer);
     const auto& vopts =     &(vstate->options);
     const auto& vmetrics =  &(vstate->metrics);
     bool opt_draw_bg = view_desc->bg_mode == BG_ENVIRONMENT;

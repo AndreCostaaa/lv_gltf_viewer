@@ -13,7 +13,7 @@ void*                   get_texdata_set(_VIEW V);
 Texture *               get_texdata(_VIEW V, _UINT I);
 uint64_t                get_texdata_glid(_VIEW V, _UINT I);
 _ViewerState*           get_viewer_state(_VIEW V);
-gl_viewer_desc_t*       get_viewer_desc(_VIEW V);
+gl_viewer_desc_t*       lv_gltfview_get_desc(_VIEW V);
 _ViewerOpts*            get_viewer_opts(_VIEW V);
 UniformLocs*            get_uniform_ids(_VIEW V, _UINT I);
 uint64_t                get_shader_program(_VIEW V, _UINT I);

@@ -3,6 +3,9 @@
 
 
 #include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+
 typedef uint32_t _GLENUM;
 typedef uint32_t _GLUINT;
 typedef int32_t  _GLINT;
@@ -17,11 +20,14 @@ typedef int32_t  _GLINT;
 #define ASSET fastgltf::Asset
 extern "C" {
 #endif
-struct lv_gltfdata_t;
-struct lv_gltfview_t;
+struct lv_gltfdata_struct;
+struct lv_gltfview_struct;
 
-typedef struct lv_gltfdata_t * pGltf_data_t;
-typedef struct lv_gltfview_t * pViewer;
+typedef struct lv_gltfdata_struct lv_gltfdata_t;
+typedef struct lv_gltfview_struct lv_gltfview_t;
+
+typedef lv_gltfdata_t * pGltf_data_t;
+typedef lv_gltfview_t * pViewer;
 
 typedef enum  {
     OP_VISIBILITY,

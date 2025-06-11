@@ -22,7 +22,7 @@ typedef MeshData        _MESH;
 typedef NodePtr         _NODE;
 #define _RET return
 
-struct lv_gltfdata_t {
+struct lv_gltfdata_struct {
     ASSET asset;
     bool load_success;
     gltf_probe_info probe;
@@ -71,7 +71,7 @@ struct _MatrixSet {
     FMAT4 viewProjectionMatrix = FMAT4(1.0f);
 };
 
-struct lv_gltfview_t {
+struct lv_gltfview_struct {
     ASSET asset;
     
     _ViewerState state;
@@ -217,7 +217,7 @@ void*           get_texdata_set             (_VIEW V)         {_RET &(V->texture
 _ViewerOpts*    get_viewer_opts             (_VIEW V)         {_RET &(V->state.options);}
 _ViewerMetrics* get_viewer_metrics          (_VIEW V)         {_RET &(V->state.metrics);}
 _ViewerState*   get_viewer_state            (_VIEW V)         {_RET &(V->state);}
-gl_viewer_desc_t* get_viewer_desc           (_VIEW V)         {_RET &(V->desc);}
+gl_viewer_desc_t* lv_gltfview_get_desc           (_VIEW V)         {_RET &(V->desc);}
 _MatrixSet*     get_matrix_set              (_VIEW V)         {_RET &(V->mats);}
 double          get_radius                  (_DATA D)         {_RET (double)D->bound_radius;}
 int64_t         lv_gltf_get_int_radiusX1000 (_DATA D)         {_RET (int64_t)(D->bound_radius * 1000);}

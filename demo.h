@@ -5,13 +5,6 @@
 #include "lvgl/examples/lv_examples.h"
 
 #include "gltfview/lv_gltfview.h"
-//#include "gltfview/lv_gltfview_datatypes.h"
-//#include "gltfview/lv_gltfview_internal_interface.hpp"
-//#include "gltfview/lv_gltfview_reports.h"
-//#include "gltfview/lv_gltfview_render.h"
-//#include "gltfview/lv_gltfview_shader_cache.h"
-//#include "gltfview/lv_gltfview_shader_includes.h"
-//#include "gltfview/lv_gltfview_shader_v1.h"
 
 #include <unistd.h>     /* usleep */
 #include <GL/glew.h>    /* For window size restrictions */
@@ -68,15 +61,14 @@ extern lv_obj_t * progbar1;
 extern lv_obj_t * progbar2;
 extern lv_obj_t * anim_checkbox;
 
+extern lv_gltfdata_t * demo_gltfdata;
+extern lv_gltfview_t * demo_gltfview;
+
 extern pOverride ov_boom;
 extern pOverride ov_stick;
 extern pOverride ov_bucket;
 extern pOverride ov_swing;
 extern pOverride ov_cursor;
-
-extern pGltf_data_t demo_gltfdata;
-extern pViewer demo_gltfview;
-extern GLFWwindow * glfw_window;
 
 LV_IMAGE_DECLARE(lvgl_icon_40px);
 LV_IMAGE_DECLARE(sprites1_32x32x7);
@@ -94,6 +86,8 @@ void demo_ui_make_underlayer(void);
 void demo_ui_load_progress_callback(const char* phase_title, const char* sub_phase_title, float phase_progress, float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max);
 bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char * hdrFile, int * frame_count, bool * software_only, float * _anim_rate, int argc, char *argv[] );
 void demo_nav_process_drag(float movement_power, uint32_t mouse_state_ex, int mouse_x, int mouse_y, int last_mouse_x, int last_mouse_y);
-void demo_os_integrate_setup_glfw_window(GLFWwindow * _window);
+void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window );
+bool demo_os_integrate_window_should_close(void);
+void demo_os_integrate_signal_window_close(void);
 
 #endif // MAINUI_SHARED_H

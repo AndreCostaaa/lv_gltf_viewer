@@ -24,6 +24,7 @@
 #include "lv_gltfview_internal_interface.hpp"
 
 #include "lib/mathc/mathc.h"
+#include "lib/mathc/mathc.c"
 
 GLboolean blendEnabled;
 GLint blendSrc;

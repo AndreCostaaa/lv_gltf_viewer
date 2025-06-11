@@ -9,8 +9,6 @@ set(CONFIG_LV_BUILD_DEMOS 1)
 set(FASTGLTF_ENABLE_DEPRECATED_EXT 1)
 # set(CMAKE_VERBOSE_MAKEFILE ON)
 
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-#set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
 
@@ -21,17 +19,12 @@ include_directories(
 )
 
 add_library(lvgl_gltfview 
+    gltfview/lv_gltfview.c
     gltfview/lv_gltfview_render.cpp
     gltfview/lv_gltfview_shader_includes.cpp
     gltfview/lv_gltfview_ibl_sampler.cpp
     gltfview/lv_gltfview_shader_cache.cpp
     gltfview/lv_gltfview_internal_datatypes.cpp
-    gltfview/lv_gltfview_reports.cpp
-    gltfview/lv_gltfview_utils.cpp
-    gltfview/lv_gltfview_setup.cpp
-    gltfview/lv_gltfview_injest.cpp
-    gltfview/lv_gltfview_animation.cpp
-    lib/mathc/mathc.c
 )
 
 add_executable(lvgl_workspace
@@ -50,6 +43,9 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -fsanitize=address -Wn
 set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas")
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/fastgltf)
+target_compile_options(fastgltf PRIVATE -Wno-maybe-uninitialized)
+target_compile_options(fastgltf PRIVATE -Wno-redundant-move)
+
 target_link_libraries(lvgl_workspace fastgltf)
 target_link_libraries(lvgl_gltfview fastgltf)
 
