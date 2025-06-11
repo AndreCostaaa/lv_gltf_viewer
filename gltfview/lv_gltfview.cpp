@@ -1,0 +1,844 @@
+#include <iostream>
+#include <functional>
+#include <vector>
+#include <map>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
+#include "lvgl/lvgl.h"
+#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
+
+#include "webp/decode.h"
+int32_t WebPGetInfo(const uint8_t* data, size_t data_size, int32_t* width, int32_t* height);
+VP8StatusCode WebPGetFeatures(const uint8_t* data,
+                              size_t data_size,
+                              WebPBitstreamFeatures* features);
+
+#undef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT    // Talking withe fastgltf devs about getting this in there, should be merged in soon.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wredundant-move"
+#include "lib/fastgltf/include/fastgltf/core.hpp"
+#include "lib/fastgltf/include/fastgltf/types.hpp"
+#include "lib/fastgltf/include/fastgltf/tools.hpp"
+#pragma GCC diagnostic pop
+
+#ifndef STB_HAS_BEEN_INCLUDED
+#define STB_HAS_BEEN_INCLUDED
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image/stb_image.h"
+#pragma GCC diagnostic pop
+#endif
+
+#include "lv_gltfview.h"
+#include "lv_gltfview_internal.h"
+#include "__animation.cpp"
+#include "__datatypes.cpp"
+#include "__ibl_sampler.cpp"
+#include "__injest.cpp"
+#include "__reports.cpp"
+#include "__setup.cpp"
+#include "__shader_cache.cpp"
+#include "__shader_includes.cpp"
+#include "__utils.cpp"
+
+#define __GLFW_SAMPLES 0x0002100D
+
+static MapofTransformMap _ibmBySkinThenNode;
+
+static bool foundView = false;
+static int32_t cur_cam_num = -1;
+static float cur_anim_maxtime = -1.f;
+static float temp_timestamp = 0.0f;
+static int32_t last_cam_num = -5;
+static int32_t last_anim_num = -5;
+static uint64_t _lastMaterialIndex = 99999; 
+static bool _lastPassWasTransmission = false;
+static bool _lastFrameWasAntialiased = false;
+static bool _lastFrameNoMotion = false;
+static bool __lastFrameNoMotion = false;
+static gl_viewer_desc_t _lastViewDesc;
+
+static fastgltf::Node * foundCam = NULL;
+static FMAT4 viewMat;
+static FVEC3 viewPos;
+
+gltf_probe_info*        lv_gltfview_get_probe(pGltf_data_t D){return ((gltf_probe_info*)(&(D->probe)));}
+
+namespace fastgltf {
+    FASTGLTF_EXPORT template <typename AssetType, typename Callback>
+    #if FASTGLTF_HAS_CONCEPTS
+    requires std::same_as<std::remove_cvref_t<AssetType>, Asset>
+        && std::is_invocable_v<Callback, fastgltf::Node&, FMAT4&, FMAT4&>
+    #endif
+    void custom_iterateSceneNodes(AssetType&& asset, std::size_t sceneIndex, math::fmat4x4* initial, Callback callback) {
+        auto& scene = asset.scenes[sceneIndex];
+        auto function = [&](std::size_t nodeIndex, math::fmat4x4& parentWorldMatrix, auto& self) -> void {
+            assert(asset.nodes.size() > nodeIndex);
+            auto& node = asset.nodes[nodeIndex];
+            auto _localMat = getTransformMatrix(node, math::fmat4x4());
+            std::invoke(callback, node, parentWorldMatrix, _localMat);
+            for (auto& child : node.children) {
+                math::fmat4x4 _parentWorldTemp = parentWorldMatrix * _localMat;
+                self(child, _parentWorldTemp,  self);
+            }
+        };
+        for (auto& sceneNode : scene.nodeIndices) {
+            auto tmat2 = FMAT4(*initial);
+            function(sceneNode, tmat2, function);
+        }
+    }
+}
+// It's simpler here to just declare the functions as part of the fastgltf::math namespace.
+namespace fastgltf::math {
+	/** Creates a right-handed view matrix */
+	[[nodiscard]] auto lookAtRH(const fvec3& eye, const fvec3& center, const fvec3& up) noexcept {
+		auto dir = normalize(center - eye);
+		auto lft = normalize(cross(dir, up));
+		auto rup = cross(lft, dir);
+
+		mat<float, 4, 4> ret(1.f);
+		ret.col(0) = { lft.x(), rup.x(), -dir.x(), 0.f };
+		ret.col(1) = { lft.y(), rup.y(), -dir.y(), 0.f };
+		ret.col(2) = { lft.z(), rup.z(), -dir.z(), 0.f };
+		ret.col(3) = { -dot(lft, eye), -dot(rup, eye), dot(dir, eye), 1.f };
+		return ret;
+	}
+
+	/**
+	 * Creates a right-handed perspective matrix, with the near and far clips at -1 and +1, respectively.
+	 * @param fov The FOV in radians
+	 */
+	[[nodiscard]] auto perspectiveRH(float fov, float ratio, float zNear, float zFar) noexcept {
+		mat<float, 4, 4> ret(0.f);
+		auto tanHalfFov = std::tan(fov / 2.f);
+		ret.col(0).x() = 1.f / (ratio * tanHalfFov);
+		ret.col(1).y() = 1.f / tanHalfFov;
+		ret.col(2).z() = -(zFar + zNear) / (zFar - zNear);
+		ret.col(2).w() = -1.f;
+		ret.col(3).z() = -(2.f * zFar * zNear) / (zFar - zNear);
+		return ret;
+	}
+
+    template <typename T>
+    [[nodiscard]] fastgltf::math::quat<T> eulerToQuaternion(T P, T Y, T R) {
+        // Convert degrees to radians if necessary
+        // roll = roll * (M_PI / 180.0);
+        // pitch = pitch * (M_PI / 180.0);
+        // yaw = yaw * (M_PI / 180.0);
+        T H = T(0.5); Y *= H; P *= H; R *= H;
+        T cy = cos(Y), sy = sin(Y), cp = cos(P), sp = sin(P), cr = cos(R), sr = sin(R);
+        T cr_cp = cr * cp, sp_sy = sp * sy, sr_cp = sr * cp, sp_cy = sp * cy;
+        return fastgltf::math::quat<T>(
+            sr_cp * cy - cr * sp_sy, // X
+            sr_cp * sy + cr * sp_cy, // Y
+            cr_cp * sy - sr * sp_cy, // Z
+            cr_cp * cy + sr * sp_sy  // W
+        );
+    }
+
+    template <typename T>
+    [[nodiscard]] fastgltf::math::vec<T,3> quaternionToEuler(fastgltf::math::quat<T> q) {
+        fastgltf::math::vec<T,3> euler;
+        T Q11 = q[1] * q[1];
+        // Roll (Z)
+        T sinr_cosp = T(2.0) * (q[3] * q[0] + q[1] * q[2]);
+        T cosr_cosp = T(1.0) - T(2.0) * (q[0] * q[0] + Q11);
+        // Pitch (X)
+        T sinp = T(2.0) * (q[3] * q[1] - q[2] * q[0]);
+        // Yaw (Y)
+        T siny_cosp = T(2.0) * (q[3] * q[2] + q[0] * q[1]);
+        T cosy_cosp = T(1.0) - T(2.0) * (Q11 + q[2] * q[2]);
+
+        return fastgltf::math::vec<T,3>(
+            (std::abs(sinp) >= T(1)) ? std::copysign(T(3.1415926) / T(2), sinp) : std::asin(sinp), 
+            std::atan2(siny_cosp, cosy_cosp),
+            std::atan2(sinr_cosp, cosr_cosp)
+        );
+    }
+
+} // namespace fastgltf::math
+
+pOverride lv_gltfview_add_override_by_index(pGltf_data_t _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask){
+    return NULL;
+}
+
+pOverride lv_gltfview_add_override_by_ip(pGltf_data_t _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask){
+    return NULL;
+}
+
+pOverride lv_gltfview_add_override_by_id(pGltf_data_t _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask){
+    std::string sNodeId = std::string(nodeId);
+    if ((*_data->node_by_path).find(sNodeId) != (*_data->node_by_path).end()) {
+        const auto& _node = (*_data->node_by_path)[sNodeId];
+        std::cout << "Found Node within the __node_by_path collection under path:\n" << sNodeId << "\nNode Name is:\n" << _node->name << "\n";
+        _Override _newOverride = _Override();
+        _newOverride.prop = whichProp;
+        _newOverride.dataMask = dataMask;
+        _newOverride.data1 = 0.f;
+        _newOverride.data2 = 0.f;
+        _newOverride.data3 = 0.f;
+        _newOverride.data4 = 0.f;
+        (*_data->overrides)[_node] = _newOverride;
+        return &((*_data->overrides)[_node]);
+    }
+    return NULL;
+}
+
+int64_t lv_gltfview_get_node_handle_by_name(const char * _nodename) {
+    return -1;
+}
+
+void lv_gltfview_destroy(pViewer _viewer, pGltf_data_t _data, pShaderCache _shaders){
+    __free_data_struct(_data);
+    __free_viewer_struct(_viewer);
+    clearDefines();
+    destroy_ShaderCache(_shaders);
+}
+
+void draw_primitive(  int32_t prim_num,
+                gl_viewer_desc_t * view_desc,
+                pViewer viewer,
+                pGltf_data_t gltf_data,
+                fastgltf::Node& node,
+                std::size_t mesh_index,
+                const FMAT4& matrix,
+                gl_environment_textures env_tex,
+                bool is_transmission_pass) {
+    const auto& meshes = MESHDSET(viewer);
+    auto& mesh = (*meshes)[mesh_index];
+    const auto& asset = GET_ASSET(gltf_data);    
+    const auto& vopts = get_viewer_opts(viewer);
+    const auto& _prim_data = GET_PRIM_FROM_MESH(&mesh, prim_num);
+    auto& _prim_gltf_data = asset->meshes[mesh_index].primitives[prim_num];
+    auto& mappings = _prim_gltf_data.mappings;
+    std::size_t materialIndex = (!mappings.empty() && mappings[vopts->materialVariant].has_value()) 
+        ? mappings[vopts->materialVariant].value() + 1 
+        : ( ( _prim_gltf_data.materialIndex.has_value() ) ? ( _prim_gltf_data.materialIndex.value() + 1 ) : 0 );
+    
+
+    GL_CALL(glBindVertexArray(_prim_data->vertexArray));            
+    if ((_lastMaterialIndex == materialIndex) && (_lastPassWasTransmission == is_transmission_pass)) {
+        GL_CALL(glUniformMatrix4fv(get_uniform_ids(viewer, materialIndex)->modelMatrixUniform, 1, GL_FALSE, &matrix[0][0]));
+    } else {
+        view_desc->error_frames += 1;
+        _lastMaterialIndex = materialIndex;
+        _lastPassWasTransmission = is_transmission_pass;
+        auto program = get_shader_program(viewer, materialIndex);
+        const auto& uniforms = get_uniform_ids(viewer, materialIndex);
+        GL_CALL(glUseProgram(program));
+
+        GL_CALL(glUniformMatrix4fv(uniforms->modelMatrixUniform, 1, GL_FALSE, &matrix[0][0]));
+        GL_CALL(glUniformMatrix4fv(uniforms->viewMatrixUniform, 1, false, GET_VIEW_MAT(viewer)->data() ));
+        GL_CALL(glUniformMatrix4fv(uniforms->projectionMatrixUniform, 1, false, GET_PROJ_MAT(viewer)->data() ));
+        GL_CALL(glUniformMatrix4fv(uniforms->viewProjectionMatrixUniform, 1, false, GET_VIEWPROJ_MAT(viewer)->data() ));
+        const auto& _campos = get_cam_pos(viewer);
+        GL_CALL(glUniform3f(uniforms->camera,  _campos[0], _campos[1], _campos[2]));
+
+        GL_CALL(glUniform1f(uniforms->exposure, view_desc->exposure));
+        GL_CALL(glUniform1f(uniforms->envIntensity, view_desc->env_pow));
+        GL_CALL(glUniform1i(uniforms->envMipCount, (int32_t)env_tex.mipCount));
+        set_env_rotation_matrix(viewer->envRotationAngle, program);
+        GL_CALL(glEnable(GL_CULL_FACE));
+        GL_CALL(glDisable(GL_BLEND)); 
+        GL_CALL(glEnable(GL_DEPTH_TEST));
+        GL_CALL(glDepthMask(GL_TRUE));
+        GL_CALL(glCullFace(GL_BACK));
+        uint32_t _texnum = 0;
+
+        bool has_material = asset->materials.size() > (materialIndex - 1);
+        if (!has_material) {                   
+            set_uniform_color_alpha(uniforms->baseColorFactor, FVEC4(1.0f));
+            GL_CALL(glUniform1f(uniforms->roughnessFactor, 0.5f));
+            GL_CALL(glUniform1f(uniforms->metallicFactor,  0.5f));
+            GL_CALL(glUniform1f(uniforms->ior, 1.5f));
+            GL_CALL(glUniform1f(uniforms->dispersion, 0.0f));
+            GL_CALL(glUniform1f(uniforms->thickness, 0.01847f));
+        } else {
+            auto& gltfMaterial = asset->materials[materialIndex - 1];
+            if (is_transmission_pass && (gltfMaterial.transmission != NULL)) { return; }
+            if (gltfMaterial.doubleSided) GL_CALL(glDisable(GL_CULL_FACE));
+            if (gltfMaterial.alphaMode == fastgltf::AlphaMode::Blend) {
+                GL_CALL(glEnable(GL_BLEND));
+                //GL_CALL(glDisable(GL_DEPTH_TEST));
+                //GL_CALL(glCullFace(GL_FRONT));
+                GL_CALL(glDepthMask(GL_FALSE));
+                GL_CALL(glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+                GL_CALL(glBlendEquation(GL_FUNC_ADD)); 
+                GL_CALL(glEnable(GL_CULL_FACE));
+            } else {
+                if (gltfMaterial.alphaMode == fastgltf::AlphaMode::Mask) {
+                    GL_CALL( glUniform1f(uniforms->alphaCutoff, gltfMaterial.alphaCutoff) ); 
+                    GL_CALL(glDisable(GL_CULL_FACE));
+                }                
+            }
+                    
+        //if (viewer->overrideBaseColor){
+        //    GL_CALL(glUniform4f(uniforms->baseColorFactor, viewer->overrideBaseColorFactor[0], viewer->overrideBaseColorFactor[1], viewer->overrideBaseColorFactor[2], viewer->overrideBaseColorFactor[3]));
+        //} else {
+            set_uniform_color_alpha(uniforms->baseColorFactor, gltfMaterial.pbrData.baseColorFactor);
+            set_uniform_color(uniforms->emissiveFactor, gltfMaterial.emissiveFactor);
+        //}
+            GL_CALL(glUniform1f(uniforms->emissiveStrength, gltfMaterial.emissiveStrength));
+            GL_CALL(glUniform1f(uniforms->roughnessFactor, gltfMaterial.pbrData.roughnessFactor));
+            GL_CALL(glUniform1f(uniforms->metallicFactor,  gltfMaterial.pbrData.metallicFactor));
+
+            GL_CALL(glUniform1f(uniforms->ior, gltfMaterial.ior));
+            GL_CALL(glUniform1f(uniforms->dispersion, gltfMaterial.dispersion));
+
+            if ( gltfMaterial.pbrData.baseColorTexture.has_value() ) _texnum = setup_texture( _texnum, _prim_data->albedoTexture, _prim_data->baseColorTexcoordIndex, gltfMaterial.pbrData.baseColorTexture->transform,  uniforms->baseColorSampler, uniforms->baseColorUVSet, uniforms->baseColorUVTransform );
+            if ( gltfMaterial.emissiveTexture.has_value() ) _texnum = setup_texture( _texnum, _prim_data->emissiveTexture, _prim_data->emissiveTexcoordIndex, gltfMaterial.emissiveTexture->transform, uniforms->emissiveSampler, uniforms->emissiveUVSet, uniforms->emissiveUVTransform );
+            if ( gltfMaterial.pbrData.metallicRoughnessTexture.has_value() ) _texnum = setup_texture( _texnum, _prim_data->metalRoughTexture, _prim_data->metallicRoughnessTexcoordIndex, gltfMaterial.pbrData.metallicRoughnessTexture->transform, uniforms->metallicRoughnessSampler, uniforms->metallicRoughnessUVSet, uniforms->metallicRoughnessUVTransform );
+            if ( gltfMaterial.occlusionTexture.has_value() ) {
+                GL_CALL(glUniform1f(uniforms->occlusionStrength, static_cast<float>(gltfMaterial.occlusionTexture->strength) ));
+                _texnum = setup_texture( _texnum, _prim_data->occlusionTexture, _prim_data->occlusionTexcoordIndex, gltfMaterial.occlusionTexture->transform, uniforms->occlusionSampler, uniforms->occlusionUVSet, uniforms->occlusionUVTransform ); }
+
+            if ( gltfMaterial.normalTexture.has_value() ) {
+                GL_CALL(glUniform1f(uniforms->normalScale, static_cast<float>(gltfMaterial.normalTexture->scale) ));
+                _texnum = setup_texture( _texnum, _prim_data->normalTexture, _prim_data->normalTexcoordIndex, gltfMaterial.normalTexture->transform, uniforms->normalSampler, uniforms->normalUVSet, uniforms->normalUVTransform ); }
+
+            if ( gltfMaterial.clearcoat ) {
+                GL_CALL(glUniform1f(uniforms->clearcoatFactor, static_cast<float>(gltfMaterial.clearcoat->clearcoatFactor) ));
+                GL_CALL(glUniform1f(uniforms->clearcoatRoughnessFactor, static_cast<float>(gltfMaterial.clearcoat->clearcoatRoughnessFactor) ));
+                
+                if ( gltfMaterial.clearcoat->clearcoatTexture.has_value() ) _texnum = setup_texture( _texnum, _prim_data->clearcoatTexture, _prim_data->clearcoatTexcoordIndex, gltfMaterial.clearcoat->clearcoatTexture->transform, uniforms->clearcoatSampler, uniforms->clearcoatUVSet, uniforms->clearcoatUVTransform );
+                if ( gltfMaterial.clearcoat->clearcoatRoughnessTexture.has_value() ) _texnum = setup_texture( _texnum, _prim_data->clearcoatRoughnessTexture, _prim_data->clearcoatRoughnessTexcoordIndex, gltfMaterial.clearcoat->clearcoatRoughnessTexture->transform, uniforms->clearcoatRoughnessSampler, uniforms->clearcoatRoughnessUVSet, uniforms->clearcoatRoughnessUVTransform );
+                if ( gltfMaterial.clearcoat->clearcoatNormalTexture.has_value() ) {
+                    GL_CALL(glUniform1f(uniforms->clearcoatNormalScale, static_cast<float>(gltfMaterial.clearcoat->clearcoatNormalTexture->scale) ));
+                    _texnum = setup_texture( _texnum, _prim_data->clearcoatNormalTexture, _prim_data->clearcoatNormalTexcoordIndex, gltfMaterial.clearcoat->clearcoatNormalTexture->transform, uniforms->clearcoatNormalSampler, uniforms->clearcoatNormalUVSet, uniforms->clearcoatNormalUVTransform ); } }
+
+            if ( gltfMaterial.volume ) {
+                GL_CALL(glUniform1f(uniforms->attenuationDistance, gltfMaterial.volume->attenuationDistance));
+                set_uniform_color(uniforms->attenuationColor, gltfMaterial.volume->attenuationColor);
+                GL_CALL(glUniform1f(uniforms->thickness, gltfMaterial.volume->thicknessFactor));
+                if (gltfMaterial.volume->thicknessTexture.has_value() ) {
+                    _texnum = setup_texture( _texnum, _prim_data->thicknessTexture, _prim_data->thicknessTexcoordIndex, gltfMaterial.volume->thicknessTexture->transform, uniforms->thicknessSampler, uniforms->thicknessUVSet, uniforms->thicknessUVTransform ); } }
+            
+            if ( gltfMaterial.transmission ) {
+                GL_CALL(glUniform1f(uniforms->transmissionFactor, gltfMaterial.transmission->transmissionFactor));
+                GL_CALL(glUniform2i(uniforms->screenSize, (int32_t)view_desc->render_width, (int32_t)view_desc->render_height));
+                if (gltfMaterial.transmission->transmissionTexture.has_value() ) _texnum = setup_texture( _texnum, _prim_data->transmissionTexture, _prim_data->transmissionTexcoordIndex, gltfMaterial.transmission->transmissionTexture->transform, uniforms->transmissionSampler, uniforms->transmissionUVSet, uniforms->transmissionUVTransform ); }
+    
+            if (gltfMaterial.sheen) {
+                //std::cout << "*** SHEEN FACTORS : Roughness: " << gltfMaterial.sheen->sheenRoughnessFactor << " : R/G/B " <<  gltfMaterial.sheen->sheenColorFactor[0] << " / " <<  gltfMaterial.sheen->sheenColorFactor[1] << " / " <<  gltfMaterial.sheen->sheenColorFactor[2] << " ***\n";
+                set_uniform_color(uniforms->sheenColorFactor, gltfMaterial.sheen->sheenColorFactor);
+                GL_CALL(glUniform1f(uniforms->sheenRoughnessFactor, static_cast<float>(gltfMaterial.sheen->sheenRoughnessFactor) ));
+                if (gltfMaterial.sheen->sheenColorTexture.has_value()) {
+                    std::cout << "***!!! MATERIAL HAS UNHANDLED SHEEN TEXTURE***\n";
+                }
+            }
+            if (gltfMaterial.specular) {
+                //std::cout << "*** SPECULAR FACTORS : specularFactor: " << gltfMaterial.specular->specularFactor << " : R/G/B " <<  gltfMaterial.specular->specularColorFactor[0] << " / " <<  gltfMaterial.specular->specularColorFactor[1] << " / " <<  gltfMaterial.specular->specularColorFactor[2] << " ***\n";
+                set_uniform_color(uniforms->specularColorFactor, gltfMaterial.specular->specularColorFactor);
+                GL_CALL(glUniform1f(uniforms->specularFactor, static_cast<float>(gltfMaterial.specular->specularFactor) ) );
+                if (gltfMaterial.specular->specularTexture.has_value()) {
+                    std::cout << "***!!! MATERIAL HAS UNHANDLED SPECULAR TEXTURE***\n";
+                }
+                if (gltfMaterial.specular->specularColorTexture.has_value()) {
+                    std::cout << "***!!! MATERIAL HAS UNHANDLED SPECULAR COLOR TEXTURE***\n";
+                }
+            }
+
+            if (gltfMaterial.specularGlossiness) {
+                std::cout << "*** WARNING: MODEL USES OUTDATED LEGACY MODE PBR_SPECULARGLOSS - PLEASE UPDATE THIS MODEL TO A NEW SHADING MODEL ***\n";
+                set_uniform_color_alpha(uniforms->diffuseFactor, gltfMaterial.specularGlossiness->diffuseFactor);
+                set_uniform_color(uniforms->specularFactor, gltfMaterial.specularGlossiness->specularFactor);
+                GL_CALL(glUniform1f(uniforms->glossinessFactor, static_cast<float>(gltfMaterial.specularGlossiness->glossinessFactor) ) );
+                if (gltfMaterial.specularGlossiness->diffuseTexture.has_value()) _texnum = setup_texture( _texnum, _prim_data->diffuseTexture, _prim_data->diffuseTexcoordIndex, gltfMaterial.specularGlossiness->diffuseTexture->transform, uniforms->diffuseSampler, uniforms->diffuseUVSet, uniforms->diffuseUVTransform );
+                if (gltfMaterial.specularGlossiness->specularGlossinessTexture.has_value()) _texnum = setup_texture( _texnum, _prim_data->specularGlossinessTexture, _prim_data->specularGlossinessTexcoordIndex, gltfMaterial.specularGlossiness->specularGlossinessTexture->transform, uniforms->specularGlossinessSampler, uniforms->specularGlossinessUVSet, uniforms->specularGlossinessUVTransform );
+            }
+
+            #ifdef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT
+            if (gltfMaterial.diffuseTransmission) {
+                std::cout << "*** DIFFUSE TRANSMISSION : factor : " << gltfMaterial.diffuseTransmission->diffuseTransmissionFactor << " : R/G/B " <<  gltfMaterial.diffuseTransmission->diffuseTransmissionColorFactor[0] << " / " <<  gltfMaterial.diffuseTransmission->diffuseTransmissionColorFactor[1] << " / " <<  gltfMaterial.diffuseTransmission->diffuseTransmissionColorFactor[2] << " ***\n";
+                set_uniform_color(uniforms->diffuseTransmissionColorFactor, gltfMaterial.diffuseTransmission->diffuseTransmissionColorFactor);
+                GL_CALL(glUniform1f(uniforms->diffuseTransmissionFactor, static_cast<float>(gltfMaterial.diffuseTransmission->diffuseTransmissionFactor) ) );
+                if (gltfMaterial.diffuseTransmission->diffuseTransmissionTexture.has_value()) _texnum = setup_texture( _texnum, _prim_data->diffuseTransmissionTexture, _prim_data->diffuseTransmissionTexcoordIndex, gltfMaterial.diffuseTransmission->diffuseTransmissionTexture->transform, uniforms->diffuseTransmissionSampler, uniforms->diffuseTransmissionUVSet, uniforms->diffuseTransmissionUVTransform );
+                if (gltfMaterial.diffuseTransmission->diffuseTransmissionColorTexture.has_value()) _texnum = setup_texture( _texnum, _prim_data->diffuseTransmissionColorTexture, _prim_data->diffuseTransmissionColorTexcoordIndex, gltfMaterial.diffuseTransmission->diffuseTransmissionColorTexture->transform, uniforms->diffuseTransmissionColorSampler, uniforms->diffuseTransmissionColorUVSet, uniforms->diffuseTransmissionColorUVTransform );
+            }
+            #endif
+        }
+        const auto& vstate = get_viewer_state(viewer);
+        if (!is_transmission_pass && vstate->renderOpaqueBuffer) {
+            GL_CALL(glBindTextureUnit(_texnum, vstate->opaque_render_state.texture));
+            GL_CALL(glUniform1i(uniforms->transmissionFramebufferSampler, _texnum));
+            GL_CALL(glUniform2i(uniforms->transmissionFramebufferSize, (int32_t)vstate->metrics.opaqueFramebufferWidth, (int32_t)vstate->metrics.opaqueFramebufferHeight));
+            _texnum++;
+        }
+
+        if (node.skinIndex.has_value()) {
+            GL_CALL(glBindTextureUnit(_texnum, get_skintex_at(gltf_data, node.skinIndex.value())));
+            GL_CALL(glUniform1i(uniforms->jointsSampler, _texnum));
+            _texnum++;
+        }
+        GL_CALL(glBindTextureUnit(_texnum, env_tex.diffuse));       GL_CALL(glUniform1i(uniforms->envDiffuseSampler, _texnum++));
+        GL_CALL(glBindTextureUnit(_texnum, env_tex.specular));      GL_CALL(glUniform1i(uniforms->envSpecularSampler, _texnum++));
+        GL_CALL(glBindTextureUnit(_texnum, env_tex.sheen));         GL_CALL(glUniform1i(uniforms->envSheenSampler, _texnum++));
+        GL_CALL(glBindTextureUnit(_texnum, env_tex.ggxLut));        GL_CALL(glUniform1i(uniforms->envGgxLutSampler, _texnum++));
+        GL_CALL(glBindTextureUnit(_texnum, env_tex.charlieLut));    GL_CALL(glUniform1i(uniforms->envCharlieLutSampler, _texnum++));
+
+        //while (_texnum < 16) {
+        //    GL_CALL(glBindTextureUnit(_texnum, 0));
+        //    _texnum++;
+        //}
+    }
+
+    std::size_t index_count = 0;
+    auto& indexAccessor = asset->accessors[asset->meshes[mesh_index].primitives[prim_num].indicesAccessor.value()];
+    if (indexAccessor.bufferViewIndex.has_value()) {
+        index_count = (uint32_t)indexAccessor.count; 
+    }
+    if (index_count > 0){
+        GL_CALL(glDrawElements(_prim_data->primitiveType, index_count, _prim_data->indexType, 0));
+    }
+}
+
+uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t gltf_data ) {
+    const auto& asset =     GET_ASSET(gltf_data);
+    const auto& probe =     PROBE(gltf_data);
+    const auto& vstate =    get_viewer_state(viewer);
+    const auto view_desc = lv_gltfview_get_desc(viewer);
+    const auto& vopts =     &(vstate->options);
+    const auto& vmetrics =  &(vstate->metrics);
+    bool opt_draw_bg = view_desc->bg_mode == BG_ENVIRONMENT;
+    bool opt_aa_this_frame = (view_desc->aa_mode == ANTIALIAS_CONSTANT) || ((view_desc->aa_mode == ANTIALIAS_NOT_MOVING) && (_lastFrameNoMotion == true) );//((_lastFrameNoMotion == true) && (_lastFrameWasAntialiased == false)));
+    lv_gltf_opengl_state_push();
+    uint sceneIndex = 0;
+    gl_renwin_state_t _output;
+    gl_renwin_state_t _opaque;
+    view_desc->frame_was_cached = true;
+    view_desc->render_width = view_desc->width * (opt_aa_this_frame ? 2 : 1);
+    view_desc->render_height = view_desc->height * (opt_aa_this_frame ? 2 : 1);
+
+    if (opt_aa_this_frame != _lastFrameWasAntialiased) {
+        // Antialiasing state has changed since the last render
+        if (vstate->render_state_ready) {
+            cleanup_opengl_output(&vstate->render_state);
+            vstate->render_state = prepare_opengl_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height, opt_aa_this_frame);
+        }
+        _lastFrameWasAntialiased = opt_aa_this_frame;
+    }
+    view_desc->frame_was_antialiased = opt_aa_this_frame;
+    if (!vstate->render_state_ready) {
+        vstate->render_state_ready = true;
+        _output = prepare_opengl_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height, opt_aa_this_frame);
+        finish_opengl_frame( ); 
+        vstate->render_state = _output;
+        std::vector<int64_t> _used = std::vector<int64_t>();
+        int64_t _max_index = 0;
+        fastgltf::iterateSceneNodes(*asset, sceneIndex, FMAT4(), [&](fastgltf::Node& node, FMAT4 matrix) {
+            if (node.meshIndex) {
+                auto& mesh_index = node.meshIndex.value();
+                if (node.skinIndex) {
+                    auto skinIndex = node.skinIndex.value();
+                    if(!validated_skins_contains(gltf_data, skinIndex)) {
+                        validate_skin(gltf_data, skinIndex); 
+                        auto skin = asset->skins[skinIndex];
+                        std::size_t num_joints = skin.joints.size();
+                        std::cout << "Skin #" << std::to_string(skinIndex) << ": Joints: " << std::to_string(num_joints) << "\n";
+                        if (skin.inverseBindMatrices) {
+                            auto& _ibmVal = skin.inverseBindMatrices.value();
+                            auto& _ibmAccessor = asset->accessors[_ibmVal];
+                            if (_ibmAccessor.bufferViewIndex){  // To-do: test if this gets confused when bufferViewIndex == 0
+                                fastgltf::iterateAccessorWithIndex<FMAT4>(*asset, _ibmAccessor, [&](FMAT4 _matrix, std::size_t idx) {
+                                    auto& _jointNode = asset->nodes[skin.joints[idx]];
+                                    _ibmBySkinThenNode[skinIndex][&_jointNode] = _matrix; } ); } } } }
+                for (uint64_t mp = 0; mp < asset->meshes[mesh_index].primitives.size(); mp++){
+                    auto& _prim_gltf_data = asset->meshes[mesh_index].primitives[mp];
+                    auto& mappings = _prim_gltf_data.mappings;
+                    int64_t materialIndex = (!mappings.empty() && mappings[vopts->materialVariant]) ?  mappings[vopts->materialVariant].value() + 1 : ( ( _prim_gltf_data.materialIndex ) ? ( _prim_gltf_data.materialIndex.value() + 1 ) : 0 );
+                    if (materialIndex < 0) {
+                        add_opaque_node_prim(gltf_data, 0, &node, mp);
+                    } else {
+                        auto& material = asset->materials[materialIndex - 1];
+                        if (material.transmission) vstate->renderOpaqueBuffer = true;
+                        if ( material.alphaMode == fastgltf::AlphaMode::Blend || (material.transmission != NULL)) {
+                            add_blended_node_prim(gltf_data, materialIndex + 1, &node, mp); 
+                        } else {
+                            add_opaque_node_prim(gltf_data, materialIndex + 1, &node, mp); }
+                        _max_index = std::max(_max_index, materialIndex); } } } } );
+
+        init_shaders(viewer, _max_index);
+        compile_and_load_bg_shader(shaders);
+        fastgltf::iterateSceneNodes(*asset, sceneIndex, FMAT4(), [&](fastgltf::Node& node, FMAT4 matrix) {
+            if (node.meshIndex) { 
+                auto& mesh_index = node.meshIndex.value();
+                for (uint64_t mp = 0; mp < asset->meshes[mesh_index].primitives.size(); mp++){
+                    auto& _prim_gltf_data = asset->meshes[mesh_index].primitives[mp];
+                    auto& mappings = _prim_gltf_data.mappings;
+                    int64_t materialIndex = (!mappings.empty() && mappings[vopts->materialVariant]) ?  mappings[vopts->materialVariant].value() + 1 : ( ( _prim_gltf_data.materialIndex) ? ( _prim_gltf_data.materialIndex.value() + 1 ) : 0 );
+                    const auto& _ss = get_shader_set(viewer, materialIndex);
+                    if (materialIndex > -1 && _ss->ready == false) {
+                        discover_defines(gltf_data, &node, &_prim_gltf_data);
+                        auto _shaderset  = compile_and_load_shaders(shaders);
+                        auto _unilocs = UniformLocs();
+                        get_uniform_locations(&_unilocs, _shaderset.program); 
+                        set_shader(viewer, materialIndex, _unilocs, _shaderset);
+                    } } } } ); 
+        if (vstate->renderOpaqueBuffer) {
+            std::cout << "**** CREATING OPAQUE RENDER BUFFER OBJECTS ****\n";
+            _opaque = prepare_opaque_output(vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight);
+            vstate->opaque_render_state = _opaque;
+            finish_opengl_frame( ); } 
+    }
+
+    bool _motionDirty = false;
+
+    _output = vstate->render_state;
+    int32_t anim_num = view_desc->anim;
+    if ((anim_num >= 0) && ((int64_t)probe->animationCount > anim_num)) {
+        if (std::abs(view_desc->timestep) > 0.0001f) {
+            temp_timestamp += view_desc->timestep;
+            _motionDirty = true;
+        }
+        if (last_anim_num != anim_num) {
+            cur_anim_maxtime = __get_animation_total_time(gltf_data, anim_num);
+            last_anim_num = anim_num;
+        }
+        if (temp_timestamp >= cur_anim_maxtime) temp_timestamp = 0.05f;
+        else if (temp_timestamp < 0.0f ) temp_timestamp = cur_anim_maxtime -0.05f;
+        //std::cout << "Animation #" << std::to_string(anim_num) << " | Time = " << std::to_string(temp_timestamp) << "\n";
+    }
+
+    // To-do: check if the override actually affects the transform and that the affected object is visible in the scene
+    if (gltf_data->overrides->size() > 0) {
+        //std::cout << "OVERRIDES TRIGGER WINDOW MOTION\n";
+        _motionDirty = true;
+    }
+
+    if (lv_gltf_compare_viewer_desc(view_desc, &_lastViewDesc)) {
+        //std::cout << "VIEWER DESC CHANGE TRIGGER WINDOW MOTION\n";
+        _motionDirty = true;
+        lv_gltf_copy_viewer_desc(view_desc, &_lastViewDesc);
+    }
+
+    bool ___lastFrameNoMotion = __lastFrameNoMotion;
+    __lastFrameNoMotion = _lastFrameNoMotion;
+    _lastFrameNoMotion = true;
+    int32_t PREF_CAM_NUM = std::min(view_desc->camera, (int32_t)probe->cameraCount - 1);
+    if (_motionDirty || (PREF_CAM_NUM != last_cam_num) )  {
+        //printf("View info: focal x/y/z = %.2f/%.2f/%.2f | pitch/yaw/distance = %.2f/%.2f/%.2f\n", view_desc->focal_x, view_desc->focal_y, view_desc->focal_z, view_desc->pitch, view_desc->yaw, view_desc->distance );
+        _lastFrameNoMotion = false;
+        clear_transform_cache(gltf_data);
+        last_cam_num = PREF_CAM_NUM;
+        cur_cam_num = -1;
+        foundView = false;
+        foundCam = NULL;
+        _motionDirty = false;
+        auto tmat = FMAT4();
+        auto cammat = FMAT4();
+        fastgltf::custom_iterateSceneNodes(*asset, sceneIndex, &tmat, [&](fastgltf::Node& node, FMAT4& parentworldmatrix, FMAT4& localmatrix) {
+            animateMatrix(temp_timestamp, anim_num, gltf_data, node, localmatrix);
+            if (gltf_data->overrides->find(&node) != gltf_data->overrides->end() ) {
+                const auto& _override = (*gltf_data->overrides)[&node];
+                FVEC3 _pos;
+                fastgltf::math::fquat _quat;
+                FVEC3 _scale;
+                fastgltf::math::decomposeTransformMatrix(localmatrix, _scale, _quat, _pos);
+                FVEC3 _rot = quaternionToEuler(_quat);
+                if (_override.prop == OP_ROTATION) {
+                    if (_override.dataMask & OMC_CHAN1) _rot[0] = _override.data1;
+                    if (_override.dataMask & OMC_CHAN2) _rot[1] = _override.data2;
+                    if (_override.dataMask & OMC_CHAN3) _rot[2] = _override.data3;
+                } else if (_override.prop == OP_POSITION) {
+                    if (_override.dataMask & OMC_CHAN1) _pos[0] = _override.data1;
+                    if (_override.dataMask & OMC_CHAN2) _pos[1] = _override.data2;
+                    if (_override.dataMask & OMC_CHAN3) _pos[2] = _override.data3;
+                } else if (_override.prop == OP_SCALE) {
+                    if (_override.dataMask & OMC_CHAN1) _scale[0] = _override.data1;
+                    if (_override.dataMask & OMC_CHAN2) _scale[1] = _override.data2;
+                    if (_override.dataMask & OMC_CHAN3) _scale[2] = _override.data3;
+                }
+                localmatrix = 
+                    fastgltf::math::scale( 
+                        fastgltf::math::rotate(
+                            fastgltf::math::translate(
+                                FMAT4(), 
+                                _pos ), 
+                            fastgltf::math::eulerToQuaternion(_rot[0], _rot[1], _rot[2]) ),
+                         _scale);
+            }
+            set_cached_transform(gltf_data, &node, parentworldmatrix * localmatrix);
+            if (node.cameraIndex.has_value() && (cur_cam_num < PREF_CAM_NUM)) {
+                foundView = true; foundCam = &node; cammat = (parentworldmatrix * localmatrix); cur_cam_num += 1; } } ); 
+        if (foundView) {
+            viewPos[0] = cammat[3][0];
+            viewPos[1] = cammat[3][1];
+            viewPos[2] = cammat[3][2];
+            viewMat = fastgltf::math::invert(cammat); }
+        else
+            cur_cam_num = -1; } 
+
+    if ((_lastFrameNoMotion == true) && (__lastFrameNoMotion == true) && (___lastFrameNoMotion == true)) {
+        // Nothing changed at all, return the previous output frame
+        finish_opengl_frame( ); 
+        lv_gltf_opengl_state_pop();
+        return _output.texture;
+    }
+    uint32_t _ss = get_skins_size(gltf_data);
+    if (_ss > 0) {
+        SKINTEXS(gltf_data)->clear();
+        uint64_t i = 0u;
+        while (i < _ss) {
+            auto skinIndex = get_skin(gltf_data, i);
+            auto skin = asset->skins[skinIndex];
+            std::size_t num_joints = skin.joints.size();
+            std::size_t _tex_width = std::ceil(std::sqrt((float)num_joints * 8.0f));
+
+            GLuint rtex;
+            GL_CALL(glGenTextures(1, &rtex));
+            SKINTEXS(gltf_data)->push_back(rtex);
+            GL_CALL(glBindTexture(GL_TEXTURE_2D, rtex));
+            GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+            GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+            GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+            GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+            float _data[_tex_width * _tex_width * 4];
+            std::size_t _dpos = 0;
+            for (uint64_t j =0; j< num_joints; j++) {
+                auto& _jointNode = asset->nodes[skin.joints[j]];
+                
+                FMAT4 _finalJointMat = get_cached_transform( gltf_data, &_jointNode ) * _ibmBySkinThenNode[skinIndex][&_jointNode];
+                FMAT4 _normMat =  fastgltf::math::transpose(fastgltf::math::invert(_finalJointMat));
+                auto _mData1 = _finalJointMat.data();
+                auto _mData2 = _normMat.data();
+                for (int32_t md =0; md < 16; md++) {
+                    _data[_dpos + md] = _mData1[md];
+                    _data[_dpos + md + 16] = _mData2[md];
+                }
+                _dpos += 32;
+            }
+            GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _tex_width, _tex_width, 0, GL_RGBA, GL_FLOAT, _data));
+            GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+            GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
+            ++i;
+        }
+    }
+    clear_distance_sort(gltf_data);
+    for (MaterialIndexMap::iterator kv = get_blended_begin(gltf_data); kv != get_blended_end(gltf_data); kv++ ) {
+            for (NodePairVector::iterator nodeElem = kv->second.begin(); nodeElem != kv->second.end(); nodeElem++ ) {
+                auto node = nodeElem->first;
+                add_distance_sort_prim( gltf_data, NodeIndexDistancePair(fastgltf::math::length(viewPos - lv_gltf_get_centerpoint(gltf_data, get_cached_transform( gltf_data, node ), node->meshIndex.value(), nodeElem->second)), NodeIndexPair(node, nodeElem->second))); } }
+    // Sort __distance_sort_nodes by the first member (distance)
+    std::sort(get_distance_sort_begin(gltf_data), get_distance_sort_end(gltf_data),
+        [](const NodeIndexDistancePair& a, const NodeIndexDistancePair& b) { return a.first < b.first; } );
+
+    _lastMaterialIndex = 99999;  // Reset the last material index to an unused value once per frame at the start
+    if (vstate->renderOpaqueBuffer) {
+        if (foundView) make_view_proj_matrix_from_camera( viewer, cur_cam_num, view_desc, viewMat, viewPos, gltf_data, true );
+        else make_view_proj_matrix( viewer, view_desc, gltf_data, true );
+        _opaque = vstate->opaque_render_state;
+        if (restore_opaque_output(_opaque, vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight) ) {
+            // Should drawing this frame be canceled due to GL_INVALID_OPERATION error from possibly conflicting update cycles?
+            view_desc->error_frames += 1;
+            std::cout<< "CANCELED FRAME A\n";
+            return _output.texture; }
+        if (opt_draw_bg) draw_environment_background(shaders, viewer, view_desc->blur_bg * 0.4f);//    GL_CALL(glUseProgram(_shader_prog.bg_program));
+            
+        for (MaterialIndexMap::iterator kv = get_opaque_begin(gltf_data); kv != get_opaque_end(gltf_data); kv++ ) {
+            for (NodePairVector::iterator nodeElem = kv->second.begin(); nodeElem != kv->second.end(); nodeElem++ ) {
+                auto node = nodeElem->first;
+                draw_primitive(nodeElem->second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(), get_cached_transform(gltf_data, node), *(shaders->lastEnv), true);  }}
+        for (NodeDistanceVector::iterator kv = get_distance_sort_begin(gltf_data); kv != get_distance_sort_end(gltf_data); kv++ ) {
+            const auto& nodeDistancePair = *kv; // Dereference the iterator to get the pair
+            const auto& nodeElem = nodeDistancePair.second; // Access the second member (NodeIndexPair)
+            auto node = nodeElem.first;
+            draw_primitive(nodeElem.second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(), get_cached_transform(gltf_data, node), *(shaders->lastEnv), true);  }
+
+        GL_CALL(glBindTexture(GL_TEXTURE_2D, _opaque.texture));
+        GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
+        GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
+        finish_opengl_frame( ); 
+                // "blit" the multisampled opaque texture into the color buffer, which adds antialiasing
+            //GL_CALL(glBindFramebuffer(GL_READ_FRAMEBUFFER, viewer->opaqueFramebufferScratch));
+            //GL_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, viewer->opaqueFramebuffer));
+            //GL_CALL(glBlitFramebuffer(0, 0, viewer->opaqueFramebufferWidth, viewer->opaqueFramebufferHeight, 0, 0, viewer->opaqueFramebufferWidth, viewer->opaqueFramebufferHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST));
+    }
+
+    if (foundView) make_view_proj_matrix_from_camera( viewer, cur_cam_num, view_desc, viewMat, viewPos, gltf_data, false );
+    else make_view_proj_matrix( viewer, view_desc, gltf_data, false );
+
+    viewer->envRotationAngle = shaders->lastEnv->angle;
+
+    {
+        if (restore_opengl_output(_output, (uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height) ) {
+            // Should drawing this frame be canceled due to GL_INVALID_OPERATION error from possibly conflicting update cycles?
+            view_desc->error_frames += 1;
+            std::cout << "CANCELED FRAME B\n";
+            return _output.texture; }
+        if (opt_draw_bg) draw_environment_background(shaders, viewer, view_desc->blur_bg);
+        for (MaterialIndexMap::iterator kv = get_opaque_begin(gltf_data); kv != get_opaque_end(gltf_data); kv++ ) {
+            for (NodePairVector::iterator nodeElem = kv->second.begin(); nodeElem != kv->second.end(); nodeElem++ ) {
+                auto node = nodeElem->first;
+                draw_primitive(nodeElem->second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(), get_cached_transform(gltf_data, node), *(shaders->lastEnv), false);  }}
+        for (NodeDistanceVector::iterator kv = get_distance_sort_begin(gltf_data); kv != get_distance_sort_end(gltf_data); kv++ ) {
+            const auto& nodeDistancePair = *kv; // Dereference the iterator to get the pair
+            const auto& nodeElem = nodeDistancePair.second; // Access the second member (NodeIndexPair)
+            auto node = nodeElem.first;
+            draw_primitive(nodeElem.second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(), get_cached_transform(gltf_data, node), *(shaders->lastEnv), false);  }
+        if (opt_aa_this_frame){
+            GL_CALL(glBindTexture(GL_TEXTURE_2D, _output.texture));
+            GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
+            GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
+        }
+        finish_opengl_frame( ); 
+    }
+    lv_gltf_opengl_state_pop();
+    view_desc->frame_was_cached = false;
+    return _output.texture;
+}
+
+/*
+
+
+        // MORPH TARGETS
+        // this is a primitive
+        if (this.targets !== undefined && this.targets.length > 0)
+        {
+            const max2DTextureSize = Math.pow(webGlContext.getParameter(GL.MAX_TEXTURE_SIZE), 2);
+            const maxTextureArraySize = webGlContext.getParameter(GL.MAX_ARRAY_TEXTURE_LAYERS);
+            // Check which attributes are affected by morph targets and
+            // define offsets for the attributes in the morph target texture.
+            const attributeOffsets = {};
+            let attributeOffset = 0;
+
+            // Gather used attributes from all targets (some targets might
+            // use more attributes than others)
+            const attributes = Array.from(this.targets.reduce((acc, target) => {
+                Object.keys(target).map(val => acc.add(val));
+                return acc;
+            }, new Set()));
+
+            const vertexCount = gltf.accessors[this.attributes[attributes[0]]].count;
+            this.defines.push(`NUM_VERTICIES ${vertexCount}`);
+            let targetCount = this.targets.length;
+            if (targetCount * attributes.length > maxTextureArraySize)
+            {
+                targetCount = Math.floor(maxTextureArraySize / attributes.length);
+                console.warn(`Morph targets exceed texture size limit. Only ${targetCount} of ${this.targets.length} are used.`);
+            }
+
+            for (const attribute of attributes)
+            {
+                // Add morph target defines
+                this.defines.push(`HAS_MORPH_TARGET_${attribute} 1`);
+                this.defines.push(`MORPH_TARGET_${attribute}_OFFSET ${attributeOffset}`);
+                // Store the attribute offset so that later the
+                // morph target texture can be assembled.
+                attributeOffsets[attribute] = attributeOffset;
+                attributeOffset += targetCount;
+            }
+            this.defines.push("HAS_MORPH_TARGETS 1");
+
+            if (vertexCount <= max2DTextureSize) {
+                // Allocate the texture buffer. Note that all target attributes must be vec3 types and
+                // all must have the same vertex count as the primitives other attributes.
+                const width = Math.ceil(Math.sqrt(vertexCount));
+                const singleTextureSize = Math.pow(width, 2) * 4;
+                const morphTargetTextureArray = new Float32Array(singleTextureSize * targetCount * attributes.length);
+
+                // Now assemble the texture from the accessors.
+                for (let i = 0; i < targetCount; ++i)
+                {
+                    let target = this.targets[i];
+                    for (let [attributeName, offsetRef] of Object.entries(attributeOffsets)){
+                        if (target[attributeName] != undefined) {
+                            const accessor = gltf.accessors[target[attributeName]];
+                            const offset = offsetRef * singleTextureSize;
+                            if (accessor.componentType != GL.FLOAT && accessor.normalized == false){
+                                console.warn("Unsupported component type for morph targets");
+                                attributeOffsets[attributeName] = offsetRef + 1;
+                                continue;
+                            }
+                            const data = accessor.getNormalizedDeinterlacedView(gltf);
+                            switch(accessor.type)
+                            {
+                            case "VEC2":
+                            case "VEC3":
+                            {
+                                // Add padding to fit vec2/vec3 into rgba
+                                let paddingOffset = 0;
+                                let accessorOffset = 0;
+                                const componentCount = accessor.getComponentCount(accessor.type);
+                                for (let j = 0; j < accessor.count; ++j) {
+                                    morphTargetTextureArray.set(data.subarray(accessorOffset, accessorOffset + componentCount), offset + paddingOffset);
+                                    paddingOffset += 4;
+                                    accessorOffset += componentCount;
+                                }
+                                break;
+                            }
+                            case "VEC4":
+                                morphTargetTextureArray.set(data, offset);
+                                break;
+                            default:
+                                console.warn("Unsupported attribute type for morph targets");
+                                break;
+                            }
+                        }
+                        attributeOffsets[attributeName] = offsetRef + 1;
+                    }
+                }
+
+
+                // Add the morph target texture.
+                // We have to create a WebGL2 texture as the format of the
+                // morph target texture has to be explicitly specified
+                // (gltf image would assume uint8).
+                let texture = webGlContext.createTexture();
+                webGlContext.bindTexture( webGlContext.TEXTURE_2D_ARRAY, texture);
+                // Set texture format and upload data.
+                let internalFormat = webGlContext.RGBA32F;
+                let format = webGlContext.RGBA;
+                let type = webGlContext.FLOAT;
+                let data = morphTargetTextureArray;
+                webGlContext.texImage3D(
+                    webGlContext.TEXTURE_2D_ARRAY,
+                    0, //level
+                    internalFormat,
+                    width,
+                    width,
+                    targetCount * attributes.length, //Layer count
+                    0, //border
+                    format,
+                    type,
+                    data);
+                // Ensure mipmapping is disabled and the sampler is configured correctly.
+                webGlContext.texParameteri( GL.TEXTURE_2D_ARRAY,  GL.TEXTURE_WRAP_S,  GL.CLAMP_TO_EDGE);
+                webGlContext.texParameteri( GL.TEXTURE_2D_ARRAY,  GL.TEXTURE_WRAP_T,  GL.CLAMP_TO_EDGE);
+                webGlContext.texParameteri( GL.TEXTURE_2D_ARRAY,  GL.TEXTURE_MIN_FILTER,  GL.NEAREST);
+                webGlContext.texParameteri( GL.TEXTURE_2D_ARRAY,  GL.TEXTURE_MAG_FILTER,  GL.NEAREST);
+
+                // Now we add the morph target texture as a gltf texture info resource, so that
+                // we can just call webGl.setTexture(..., gltfTextureInfo, ...) in the renderer.
+                const morphTargetImage = new gltfImage(
+                    undefined, // uri
+                    GL.TEXTURE_2D_ARRAY, // type
+                    0, // mip level
+                    undefined, // buffer view
+                    undefined, // name
+                    ImageMimeType.GLTEXTURE, // mimeType
+                    texture // image
+                );
+                gltf.images.push(morphTargetImage);
+
+                gltf.samplers.push(new gltfSampler(GL.NEAREST, GL.NEAREST, GL.CLAMP_TO_EDGE, GL.CLAMP_TO_EDGE, undefined));
+
+                const morphTargetTexture = new gltfTexture(
+                    gltf.samplers.length - 1,
+                    gltf.images.length - 1,
+                    GL.TEXTURE_2D_ARRAY);
+                // The webgl texture is already initialized -> this flag informs
+                // webgl.setTexture about this.
+                morphTargetTexture.initialized = true;
+
+                gltf.textures.push(morphTargetTexture);
+
+                this.morphTargetTextureInfo = new gltfTextureInfo(gltf.textures.length - 1, 0, true);
+                this.morphTargetTextureInfo.samplerName = "u_MorphTargetsSampler";
+                this.morphTargetTextureInfo.generateMips = false;
+            } else {
+                console.warn("Mesh of Morph targets too big. Cannot apply morphing.");
+            }
+        }
+*/
