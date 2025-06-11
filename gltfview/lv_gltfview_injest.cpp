@@ -28,7 +28,8 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
                               WebPBitstreamFeatures* features);
 
 #include "lv_gltfview_datatypes.h"
-#include "lv_gltfview_internal_datatypes.h"
+#include "lv_gltfview_private.h"
+//#include "lv_gltfview_internal_datatypes.h"
 #include "lv_gltfview_internal_interface.hpp"
 #include "lv_gltfview_shader_cache.h"
 #include "lv_gltfview_shader_includes.h"

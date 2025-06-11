@@ -48,9 +48,11 @@ target_compile_options(fastgltf PRIVATE -Wno-redundant-move)
 
 target_link_libraries(lvgl_workspace fastgltf)
 target_link_libraries(lvgl_gltfview fastgltf)
+target_link_libraries(lvgl_gltfview webp)
+target_compile_options(lvgl_gltfview PRIVATE -Wno-maybe-uninitialized)
+target_compile_options(lvgl_gltfview PRIVATE -Wno-array-bounds)
 
 target_link_libraries(lvgl_workspace lvgl_gltfview)
-target_link_libraries(lvgl_workspace webp)
 target_link_libraries(lvgl_workspace lvgl)
 target_link_libraries(lvgl_workspace pthread)
 target_link_libraries(lvgl_workspace m)

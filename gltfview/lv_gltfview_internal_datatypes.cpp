@@ -1,7 +1,7 @@
 #include "lib/fastgltf/include/fastgltf/types.hpp"
 
 #include "lv_gltfview_datatypes.h"
-#include "lv_gltfview_internal_datatypes.h"
+#include "lv_gltfview_private.h"
 #include <algorithm>
 
 #ifndef __MESH_DATA_DEFINED

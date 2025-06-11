@@ -191,11 +191,17 @@ void __ShaderCache_initCommon( pShaderCache This ) {
         std::string _src = it->second;
         bool changed = false;
         for (const auto& [includeName, includeSource] : (*sources)) {
-            std::string pattern = std::string("#include <" + includeName + ">");
+            if (includeName.empty() || includeSource.empty()) {
+                continue; // Skip empty names or sources
+            }
+            //std::string pattern = std::string("#include <" + includeName + ">");
+            std::string pattern = "#include <" + includeName + ">";
+            std::regex regexPattern(pattern); // Create regex once
+            
             if (_src.find(pattern) != std::string::npos) {
                 // only replace the first occurance
-                _src = std::regex_replace(_src, std::regex(pattern), includeSource);
-                while (_src.find(pattern) != std::string::npos) { _src = std::regex_replace(_src, std::regex(pattern), std::string()); }
+                _src = std::regex_replace(_src, regexPattern, includeSource);
+                while (_src.find(pattern) != std::string::npos) { _src = std::regex_replace(_src, regexPattern, std::string()); }
                 changed = true; } }
         if(changed) {
             (*sources)[it->first] = _src.c_str(); } }

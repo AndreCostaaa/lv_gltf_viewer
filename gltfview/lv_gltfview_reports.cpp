@@ -17,7 +17,7 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "lv_gltfview_internal_datatypes.h"
+#include "lv_gltfview_private.h"
 #include "lv_gltfview_internal_interface.hpp"
 
 
