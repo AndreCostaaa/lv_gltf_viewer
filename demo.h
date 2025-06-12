@@ -16,6 +16,7 @@
 #include <stdlib.h>     /* exit */
 #include <time.h>       /* for animation timing */
 #include <sys/time.h>
+#include <math.h>       /* pow */
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
 #define BIG_TEXTURE_WIDTH 256 * 3
@@ -23,6 +24,14 @@
 
 #define WINDOW_WIDTH BIG_TEXTURE_WIDTH
 #define WINDOW_HEIGHT BIG_TEXTURE_HEIGHT
+
+#define STUB_WINDOW_WIDTH 200
+#define STUB_WINDOW_HEIGHT 60
+
+#define DESKTOP_OUTPUT_RAMTEMP_PATH "ramtemp"
+#define DESKTOP_OUTPUT_RAMTEMP_SIZE "2M"
+#define DESKTOP_OUTPUT_FILEPATH "/var/ramtemp/background.png"
+#define DESKTOP_APPLY_COMMAND "pcmanfm --set-wallpaper /var/ramtemp/background.png"
 
 #define LVGL_BLUE 0x2196f3
 #define LVGL_COOLGRAY 0xe4f1fb
@@ -48,6 +57,7 @@ extern int anim;
 extern unsigned int _current_tab;
 extern bool use_scenecam;
 extern bool anim_enabled;
+extern bool desktop_mode;
 
 extern lv_obj_t * grp_loading;
 extern lv_obj_t * spin_checkbox;
@@ -89,5 +99,5 @@ void demo_nav_process_drag(float movement_power, uint32_t mouse_state_ex, int mo
 void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window );
 bool demo_os_integrate_window_should_close(void);
 void demo_os_integrate_signal_window_close(void);
-
+bool demo_os_integrate_confirm_desktop_mode_ok(void);
 #endif // MAINUI_SHARED_H

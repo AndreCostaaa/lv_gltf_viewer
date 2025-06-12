@@ -11,14 +11,6 @@
 #include "lib/fastgltf/include/fastgltf/tools.hpp"
 #pragma GCC diagnostic pop
 
-#ifndef STB_HAS_BEEN_INCLUDED
-#define STB_HAS_BEEN_INCLUDED
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtype-limits"
-#include "stb_image/stb_image.h"
-#pragma GCC diagnostic pop
-#endif
-
 #include "lv_gltfview_internal.h"
 
 #include "lib/mathc/mathc.h"
@@ -212,7 +204,7 @@ FVEC3 __multiplyMatrixByVector(const FMAT4 mat, const FVEC3 vec) {
 }
 
 // Function to compute the ray from the camera through the mouse position
-bool __computeRayToGround( pViewer viewer, float norm_mouseX, float norm_mouseY, double groundHeight, FVEC3* collisionPoint) {
+bool __computeRayToGround( lv_gltfview_t * viewer, float norm_mouseX, float norm_mouseY, double groundHeight, FVEC3* collisionPoint) {
     const auto& _viewmat = GET_VIEW_MAT(viewer);
     FMAT4 __projmat;
     float aspectRatio = 256.0f / 192.0f;
@@ -268,7 +260,7 @@ bool __computeRayToGround( pViewer viewer, float norm_mouseX, float norm_mouseY,
     return true; // Collision point found
 }
 
-bool lv_gltfview_raycast_ground_position( pViewer viewer, int32_t _mouseX, int32_t _mouseY, int32_t _winWidth, int32_t _winHeight, double groundHeight, float* outPos) {
+bool lv_gltfview_raycast_ground_position( lv_gltfview_t * viewer, int32_t _mouseX, int32_t _mouseY, int32_t _winWidth, int32_t _winHeight, double groundHeight, float* outPos) {
     float norm_mouseX = (float)_mouseX / (float)(_winWidth);
     float norm_mouseY = (float)_mouseY / (float)(_winHeight);
     FVEC3 _rayres;
@@ -282,4 +274,24 @@ bool lv_gltfview_raycast_ground_position( pViewer viewer, int32_t _mouseX, int32
 FVEC3 lv_gltf_get_centerpoint(pGltf_data_t gltf_data, FMAT4 matrix, uint32_t meshIndex, int32_t elem) {
     if (!centerpoint_cache_contains(gltf_data, meshIndex, elem)) recache_centerpoint(gltf_data, meshIndex, elem);
     return get_cached_centerpoint(gltf_data, meshIndex, elem, matrix);
+}
+
+void lv_gltfview_utils_save_png( lv_gltfview_t * viewer, const char * filename, bool alpha_enabled, uint32_t compression_level ) {
+    const auto& vstate = get_viewer_state(viewer);
+    const auto& vdesc = lv_gltfview_get_desc(viewer);
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, vstate->render_state.texture));
+    stbi_write_png_compression_level = compression_level;
+    stbi_flip_vertically_on_write(true);
+    uint32_t mipmapnum = lv_gltfview_check_frame_was_antialiased(viewer) ? 1 : 0;
+    if (alpha_enabled) {
+        char * pixels = (char *)lv_malloc(vdesc->height * vdesc->width * 4);
+        glGetTexImage(GL_TEXTURE_2D, mipmapnum, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        stbi_write_png(filename, vdesc->width, vdesc->height, 4, pixels, vdesc->width * 4);
+        lv_free(pixels);
+    } else {
+        char * pixels = (char *)lv_malloc(vdesc->height * vdesc->width * 3);
+        glGetTexImage(GL_TEXTURE_2D, mipmapnum, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+        stbi_write_png(filename, vdesc->width, vdesc->height, 3, pixels, vdesc->width * 3);
+        lv_free(pixels);
+    }
 }

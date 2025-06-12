@@ -26,8 +26,11 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 #define STB_HAS_BEEN_INCLUDED
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wtype-limits"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image/stb_image_write.h"
 #pragma GCC diagnostic pop
 #endif
 
@@ -190,7 +193,7 @@ int64_t lv_gltfview_get_node_handle_by_name(const char * _nodename) {
     return -1;
 }
 
-void lv_gltfview_destroy(pViewer _viewer, pGltf_data_t _data, pShaderCache _shaders){
+void lv_gltfview_destroy(lv_gltfview_t * _viewer, pGltf_data_t _data, pShaderCache _shaders){
     __free_data_struct(_data);
     __free_viewer_struct(_viewer);
     clearDefines();
@@ -199,7 +202,7 @@ void lv_gltfview_destroy(pViewer _viewer, pGltf_data_t _data, pShaderCache _shad
 
 void draw_primitive(  int32_t prim_num,
                 gl_viewer_desc_t * view_desc,
-                pViewer viewer,
+                lv_gltfview_t * viewer,
                 pGltf_data_t gltf_data,
                 fastgltf::Node& node,
                 std::size_t mesh_index,
@@ -394,7 +397,7 @@ void draw_primitive(  int32_t prim_num,
     }
 }
 
-uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t gltf_data ) {
+uint32_t lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * viewer, pGltf_data_t gltf_data ) {
     const auto& asset =     GET_ASSET(gltf_data);
     const auto& probe =     PROBE(gltf_data);
     const auto& vstate =    get_viewer_state(viewer);

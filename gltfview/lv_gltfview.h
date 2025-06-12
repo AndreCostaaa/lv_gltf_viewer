@@ -72,7 +72,7 @@ void lv_gltfdata_make_animations_summary(lv_gltfdata_t * data, char *dest_buffer
  * @param viewer Pointer to the viewer object this file will be displayed within.
  * @param shaders Pointer to the shader cache object this file uses.
  */
-void lv_gltfview_load(const char * gltf_path, lv_gltfdata_t * ret_data, pViewer viewer, pShaderCache shaders);
+void lv_gltfview_load(const char * gltf_path, lv_gltfdata_t * ret_data, lv_gltfview_t * viewer, pShaderCache shaders);
 
 /**
  * @brief Set the callback function that is called when loading increments.
@@ -108,7 +108,7 @@ void lv_gltf_get_isolated_filename(const char* filename, char* out_buffer, uint3
  * @param out_pos Pointer to store the output position.
  * @return true if the raycast was successful, false otherwise.
  */
-bool lv_gltfview_raycast_ground_position(pViewer viewer, int32_t mouse_x, int32_t mouse_y, int32_t win_width, int32_t win_height, double ground_height, float* out_pos);
+bool lv_gltfview_raycast_ground_position(lv_gltfview_t * viewer, int32_t mouse_x, int32_t mouse_y, int32_t win_width, int32_t win_height, double ground_height, float* out_pos);
 
 /**
  * @brief Copy the viewer descriptor from one state to another.
@@ -128,9 +128,10 @@ void lv_gltf_copy_viewer_desc(gl_viewer_desc_t* from_state, gl_viewer_desc_t* to
 bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t* from_state, gl_viewer_desc_t* to_state);
 
 
+void lv_gltfview_utils_save_png( lv_gltfview_t * viewer, const char * filename, bool alpha_enabled, uint32_t compression_level );
 
 
-gl_viewer_desc_t* lv_gltfview_get_desc           (pViewer V);
+gl_viewer_desc_t* lv_gltfview_get_desc           (lv_gltfview_t * V);
 
 unsigned int get_gltf_datastruct_datasize(void);
 unsigned int get_viewer_datasize(void);
@@ -158,21 +159,124 @@ void init_viewer_struct(lv_gltfview_t * _ViewerMem);
 void lv_gltfview_set_width (lv_gltfview_t * view, uint32_t new_width );
 void lv_gltfview_set_height (lv_gltfview_t * view, uint32_t new_height );
 
+/**
+ * @brief Get the viewing pitch angle (up/down). This is only valid when a scene camera is not enabled.
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @return The pitch angle in degrees.
+ */
 float lv_gltfview_get_pitch (lv_gltfview_t * view);
+
+/**
+ * @brief Get the viewing yaw angle (left/right). This is only valid when a scene camera is not enabled.
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @return The yaw angle in degrees.
+ */
 float lv_gltfview_get_yaw (lv_gltfview_t * view);
+
+/**
+ * @brief Get the viewing distance (in/out). This is only valid when a scene camera is not enabled.
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @return The viewing distance (in model bounding volume units, default 1.0).
+ */
 float lv_gltfview_get_distance (lv_gltfview_t * view);
+
+/**
+ * @brief Get the focal position x component. This is only valid when a scene camera is not enabled.
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @return The focal position x component in scene units.
+ */
 float lv_gltfview_get_focal_x (lv_gltfview_t * view);
+
+/**
+ * @brief Get the focal position y component. This is only valid when a scene camera is not enabled.
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @return The focal position y component in scene units.
+ */
 float lv_gltfview_get_focal_y (lv_gltfview_t * view);
+
+/**
+ * @brief Get the focal position x component. This is only valid when a scene camera is not enabled.
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @return The focal position x component in scene units.
+ */
 float lv_gltfview_get_focal_z (lv_gltfview_t * view);
+
+/**
+ * @brief Get the yaw angle offset (for platter spin). This is only valid when a scene camera is not enabled.
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @return The yaw angle offset in degrees.
+ */
 float lv_gltfview_get_spin_degree_offset(lv_gltfview_t * view);
+
+/**
+ * @brief Get the anti-aliasing mode enum value as unsigned int.  0 = Off, 1 = Always On, 2 = Auto (Off during movement, otherwise on)
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @return The current anti-aliasing mode (defined in AntialiasingMode enum), as unsigned int.
+ */
 uint32_t lv_gltfview_get_aa_mode(lv_gltfview_t * view);
+
+/**
+ * @brief Get the background mode enum value as unsigned int. 0 = Clear, 1 = Solid Color, 2 = Environment
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @return The current background mode (defined in BackgroundMode enum), as unsigned int.
+ */
 uint32_t lv_gltfview_get_bg_mode(lv_gltfview_t * view);
 
+/**
+ * @brief Set the viewing angle pitch in degrees x 10 (3600 per full turn)
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @param pitch_degrees_x10 The view pitch in degrees times ten, as signed integer.
+ */
 void lv_gltfview_set_pitch (lv_gltfview_t * view, int pitch_degrees_x10 );
+
+/**
+ * @brief Set the viewing angle yaw in degrees x 10 (3600 per full turn)
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @param yaw_degrees_x10 The yaw pitch in degrees times ten, as signed integer.
+ */
 void lv_gltfview_set_yaw (lv_gltfview_t * view, int yaw_degrees_x10 );
+
+/**
+ * @brief Set the viewing distance in model bounding volume units x 1000 (1000 per standard distance which is 250% the bounding volume radius)
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @param distance_x1000 The viewing distance in model bounding volume units x 1000 as signed integer (note: negative numbers are valid but will probably not be useful, putting the model out of view).
+ */
 void lv_gltfview_set_distance (lv_gltfview_t * view, int distance_x1000 );
+
+/**
+ * @brief Set the viewing focal position x component
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @param focal_x The viewing position x component as float 
+ */
 void lv_gltfview_set_focal_x (lv_gltfview_t * view, float focal_x);
+
+/**
+ * @brief Set the viewing focal position y component
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @param focal_y The viewing position y component as float 
+ */
 void lv_gltfview_set_focal_y (lv_gltfview_t * view, float focal_y);
+
+/**
+ * @brief Set the viewing focal position z component
+ *
+ * @param view Pointer to the lv_gltfview.
+ * @param focal_z The viewing position z component as float 
+ */
 void lv_gltfview_set_focal_z (lv_gltfview_t * view, float focal_z);
 void lv_gltfview_inc_pitch (lv_gltfview_t * view, float pitch_inc_degrees );
 void lv_gltfview_inc_yaw (lv_gltfview_t * view, float yaw_inc_degrees );

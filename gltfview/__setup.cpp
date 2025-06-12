@@ -442,7 +442,7 @@ void setup_finish_frame( void ) {
 }
 
 // Function to create a view-projection matrix from the camera
-void setup_view_proj_matrix_from_camera( pViewer viewer, int32_t _cur_cam_num, gl_viewer_desc_t * view_desc, const FMAT4 view_mat,  const FVEC3 view_pos, pGltf_data_t gltf_data, bool transmission_pass) {
+void setup_view_proj_matrix_from_camera( lv_gltfview_t * viewer, int32_t _cur_cam_num, gl_viewer_desc_t * view_desc, const FMAT4 view_mat,  const FVEC3 view_pos, pGltf_data_t gltf_data, bool transmission_pass) {
 
     mfloat_t view[MAT4_SIZE];
 
@@ -499,7 +499,7 @@ void setup_view_proj_matrix_from_camera( pViewer viewer, int32_t _cur_cam_num, g
 * Function to create a view-projection matrix from a given pitch/yaw/distance 
 * described within the view_desc parameter.
 */
-void setup_view_proj_matrix( pViewer viewer, gl_viewer_desc_t * view_desc, pGltf_data_t gltf_data, bool transmission_pass) {
+void setup_view_proj_matrix( lv_gltfview_t * viewer, gl_viewer_desc_t * view_desc, pGltf_data_t gltf_data, bool transmission_pass) {
     // Create Look-At Matrix
     const auto& _cenpos = FVEC3(view_desc->focal_x, view_desc->focal_y, view_desc->focal_z);
     float cen_x = _cenpos[0];
@@ -584,7 +584,7 @@ void setup_compile_and_load_bg_shader(pShaderCache shaders) {
 }
 
 // Function to draw the environment background
-void setup_draw_environment_background(pShaderCache shaders, pViewer viewer, float blur) {
+void setup_draw_environment_background(pShaderCache shaders, lv_gltfview_t * viewer, float blur) {
     GL_CALL(glBindVertexArray(shaders->bg_vao));
     GL_CALL(glUseProgram(shaders->bg_program));
     GL_CALL(glEnable(GL_CULL_FACE));

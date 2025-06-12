@@ -434,7 +434,7 @@ std::size_t injest_vec4_attribute(
  * @param mesh Reference to the mesh to load.
  * @return true if the mesh was loaded successfully, false otherwise.
  */
-bool injest_mesh(pViewer viewer, pGltf_data_t data_obj, fastgltf::Mesh& mesh) {
+bool injest_mesh(lv_gltfview_t * viewer, pGltf_data_t data_obj, fastgltf::Mesh& mesh) {
     const auto& asset = GET_ASSET(data_obj);
     const auto& outMesh = lv_gltf_get_new_meshdata(viewer); //outMesh = {};
     outMesh->primitives.resize(mesh.primitives.size());
@@ -548,7 +548,7 @@ bool injest_mesh(pViewer viewer, pGltf_data_t data_obj, fastgltf::Mesh& mesh) {
  * @param index The index of the image to load.
  * @return true if the image was loaded successfully, false otherwise.
  */
-bool injest_image(pShaderCache shaders, pViewer viewer, pGltf_data_t data_obj, fastgltf::Image& image, uint32_t index) {
+bool injest_image(pShaderCache shaders, lv_gltfview_t * viewer, pGltf_data_t data_obj, fastgltf::Image& image, uint32_t index) {
     const auto& asset = GET_ASSET(data_obj);
     auto getLevelCount = [](int32_t width, int32_t height) -> GLsizei {
         return static_cast<GLsizei>(1 + floor(log2(width > height ? width : height)));
@@ -655,7 +655,7 @@ bool injest_image(pShaderCache shaders, pViewer viewer, pGltf_data_t data_obj, f
  * @param camera Reference to the camera to load.
  * @return true if the camera was loaded successfully, false otherwise.
  */
-bool injest_camera(pViewer viewer, fastgltf::Camera& camera) {
+bool injest_camera(lv_gltfview_t * viewer, fastgltf::Camera& camera) {
     return true;
 	// The following matrix math is for the projection matrices as defined by the glTF spec:
 	// https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#projection-matrices
@@ -717,7 +717,7 @@ bool lv_gltfview_set_loadphase_callback(void (*_load_progress_callback)(const ch
     return true;
 }
 
-void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, pViewer viewer, pShaderCache shaders) {
+void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, lv_gltfview_t * viewer, pShaderCache shaders) {
     __init_gltf_datastruct(_retdata, gltf_path);
 
     std::filesystem::path gltfFilePath = std::string_view { gltf_path };

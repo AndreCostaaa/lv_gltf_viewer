@@ -118,6 +118,20 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                 }
             } else if (strcmp(argv[i], "-sw") == 0) {
                 *software_only = true;
+            } else if (strcmp(argv[i], "-desktop") == 0) {
+                if (demo_os_integrate_confirm_desktop_mode_ok()) {
+                    desktop_mode = true;                
+                } else {
+                    printf("Error: -desktop option requires an additional setup step, see below:\n");
+                    printf("To avoid excessive wear and tear on the SD card or storage medium, the \n");
+                    printf("desktop output mode saves it's temporary files to a ram drive.  That \n");
+                    printf("ramdrive was not detected at this time.  To create it, run the following\n");
+                    printf("script from the application root directory:\n\n");
+                    char command[256];
+                    snprintf(command, sizeof(command), "./__resize_ramdrive.sh %s %s\n", DESKTOP_OUTPUT_RAMTEMP_PATH, DESKTOP_OUTPUT_RAMTEMP_SIZE);
+                    printf(command);
+                    passedParamChecks = false;
+                }
             } else if (strcmp(argv[i], "-anim") == 0 && (i + 1) < argc) {
                 if (i + 1 < argc) {
                     anim = atoi(argv[i + 1]); // Convert string to int

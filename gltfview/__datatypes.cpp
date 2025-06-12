@@ -12,14 +12,14 @@ struct MeshData {
 };
 #endif /* __MESH_DATA_DEFINED */
 
-typedef pViewer         _VIEW;
-typedef pGltf_data_t    _DATA;
-typedef FVEC3           _VEC3;
-typedef FVEC4           _VEC4;
-typedef FMAT4           _MAT4;
-typedef uint64_t        _UINT;
-typedef MeshData        _MESH;
-typedef NodePtr         _NODE;
+typedef lv_gltfview_t *     _VIEW;
+typedef pGltf_data_t        _DATA;
+typedef FVEC3               _VEC3;
+typedef FVEC4               _VEC4;
+typedef FMAT4               _MAT4;
+typedef uint64_t            _UINT;
+typedef MeshData            _MESH;
+typedef NodePtr             _NODE;
 #define _RET return
 
 struct lv_gltfdata_struct {

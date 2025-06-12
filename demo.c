@@ -1,10 +1,5 @@
 #include "demo.h"
 
-#include "stb_image/stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image/stb_image_write.h"
-
-//#define EXPERIMENTAL_DESKTOP
 //#define EXPERIMENTAL_GROUNDCAST
 
 float TIME_SCALE = 1.0f;
@@ -24,6 +19,7 @@ int anim = -1;
 bool use_scenecam = false;
 bool anim_enabled = true;
 bool animate_spin = true;
+bool desktop_mode = false;
 
 ShaderCache_struct _shaderCache;
 pShaderCache shaderCache;
@@ -110,14 +106,16 @@ int main(int argc, char *argv[]) {
         printf("Frame Count: %d\n", frameCount);
         printf("Spin Rate (degrees per sec): %.3f\n", spin_rate);
         printf("Software Only: %s\n", softwareOnly ? "true" : "false");
+        printf("Desktop Mode: %s\n", desktop_mode ? "true" : "false");
 
         int maxFrames = frameCount;
+        bool stubmode = desktop_mode | (frameCount > 0);
         lv_init();
 
         if (softwareOnly) setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
         /* create a window and initialize OpenGL */
-        window = lv_glfw_window_create_ex(WINDOW_WIDTH, WINDOW_HEIGHT, true, false, false, MY_WINDOW_TITLE, "gltf-view-new");
+        window = lv_glfw_window_create_ex( stubmode ? STUB_WINDOW_WIDTH : WINDOW_WIDTH, stubmode ? STUB_WINDOW_HEIGHT : WINDOW_HEIGHT, true, false, false, MY_WINDOW_TITLE, "gltf-view-new");
         demo_os_integrate_setup_glfw_window(window);
 
         /* create a display that flushes to a texture */
@@ -186,9 +184,10 @@ int main(int argc, char *argv[]) {
         lv_3dtexture_set_src(tex, gltf_texture);
 
         lv_obj_add_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(tex, LV_OBJ_FLAG_HIDDEN);
-
-        lv_obj_invalidate(tex);
+        if (!stubmode) {
+            lv_obj_clear_flag(tex, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_invalidate(tex);
+        }
         glfwPollEvents();
         lv_refr_now(NULL);
 
@@ -309,28 +308,23 @@ int main(int argc, char *argv[]) {
             gltf_texture = lv_gltfview_render( shaderCache, demo_gltfview, demo_gltfdata );
             if (!lv_gltfview_check_frame_was_cached(demo_gltfview)) {
                 frames_rendered_this_second += 1;
-                lv_3dtexture_set_src(tex, gltf_texture);
-                lv_obj_invalidate(tex);
+                if (!stubmode) {
+                    lv_3dtexture_set_src(tex, gltf_texture);
+                    lv_obj_invalidate(tex);
+                }
+                glfwPollEvents();
                 lv_refr_now(NULL);
-                #ifdef EXPERIMENTAL_DESKTOP
-                    GL_CALL(glBindTexture(GL_TEXTURE_2D, gltf_texture));
-                    stbi_write_png_compression_level = 0;
-                    stbi_flip_vertically_on_write(true);
-                    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-                    stbi_write_png("/var/ramtemp/background.png", BIG_TEXTURE_WIDTH, BIG_TEXTURE_HEIGHT, 4, pixels, BIG_TEXTURE_WIDTH * 4);
-                    // Set the desktop background
-                    system("pcmanfm --set-wallpaper /var/ramtemp/background.png");
-                #else 
+
+                if (desktop_mode){
+                    lv_gltfview_utils_save_png(demo_gltfview, DESKTOP_OUTPUT_FILEPATH, true, 0);
+                    system(DESKTOP_APPLY_COMMAND);
+                } else {
                     if (frameCount > 0) {
                         char _buffer[100];
                         snprintf(_buffer, sizeof(_buffer), "/home/pi/Desktop/lv_gltf_viewer/render_frames/frame%03d.png", (maxFrames - frameCount));
-                        GL_CALL(glBindTexture(GL_TEXTURE_2D, gltf_texture));
-                        stbi_write_png_compression_level = 0;
-                        stbi_flip_vertically_on_write(true);
-                        glGetTexImage(GL_TEXTURE_2D, lv_gltfview_check_frame_was_antialiased(demo_gltfview) ? 1 : 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-                        stbi_write_png(_buffer, BIG_TEXTURE_WIDTH, BIG_TEXTURE_HEIGHT, 4, pixels, BIG_TEXTURE_WIDTH * 4);
+                        lv_gltfview_utils_save_png(demo_gltfview, _buffer, true, 0);
                     }
-                #endif
+                }
             } else {
                 usleep(30000);
             }

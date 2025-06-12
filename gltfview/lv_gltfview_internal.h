@@ -272,7 +272,7 @@ typedef struct {
     _GLUINT texture;
 } Texture;
 
-typedef pViewer         _VIEW;
+typedef lv_gltfview_t * _VIEW;
 typedef pGltf_data_t    _DATA;
 typedef uint64_t        _UINT;
 void*                   get_asset (_DATA D);

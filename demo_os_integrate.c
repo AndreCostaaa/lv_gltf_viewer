@@ -58,3 +58,12 @@ void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window ) {
     signal(SIGINT, os_integrate_handle_sigint);
 
 }
+
+bool demo_os_integrate_confirm_desktop_mode_ok( void ) {
+    // Construct the command
+    char command[256];
+    snprintf(command, sizeof(command), "sudo ./__confirm_ramdrive.sh %s", DESKTOP_OUTPUT_RAMTEMP_PATH);
+    // Call the script
+    int result = system(command);
+    return (result == 0) ? true : false;
+}
