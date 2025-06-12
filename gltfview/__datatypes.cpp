@@ -95,7 +95,7 @@ struct lv_gltfview_struct {
     gl_viewer_desc_t desc;
 };
 
-MeshData* lv_gltf_get_new_meshdata(pViewer _viewer) {
+MeshData* lv_gltf_get_new_meshdata(_VIEW _viewer) {
     MeshData outMesh = {};
     _viewer->meshes.emplace_back(outMesh);
     return &(_viewer->meshes[_viewer->meshes.size() - 1 ]);
@@ -115,7 +115,7 @@ uint32_t get_primitive_datasize(void) {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
-void __init_gltf_datastruct(pGltf_data_t _DataStructMem, const char * gltf_path) {
+void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
     lv_gltfdata_t _newDataStruct;
     _newDataStruct.asset = ASSET();
     _newDataStruct.filename = gltf_path;
@@ -135,7 +135,7 @@ void __init_gltf_datastruct(pGltf_data_t _DataStructMem, const char * gltf_path)
     _DataStructMem->local_mesh_to_center_points_by_primitive = new std::map<uint32_t, std::map<uint32_t, FVEC4>>();  
 }
 
-void init_viewer_struct(pViewer _ViewerMem) {
+void init_viewer_struct(_VIEW _ViewerMem) {
     lv_gltfview_t _newViewer;
     auto _newMetrics = &_newViewer.state.metrics;
         _newMetrics->opaqueFramebufferWidth = 256;
@@ -175,7 +175,7 @@ void init_viewer_struct(pViewer _ViewerMem) {
 }
 #pragma GCC diagnostic pop
 
-void __free_data_struct(pGltf_data_t _data) {
+void __free_data_struct(_DATA _data) {
     _data->overrides->clear(); delete _data->overrides;
     _data->node_by_path->clear(); delete _data->node_by_path;
     _data->index_by_node->clear(); delete _data->index_by_node;
@@ -189,7 +189,7 @@ void __free_data_struct(pGltf_data_t _data) {
     _data->local_mesh_to_center_points_by_primitive->clear();delete _data->local_mesh_to_center_points_by_primitive;
 }
 
-void __free_viewer_struct(pViewer V) {
+void __free_viewer_struct(_VIEW V) {
     V->meshes.erase(V->meshes.begin(), V->meshes.end());V->meshes.clear(); V->meshes.shrink_to_fit();
     V->textures.erase(V->textures.begin(), V->textures.end());V->textures.clear();V->textures.shrink_to_fit();
     V->bufferAllocations.erase(V->bufferAllocations.begin(), V->bufferAllocations.end());V->bufferAllocations.clear();V->bufferAllocations.shrink_to_fit();
@@ -199,7 +199,7 @@ void __free_viewer_struct(pViewer V) {
     V->shaderUniforms.erase(V->shaderUniforms.begin(), V->shaderUniforms.end());V->shaderUniforms.clear();V->shaderUniforms.shrink_to_fit();
 }
 
-FVEC4 lv_gltf_get_primitive_centerpoint(pGltf_data_t ret_data, fastgltf::Mesh& mesh, uint32_t prim_num);
+FVEC4 lv_gltf_get_primitive_centerpoint(_DATA ret_data, fastgltf::Mesh& mesh, uint32_t prim_num);
 
 const char*     lv_gltf_get_filename        (_DATA D)         {_RET (D->filename);}
 void*           get_asset                   (_DATA D)         {_RET &(D->asset);}

@@ -31,7 +31,7 @@ void set_matrix_proj(_VIEW _viewer, FMAT4 _mat);
 void set_matrix_viewproj(_VIEW _viewer, FMAT4 _mat);
 
 // Function to retrieve uniform locations from a shader program
-void get_uniform_locations(UniformLocs* uniforms, uint32_t _shader_prog_program) {
+void setup_uniform_locations(UniformLocs* uniforms, uint32_t _shader_prog_program) {
     auto _u = [&]( const char * _uniform ) -> GLint { return glGetUniformLocation(_shader_prog_program, _uniform); };
     // *** IMAGE QUALITY UNIFORMS ***********************************************************************
     uniforms->exposure =                            _u("u_Exposure");
@@ -138,7 +138,7 @@ void get_uniform_locations(UniformLocs* uniforms, uint32_t _shader_prog_program)
 }
 
 // Function to construct a texture transformation matrix
-FMAT3 construct_texture_transform_matrix(fastgltf::TextureTransform transform){
+FMAT3 setup_texture_transform_matrix(fastgltf::TextureTransform transform){
     FMAT3 rotation = FMAT3(0.f);
     FMAT3 scale = FMAT3(0.f);
     FMAT3 translation = FMAT3(0.f);
@@ -167,7 +167,7 @@ FMAT3 construct_texture_transform_matrix(fastgltf::TextureTransform transform){
     return result;
 }
 
-void __prepareBackgroundEnvironment(GLuint program, GLuint* vao, GLuint* indexBuffer, GLuint* vertexBuffer) {
+void setup_background_environment(GLuint program, GLuint* vao, GLuint* indexBuffer, GLuint* vertexBuffer) {
     int32_t indices[] = {
         1, 2, 0,
         2, 3, 0,
@@ -217,7 +217,7 @@ void __prepareBackgroundEnvironment(GLuint program, GLuint* vao, GLuint* indexBu
 }
 
 // This is currently unused  (handled on the GPU) but that may change in the future, for optimization
-FMAT3 construct_tangent_bitangent_normal_matrix(FVEC3 normal, FVEC4 tangent_and_w){
+FMAT3 setup_tangent_bitangent_normal_matrix(FVEC3 normal, FVEC4 tangent_and_w){
     FVEC3 bitangent = fastgltf::math::cross(normal, FVEC3(tangent_and_w[0], tangent_and_w[1], tangent_and_w[2]));
     FMAT3 r = FMAT3(0.f);
     r[0][0] = tangent_and_w[0];r[0][1] = tangent_and_w[1];r[0][2] = tangent_and_w[2];
@@ -227,7 +227,7 @@ FMAT3 construct_tangent_bitangent_normal_matrix(FVEC3 normal, FVEC4 tangent_and_
 }
 
 // Function to set the environment rotation matrix
-void set_env_rotation_matrix(float env_rotation_angle, uint32_t shader_program) {
+void setup_environment_rotation_matrix(float env_rotation_angle, uint32_t shader_program) {
     mfloat_t rot[MAT4_SIZE];
     mat4_identity(rot);
     mat4_rotation_z(rot, to_radians(180.0));
@@ -245,12 +245,12 @@ void set_env_rotation_matrix(float env_rotation_angle, uint32_t shader_program) 
 }
 
 // Function to set a uniform color
-void set_uniform_color(GLint uniform_loc, fastgltf::math::nvec3 color) {
+void setup_uniform_color(GLint uniform_loc, fastgltf::math::nvec3 color) {
     GL_CALL(glUniform3f(uniform_loc, static_cast<float>(color[0]), static_cast<float>(color[1]), static_cast<float>(color[2]) ) ); }
 
 
 // Function to set a uniform color with alpha
-void set_uniform_color_alpha(GLint uniform_loc, fastgltf::math::nvec4 color){
+void setup_uniform_color_alpha(GLint uniform_loc, fastgltf::math::nvec4 color){
     GL_CALL(glUniform4f(uniform_loc, static_cast<float>(color[0]), static_cast<float>(color[1]), static_cast<float>(color[2]), static_cast<float>(color[3]) ) ); }
 
 
@@ -261,7 +261,7 @@ uint32_t setup_texture(uint32_t tex_num, uint32_t tex_unit, int32_t tex_coord_in
     GL_CALL(glBindTextureUnit(tex_num, tex_unit));
     GL_CALL(glUniform1i(sampler, tex_num));
     GL_CALL(glUniform1i(uv_set, tex_coord_index));
-    if (tex_transform != NULL) GL_CALL(glUniformMatrix3fv(uv_transform, 1, GL_FALSE, &(construct_texture_transform_matrix(*tex_transform)[0][0])));
+    if (tex_transform != NULL) GL_CALL(glUniformMatrix3fv(uv_transform, 1, GL_FALSE, &(setup_texture_transform_matrix(*tex_transform)[0][0])));
     tex_num++;
     return tex_num;
 }
@@ -275,7 +275,7 @@ void glMessageCallback(GLenum source,GLenum type,GLuint id,GLenum severity,GLsiz
 }
 
 // Function to clean up OpenGL output resources
-void cleanup_opengl_output(gl_renwin_state_t *state) {
+void setup_cleanup_opengl_output(gl_renwin_state_t *state) {
     if (state) {
         // Delete the framebuffer
         if (state->framebuffer) {
@@ -299,7 +299,7 @@ void cleanup_opengl_output(gl_renwin_state_t *state) {
 }
 
 // Function to prepare opaque output for rendering
-gl_renwin_state_t prepare_opaque_output(uint32_t texture_width, uint32_t texture_height) {
+gl_renwin_state_t setup_opaque_output(uint32_t texture_width, uint32_t texture_height) {
 
     gl_renwin_state_t _ret;
 
@@ -337,7 +337,7 @@ gl_renwin_state_t prepare_opaque_output(uint32_t texture_width, uint32_t texture
 }
 
 // Function to prepare OpenGL output for rendering
-gl_renwin_state_t prepare_opengl_output(uint32_t texture_width, uint32_t texture_height, bool mipmaps_enabled) {
+gl_renwin_state_t setup_primary_output(uint32_t texture_width, uint32_t texture_height, bool mipmaps_enabled) {
 
     gl_renwin_state_t _ret;
 
@@ -377,7 +377,7 @@ gl_renwin_state_t prepare_opengl_output(uint32_t texture_width, uint32_t texture
 
 
 //return value = cancel this frame?
-bool restore_opaque_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h) {
+bool setup_restore_opaque_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h) {
 
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _ret.framebuffer));
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _ret.texture, 0));
@@ -419,7 +419,7 @@ bool checkOpenGLError() {
 }
 
 //return value = cancel this frame?
-bool restore_opengl_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h) {
+bool setup_restore_primary_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h) {
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _ret.framebuffer));
     if (checkOpenGLError()) { std::cout << "AAA "; return true; }
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _ret.texture, 0));
@@ -434,7 +434,7 @@ bool restore_opengl_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t 
 }
 
 // Function to finish the OpenGL frame
-void finish_opengl_frame( void ) {    
+void setup_finish_frame( void ) {    
     GL_CALL(glDisable(GL_DEPTH_TEST));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     GL_CALL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
@@ -442,7 +442,7 @@ void finish_opengl_frame( void ) {
 }
 
 // Function to create a view-projection matrix from the camera
-void make_view_proj_matrix_from_camera( pViewer viewer, int32_t _cur_cam_num, gl_viewer_desc_t * view_desc, const FMAT4 view_mat,  const FVEC3 view_pos, pGltf_data_t gltf_data, bool transmission_pass) {
+void setup_view_proj_matrix_from_camera( pViewer viewer, int32_t _cur_cam_num, gl_viewer_desc_t * view_desc, const FMAT4 view_mat,  const FVEC3 view_pos, pGltf_data_t gltf_data, bool transmission_pass) {
 
     mfloat_t view[MAT4_SIZE];
 
@@ -499,7 +499,7 @@ void make_view_proj_matrix_from_camera( pViewer viewer, int32_t _cur_cam_num, gl
 * Function to create a view-projection matrix from a given pitch/yaw/distance 
 * described within the view_desc parameter.
 */
-void make_view_proj_matrix( pViewer viewer, gl_viewer_desc_t * view_desc, pGltf_data_t gltf_data, bool transmission_pass) {
+void setup_view_proj_matrix( pViewer viewer, gl_viewer_desc_t * view_desc, pGltf_data_t gltf_data, bool transmission_pass) {
     // Create Look-At Matrix
     const auto& _cenpos = FVEC3(view_desc->focal_x, view_desc->focal_y, view_desc->focal_z);
     float cen_x = _cenpos[0];
@@ -559,7 +559,7 @@ void make_view_proj_matrix( pViewer viewer, gl_viewer_desc_t * view_desc, pGltf_
 }
 
 // Function to compile and load shaders
-gl_renwin_shaderset_t compile_and_load_shaders(pShaderCache shaders) {
+gl_renwin_shaderset_t setup_compile_and_load_shaders(pShaderCache shaders) {
     key_value* all_defs = all_defines();
     auto _program = shaders->getShaderProgram(shaders, 
         shaders->selectShader(shaders, "__MAIN__.frag", all_defs, all_defines_count()), 
@@ -573,18 +573,18 @@ gl_renwin_shaderset_t compile_and_load_shaders(pShaderCache shaders) {
 }
 
 // Function to compile and load background shader
-void compile_and_load_bg_shader(pShaderCache shaders) {
+void setup_compile_and_load_bg_shader(pShaderCache shaders) {
     key_value empty_defs[0] = {};
     key_value frag_defs[1] = {{"TONEMAP_KHR_PBR_NEUTRAL", NULL}};
     auto bg_program = shaders->getShaderProgram(shaders, 
         shaders->selectShader(shaders, "cubemap.frag", frag_defs, 1), 
         shaders->selectShader(shaders, "cubemap.vert", empty_defs, 0) );
     shaders->bg_program = bg_program->program;
-    __prepareBackgroundEnvironment(shaders->bg_program, &shaders->bg_vao, &shaders->bg_indexBuf, &shaders->bg_vertexBuf);
+    setup_background_environment(shaders->bg_program, &shaders->bg_vao, &shaders->bg_indexBuf, &shaders->bg_vertexBuf);
 }
 
 // Function to draw the environment background
-void draw_environment_background(pShaderCache shaders, pViewer viewer, float blur) {
+void setup_draw_environment_background(pShaderCache shaders, pViewer viewer, float blur) {
     GL_CALL(glBindVertexArray(shaders->bg_vao));
     GL_CALL(glUseProgram(shaders->bg_program));
     GL_CALL(glEnable(GL_CULL_FACE));
@@ -599,7 +599,7 @@ void draw_environment_background(pShaderCache shaders, pViewer viewer, float blu
     GL_CALL(glUniform1f(glGetUniformLocation(shaders->bg_program, "u_EnvIntensity"), 1.0f));
     GL_CALL(glUniform1f(glGetUniformLocation(shaders->bg_program, "u_Exposure"), 1.0f));
 
-    set_env_rotation_matrix(shaders->lastEnv->angle, shaders->bg_program);
+    setup_environment_rotation_matrix(shaders->lastEnv->angle, shaders->bg_program);
 
     // Bind the index buffer
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shaders->bg_indexBuf);

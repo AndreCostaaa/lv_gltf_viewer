@@ -22,7 +22,7 @@ typedef struct Program_struct Program_struct, *pProgram;
  * @param dest_buffer Buffer to store the summary.
  * @param dest_buffer_size Size of the destination buffer.
  */
-void lv_gltf_make_mesh_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size);
+void lv_gltfdata_make_mesh_summary(lv_gltfdata_t * data, char *dest_buffer, uint32_t dest_buffer_size);
 
 /**
  * @brief Create a summary of the material data.
@@ -31,7 +31,7 @@ void lv_gltf_make_mesh_summary(pGltf_data_t data, char *dest_buffer, uint32_t de
  * @param dest_buffer Buffer to store the summary.
  * @param dest_buffer_size Size of the destination buffer.
  */
-void lv_gltf_make_material_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size);
+void lv_gltfdata_make_material_summary(lv_gltfdata_t * data, char *dest_buffer, uint32_t dest_buffer_size);
 
 /**
  * @brief Create a summary of the scenes in the GLTF data.
@@ -40,7 +40,7 @@ void lv_gltf_make_material_summary(pGltf_data_t data, char *dest_buffer, uint32_
  * @param dest_buffer Buffer to store the summary.
  * @param dest_buffer_size Size of the destination buffer.
  */
-void lv_gltf_make_scenes_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size);
+void lv_gltfdata_make_scenes_summary(lv_gltfdata_t * data, char *dest_buffer, uint32_t dest_buffer_size);
 
 /**
  * @brief Create a summary of the images in the GLTF data.
@@ -49,7 +49,7 @@ void lv_gltf_make_scenes_summary(pGltf_data_t data, char *dest_buffer, uint32_t 
  * @param dest_buffer Buffer to store the summary.
  * @param dest_buffer_size Size of the destination buffer.
  */
-void lv_gltf_make_images_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size);
+void lv_gltfdata_make_images_summary(lv_gltfdata_t * data, char *dest_buffer, uint32_t dest_buffer_size);
 
 /**
  * @brief Create a summary of the animations in the GLTF data.
@@ -58,7 +58,7 @@ void lv_gltf_make_images_summary(pGltf_data_t data, char *dest_buffer, uint32_t 
  * @param dest_buffer Buffer to store the summary.
  * @param dest_buffer_size Size of the destination buffer.
  */
-void lv_gltf_make_animations_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size);
+void lv_gltfdata_make_animations_summary(lv_gltfdata_t * data, char *dest_buffer, uint32_t dest_buffer_size);
 
 
 
@@ -72,7 +72,7 @@ void lv_gltf_make_animations_summary(pGltf_data_t data, char *dest_buffer, uint3
  * @param viewer Pointer to the viewer object this file will be displayed within.
  * @param shaders Pointer to the shader cache object this file uses.
  */
-void lv_gltfview_load(const char * gltf_path, pGltf_data_t ret_data, pViewer viewer, pShaderCache shaders);
+void lv_gltfview_load(const char * gltf_path, lv_gltfdata_t * ret_data, pViewer viewer, pShaderCache shaders);
 
 /**
  * @brief Set the callback function that is called when loading increments.
@@ -139,18 +139,18 @@ unsigned int get_primitive_datasize(void);
 gl_environment_textures lv_gltfview_ibl_sampler_setup(gl_environment_textures* _lastEnv, const char* _env_filename, int _env_rotation_degreesX10 );
 void lv_gltfview_ibl_set_loadphase_callback(void (*_load_progress_callback)(const char*, const char* , float, float, float, float));
 
-uint32_t            lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * view, pGltf_data_t gltf_data );
-void                lv_gltfview_destroy(lv_gltfview_t * _viewer, pGltf_data_t _data, pShaderCache _shaders);
-gltf_probe_info *   lv_gltfview_get_probe(pGltf_data_t _data);
+uint32_t            lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * view, lv_gltfdata_t * gltf_data );
+void                lv_gltfview_destroy(lv_gltfview_t * _viewer, lv_gltfdata_t * _data, pShaderCache _shaders);
+gltf_probe_info *   lv_gltfview_get_probe(lv_gltfdata_t * _data);
 
-pOverride lv_gltfview_add_override_by_index(pGltf_data_t _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask);
-pOverride lv_gltfview_add_override_by_ip(pGltf_data_t _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask);
-pOverride lv_gltfview_add_override_by_id(pGltf_data_t _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask);
+pOverride lv_gltfview_add_override_by_index(lv_gltfdata_t * _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask);
+pOverride lv_gltfview_add_override_by_ip(lv_gltfdata_t * _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask);
+pOverride lv_gltfview_add_override_by_id(lv_gltfdata_t * _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask);
 
 void lv_gltf_get_isolated_filename(const char* filename, char* out_buffer, uint32_t max_out_length);
 bool lv_gltfview_set_loadphase_callback(void (*load_progress_callback)(const char*, const char* , float, float, float, float));
-void lv_gltfview_load(const char * gltf_path, pGltf_data_t ret_data, lv_gltfview_t * view, pShaderCache shaders);
-int64_t lv_gltf_get_int_radiusX1000 (pGltf_data_t _data);
+void lv_gltfview_load(const char * gltf_path, lv_gltfdata_t * ret_data, lv_gltfview_t * view, pShaderCache shaders);
+int64_t lv_gltf_get_int_radiusX1000 (lv_gltfdata_t * _data);
 bool lv_gltfview_raycast_ground_position(lv_gltfview_t * view, int32_t mouse_x, int32_t mouse_y, int32_t win_width, int32_t win_height, double ground_height, float* out_pos);
 
 void init_viewer_struct(lv_gltfview_t * _ViewerMem);

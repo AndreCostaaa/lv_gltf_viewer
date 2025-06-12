@@ -355,13 +355,13 @@ void demo_ui_fill_in_InfoTab( pGltf_data_t _data ) {
     char * _tbuf;
     _tbuf  = (char *)malloc(TBUF_SIZE);
 
-    lv_gltf_make_scenes_summary( _data, _tbuf, TBUF_SIZE );
+    lv_gltfdata_make_scenes_summary( _data, _tbuf, TBUF_SIZE );
     strcat(_c, _tbuf);
-    lv_gltf_make_mesh_summary( _data, _tbuf, TBUF_SIZE );
+    lv_gltfdata_make_mesh_summary( _data, _tbuf, TBUF_SIZE );
     strcat(_c, _tbuf);
-    lv_gltf_make_material_summary( _data, _tbuf, TBUF_SIZE );
+    lv_gltfdata_make_material_summary( _data, _tbuf, TBUF_SIZE );
     strcat(_c, _tbuf);
-    lv_gltf_make_images_summary( _data, _tbuf, TBUF_SIZE );
+    lv_gltfdata_make_images_summary( _data, _tbuf, TBUF_SIZE );
     strcat(_c, _tbuf);
     strcat(_c, "Nodes: ");
     strcat(_c, "13");

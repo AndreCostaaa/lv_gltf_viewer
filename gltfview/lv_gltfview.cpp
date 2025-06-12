@@ -239,7 +239,7 @@ void draw_primitive(  int32_t prim_num,
         GL_CALL(glUniform1f(uniforms->exposure, view_desc->exposure));
         GL_CALL(glUniform1f(uniforms->envIntensity, view_desc->env_pow));
         GL_CALL(glUniform1i(uniforms->envMipCount, (int32_t)env_tex.mipCount));
-        set_env_rotation_matrix(viewer->envRotationAngle, program);
+        setup_environment_rotation_matrix(viewer->envRotationAngle, program);
         GL_CALL(glEnable(GL_CULL_FACE));
         GL_CALL(glDisable(GL_BLEND)); 
         GL_CALL(glEnable(GL_DEPTH_TEST));
@@ -249,7 +249,7 @@ void draw_primitive(  int32_t prim_num,
 
         bool has_material = asset->materials.size() > (materialIndex - 1);
         if (!has_material) {                   
-            set_uniform_color_alpha(uniforms->baseColorFactor, FVEC4(1.0f));
+            setup_uniform_color_alpha(uniforms->baseColorFactor, FVEC4(1.0f));
             GL_CALL(glUniform1f(uniforms->roughnessFactor, 0.5f));
             GL_CALL(glUniform1f(uniforms->metallicFactor,  0.5f));
             GL_CALL(glUniform1f(uniforms->ior, 1.5f));
@@ -277,8 +277,8 @@ void draw_primitive(  int32_t prim_num,
         //if (viewer->overrideBaseColor){
         //    GL_CALL(glUniform4f(uniforms->baseColorFactor, viewer->overrideBaseColorFactor[0], viewer->overrideBaseColorFactor[1], viewer->overrideBaseColorFactor[2], viewer->overrideBaseColorFactor[3]));
         //} else {
-            set_uniform_color_alpha(uniforms->baseColorFactor, gltfMaterial.pbrData.baseColorFactor);
-            set_uniform_color(uniforms->emissiveFactor, gltfMaterial.emissiveFactor);
+            setup_uniform_color_alpha(uniforms->baseColorFactor, gltfMaterial.pbrData.baseColorFactor);
+            setup_uniform_color(uniforms->emissiveFactor, gltfMaterial.emissiveFactor);
         //}
             GL_CALL(glUniform1f(uniforms->emissiveStrength, gltfMaterial.emissiveStrength));
             GL_CALL(glUniform1f(uniforms->roughnessFactor, gltfMaterial.pbrData.roughnessFactor));
@@ -310,7 +310,7 @@ void draw_primitive(  int32_t prim_num,
 
             if ( gltfMaterial.volume ) {
                 GL_CALL(glUniform1f(uniforms->attenuationDistance, gltfMaterial.volume->attenuationDistance));
-                set_uniform_color(uniforms->attenuationColor, gltfMaterial.volume->attenuationColor);
+                setup_uniform_color(uniforms->attenuationColor, gltfMaterial.volume->attenuationColor);
                 GL_CALL(glUniform1f(uniforms->thickness, gltfMaterial.volume->thicknessFactor));
                 if (gltfMaterial.volume->thicknessTexture.has_value() ) {
                     _texnum = setup_texture( _texnum, _prim_data->thicknessTexture, _prim_data->thicknessTexcoordIndex, gltfMaterial.volume->thicknessTexture->transform, uniforms->thicknessSampler, uniforms->thicknessUVSet, uniforms->thicknessUVTransform ); } }
@@ -322,7 +322,7 @@ void draw_primitive(  int32_t prim_num,
     
             if (gltfMaterial.sheen) {
                 //std::cout << "*** SHEEN FACTORS : Roughness: " << gltfMaterial.sheen->sheenRoughnessFactor << " : R/G/B " <<  gltfMaterial.sheen->sheenColorFactor[0] << " / " <<  gltfMaterial.sheen->sheenColorFactor[1] << " / " <<  gltfMaterial.sheen->sheenColorFactor[2] << " ***\n";
-                set_uniform_color(uniforms->sheenColorFactor, gltfMaterial.sheen->sheenColorFactor);
+                setup_uniform_color(uniforms->sheenColorFactor, gltfMaterial.sheen->sheenColorFactor);
                 GL_CALL(glUniform1f(uniforms->sheenRoughnessFactor, static_cast<float>(gltfMaterial.sheen->sheenRoughnessFactor) ));
                 if (gltfMaterial.sheen->sheenColorTexture.has_value()) {
                     std::cout << "***!!! MATERIAL HAS UNHANDLED SHEEN TEXTURE***\n";
@@ -330,7 +330,7 @@ void draw_primitive(  int32_t prim_num,
             }
             if (gltfMaterial.specular) {
                 //std::cout << "*** SPECULAR FACTORS : specularFactor: " << gltfMaterial.specular->specularFactor << " : R/G/B " <<  gltfMaterial.specular->specularColorFactor[0] << " / " <<  gltfMaterial.specular->specularColorFactor[1] << " / " <<  gltfMaterial.specular->specularColorFactor[2] << " ***\n";
-                set_uniform_color(uniforms->specularColorFactor, gltfMaterial.specular->specularColorFactor);
+                setup_uniform_color(uniforms->specularColorFactor, gltfMaterial.specular->specularColorFactor);
                 GL_CALL(glUniform1f(uniforms->specularFactor, static_cast<float>(gltfMaterial.specular->specularFactor) ) );
                 if (gltfMaterial.specular->specularTexture.has_value()) {
                     std::cout << "***!!! MATERIAL HAS UNHANDLED SPECULAR TEXTURE***\n";
@@ -342,8 +342,8 @@ void draw_primitive(  int32_t prim_num,
 
             if (gltfMaterial.specularGlossiness) {
                 std::cout << "*** WARNING: MODEL USES OUTDATED LEGACY MODE PBR_SPECULARGLOSS - PLEASE UPDATE THIS MODEL TO A NEW SHADING MODEL ***\n";
-                set_uniform_color_alpha(uniforms->diffuseFactor, gltfMaterial.specularGlossiness->diffuseFactor);
-                set_uniform_color(uniforms->specularFactor, gltfMaterial.specularGlossiness->specularFactor);
+                setup_uniform_color_alpha(uniforms->diffuseFactor, gltfMaterial.specularGlossiness->diffuseFactor);
+                setup_uniform_color(uniforms->specularFactor, gltfMaterial.specularGlossiness->specularFactor);
                 GL_CALL(glUniform1f(uniforms->glossinessFactor, static_cast<float>(gltfMaterial.specularGlossiness->glossinessFactor) ) );
                 if (gltfMaterial.specularGlossiness->diffuseTexture.has_value()) _texnum = setup_texture( _texnum, _prim_data->diffuseTexture, _prim_data->diffuseTexcoordIndex, gltfMaterial.specularGlossiness->diffuseTexture->transform, uniforms->diffuseSampler, uniforms->diffuseUVSet, uniforms->diffuseUVTransform );
                 if (gltfMaterial.specularGlossiness->specularGlossinessTexture.has_value()) _texnum = setup_texture( _texnum, _prim_data->specularGlossinessTexture, _prim_data->specularGlossinessTexcoordIndex, gltfMaterial.specularGlossiness->specularGlossinessTexture->transform, uniforms->specularGlossinessSampler, uniforms->specularGlossinessUVSet, uniforms->specularGlossinessUVTransform );
@@ -352,7 +352,7 @@ void draw_primitive(  int32_t prim_num,
             #ifdef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT
             if (gltfMaterial.diffuseTransmission) {
                 std::cout << "*** DIFFUSE TRANSMISSION : factor : " << gltfMaterial.diffuseTransmission->diffuseTransmissionFactor << " : R/G/B " <<  gltfMaterial.diffuseTransmission->diffuseTransmissionColorFactor[0] << " / " <<  gltfMaterial.diffuseTransmission->diffuseTransmissionColorFactor[1] << " / " <<  gltfMaterial.diffuseTransmission->diffuseTransmissionColorFactor[2] << " ***\n";
-                set_uniform_color(uniforms->diffuseTransmissionColorFactor, gltfMaterial.diffuseTransmission->diffuseTransmissionColorFactor);
+                setup_uniform_color(uniforms->diffuseTransmissionColorFactor, gltfMaterial.diffuseTransmission->diffuseTransmissionColorFactor);
                 GL_CALL(glUniform1f(uniforms->diffuseTransmissionFactor, static_cast<float>(gltfMaterial.diffuseTransmission->diffuseTransmissionFactor) ) );
                 if (gltfMaterial.diffuseTransmission->diffuseTransmissionTexture.has_value()) _texnum = setup_texture( _texnum, _prim_data->diffuseTransmissionTexture, _prim_data->diffuseTransmissionTexcoordIndex, gltfMaterial.diffuseTransmission->diffuseTransmissionTexture->transform, uniforms->diffuseTransmissionSampler, uniforms->diffuseTransmissionUVSet, uniforms->diffuseTransmissionUVTransform );
                 if (gltfMaterial.diffuseTransmission->diffuseTransmissionColorTexture.has_value()) _texnum = setup_texture( _texnum, _prim_data->diffuseTransmissionColorTexture, _prim_data->diffuseTransmissionColorTexcoordIndex, gltfMaterial.diffuseTransmission->diffuseTransmissionColorTexture->transform, uniforms->diffuseTransmissionColorSampler, uniforms->diffuseTransmissionColorUVSet, uniforms->diffuseTransmissionColorUVTransform );
@@ -414,16 +414,16 @@ uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t 
     if (opt_aa_this_frame != _lastFrameWasAntialiased) {
         // Antialiasing state has changed since the last render
         if (vstate->render_state_ready) {
-            cleanup_opengl_output(&vstate->render_state);
-            vstate->render_state = prepare_opengl_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height, opt_aa_this_frame);
+            setup_cleanup_opengl_output(&vstate->render_state);
+            vstate->render_state = setup_primary_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height, opt_aa_this_frame);
         }
         _lastFrameWasAntialiased = opt_aa_this_frame;
     }
     view_desc->frame_was_antialiased = opt_aa_this_frame;
     if (!vstate->render_state_ready) {
         vstate->render_state_ready = true;
-        _output = prepare_opengl_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height, opt_aa_this_frame);
-        finish_opengl_frame( ); 
+        _output = setup_primary_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height, opt_aa_this_frame);
+        setup_finish_frame( ); 
         vstate->render_state = _output;
         std::vector<int64_t> _used = std::vector<int64_t>();
         int64_t _max_index = 0;
@@ -460,7 +460,7 @@ uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t 
                         _max_index = std::max(_max_index, materialIndex); } } } } );
 
         init_shaders(viewer, _max_index);
-        compile_and_load_bg_shader(shaders);
+        setup_compile_and_load_bg_shader(shaders);
         fastgltf::iterateSceneNodes(*asset, sceneIndex, FMAT4(), [&](fastgltf::Node& node, FMAT4 matrix) {
             if (node.meshIndex) { 
                 auto& mesh_index = node.meshIndex.value();
@@ -470,17 +470,17 @@ uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t 
                     int64_t materialIndex = (!mappings.empty() && mappings[vopts->materialVariant]) ?  mappings[vopts->materialVariant].value() + 1 : ( ( _prim_gltf_data.materialIndex) ? ( _prim_gltf_data.materialIndex.value() + 1 ) : 0 );
                     const auto& _ss = get_shader_set(viewer, materialIndex);
                     if (materialIndex > -1 && _ss->ready == false) {
-                        discover_defines(gltf_data, &node, &_prim_gltf_data);
-                        auto _shaderset  = compile_and_load_shaders(shaders);
+                        injest_discover_defines(gltf_data, &node, &_prim_gltf_data);
+                        auto _shaderset  = setup_compile_and_load_shaders(shaders);
                         auto _unilocs = UniformLocs();
-                        get_uniform_locations(&_unilocs, _shaderset.program); 
+                        setup_uniform_locations(&_unilocs, _shaderset.program); 
                         set_shader(viewer, materialIndex, _unilocs, _shaderset);
                     } } } } ); 
         if (vstate->renderOpaqueBuffer) {
             std::cout << "**** CREATING OPAQUE RENDER BUFFER OBJECTS ****\n";
-            _opaque = prepare_opaque_output(vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight);
+            _opaque = setup_opaque_output(vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight);
             vstate->opaque_render_state = _opaque;
-            finish_opengl_frame( ); } 
+            setup_finish_frame( ); } 
     }
 
     bool _motionDirty = false;
@@ -493,7 +493,7 @@ uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t 
             _motionDirty = true;
         }
         if (last_anim_num != anim_num) {
-            cur_anim_maxtime = __get_animation_total_time(gltf_data, anim_num);
+            cur_anim_maxtime = animation_get_total_time(gltf_data, anim_num);
             last_anim_num = anim_num;
         }
         if (temp_timestamp >= cur_anim_maxtime) temp_timestamp = 0.05f;
@@ -529,7 +529,7 @@ uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t 
         auto tmat = FMAT4();
         auto cammat = FMAT4();
         fastgltf::custom_iterateSceneNodes(*asset, sceneIndex, &tmat, [&](fastgltf::Node& node, FMAT4& parentworldmatrix, FMAT4& localmatrix) {
-            animateMatrix(temp_timestamp, anim_num, gltf_data, node, localmatrix);
+            animation_matrix_apply(temp_timestamp, anim_num, gltf_data, node, localmatrix);
             if (gltf_data->overrides->find(&node) != gltf_data->overrides->end() ) {
                 const auto& _override = (*gltf_data->overrides)[&node];
                 FVEC3 _pos;
@@ -572,7 +572,7 @@ uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t 
 
     if ((_lastFrameNoMotion == true) && (__lastFrameNoMotion == true) && (___lastFrameNoMotion == true)) {
         // Nothing changed at all, return the previous output frame
-        finish_opengl_frame( ); 
+        setup_finish_frame( ); 
         lv_gltf_opengl_state_pop();
         return _output.texture;
     }
@@ -626,15 +626,15 @@ uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t 
 
     _lastMaterialIndex = 99999;  // Reset the last material index to an unused value once per frame at the start
     if (vstate->renderOpaqueBuffer) {
-        if (foundView) make_view_proj_matrix_from_camera( viewer, cur_cam_num, view_desc, viewMat, viewPos, gltf_data, true );
-        else make_view_proj_matrix( viewer, view_desc, gltf_data, true );
+        if (foundView) setup_view_proj_matrix_from_camera( viewer, cur_cam_num, view_desc, viewMat, viewPos, gltf_data, true );
+        else setup_view_proj_matrix( viewer, view_desc, gltf_data, true );
         _opaque = vstate->opaque_render_state;
-        if (restore_opaque_output(_opaque, vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight) ) {
+        if (setup_restore_opaque_output(_opaque, vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight) ) {
             // Should drawing this frame be canceled due to GL_INVALID_OPERATION error from possibly conflicting update cycles?
             view_desc->error_frames += 1;
             std::cout<< "CANCELED FRAME A\n";
             return _output.texture; }
-        if (opt_draw_bg) draw_environment_background(shaders, viewer, view_desc->blur_bg * 0.4f);//    GL_CALL(glUseProgram(_shader_prog.bg_program));
+        if (opt_draw_bg) setup_draw_environment_background(shaders, viewer, view_desc->blur_bg * 0.4f);//    GL_CALL(glUseProgram(_shader_prog.bg_program));
             
         for (MaterialIndexMap::iterator kv = get_opaque_begin(gltf_data); kv != get_opaque_end(gltf_data); kv++ ) {
             for (NodePairVector::iterator nodeElem = kv->second.begin(); nodeElem != kv->second.end(); nodeElem++ ) {
@@ -649,25 +649,25 @@ uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t 
         GL_CALL(glBindTexture(GL_TEXTURE_2D, _opaque.texture));
         GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
         GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
-        finish_opengl_frame( ); 
+        setup_finish_frame( ); 
                 // "blit" the multisampled opaque texture into the color buffer, which adds antialiasing
             //GL_CALL(glBindFramebuffer(GL_READ_FRAMEBUFFER, viewer->opaqueFramebufferScratch));
             //GL_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, viewer->opaqueFramebuffer));
             //GL_CALL(glBlitFramebuffer(0, 0, viewer->opaqueFramebufferWidth, viewer->opaqueFramebufferHeight, 0, 0, viewer->opaqueFramebufferWidth, viewer->opaqueFramebufferHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST));
     }
 
-    if (foundView) make_view_proj_matrix_from_camera( viewer, cur_cam_num, view_desc, viewMat, viewPos, gltf_data, false );
-    else make_view_proj_matrix( viewer, view_desc, gltf_data, false );
+    if (foundView) setup_view_proj_matrix_from_camera( viewer, cur_cam_num, view_desc, viewMat, viewPos, gltf_data, false );
+    else setup_view_proj_matrix( viewer, view_desc, gltf_data, false );
 
     viewer->envRotationAngle = shaders->lastEnv->angle;
 
     {
-        if (restore_opengl_output(_output, (uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height) ) {
+        if (setup_restore_primary_output(_output, (uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height) ) {
             // Should drawing this frame be canceled due to GL_INVALID_OPERATION error from possibly conflicting update cycles?
             view_desc->error_frames += 1;
             std::cout << "CANCELED FRAME B\n";
             return _output.texture; }
-        if (opt_draw_bg) draw_environment_background(shaders, viewer, view_desc->blur_bg);
+        if (opt_draw_bg) setup_draw_environment_background(shaders, viewer, view_desc->blur_bg);
         for (MaterialIndexMap::iterator kv = get_opaque_begin(gltf_data); kv != get_opaque_end(gltf_data); kv++ ) {
             for (NodePairVector::iterator nodeElem = kv->second.begin(); nodeElem != kv->second.end(); nodeElem++ ) {
                 auto node = nodeElem->first;
@@ -682,7 +682,7 @@ uint32_t lv_gltfview_render( pShaderCache shaders, pViewer viewer, pGltf_data_t 
             GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
             GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
         }
-        finish_opengl_frame( ); 
+        setup_finish_frame( ); 
     }
     lv_gltf_opengl_state_pop();
     view_desc->frame_was_cached = false;

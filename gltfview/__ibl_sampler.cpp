@@ -471,8 +471,8 @@ void iblSampler::filterAll( void (*_callback)(const char *, float, float) )
 void iblSampler::destroy_iblSampler(void) {
     destroy_ShaderCache(shaderCache);
 }
-// These functions have been migrated from gl_renwin (a temporary development file) into
-//  this class.  They may move around again when more refactoring is complete.
+
+// ------------------------------------------------------------
 
 void (*ibl_load_progress_callback)(const char*, const char* , float, float, float, float) = NULL;
 
@@ -480,7 +480,7 @@ void lv_gltfview_ibl_set_loadphase_callback(void (*_ibl_load_progress_callback)(
     ibl_load_progress_callback= _ibl_load_progress_callback;
 }
 
-void env_filter_callback(const char* phase_title, float phase_current, float phase_max) {
+void ibl_sampler_env_filter_callback(const char* phase_title, float phase_current, float phase_max) {
     if (ibl_load_progress_callback != NULL) { ibl_load_progress_callback(phase_title, "SUBTEST1234", 0.f + ((phase_current / phase_max)*2.0f), 5.f, 0.f, 0.f); }
 }
 
@@ -501,7 +501,7 @@ gl_environment_textures lv_gltfview_ibl_sampler_setup(gl_environment_textures* _
     }
     auto environmentFiltering = iblSampler();
     environmentFiltering.doinit(NULL, _env_filename);
-    environmentFiltering.filterAll(env_filter_callback);
+    environmentFiltering.filterAll(ibl_sampler_env_filter_callback);
 
     _ret.loaded             = true;
     _ret.angle = (float)_env_rotation_degreesX10 / 10.0f;

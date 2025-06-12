@@ -39,14 +39,9 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -fsanitize=address -Wn
 set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas")
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/fastgltf)
-target_compile_options(fastgltf PRIVATE -Wno-maybe-uninitialized)
-target_compile_options(fastgltf PRIVATE -Wno-redundant-move)
 
-target_link_libraries(lvgl_workspace fastgltf)
 target_link_libraries(lvgl_gltfview fastgltf)
 target_link_libraries(lvgl_gltfview webp)
-target_compile_options(lvgl_gltfview PRIVATE -Wno-maybe-uninitialized)
-target_compile_options(lvgl_gltfview PRIVATE -Wno-array-bounds)
 
 target_link_libraries(lvgl_workspace lvgl_gltfview)
 target_link_libraries(lvgl_workspace lvgl)
@@ -55,3 +50,13 @@ target_link_libraries(lvgl_workspace m)
 target_link_libraries(lvgl_workspace GL)
 target_link_libraries(lvgl_workspace GLEW)
 target_link_libraries(lvgl_workspace glfw)
+
+# These seem necessary in certain build targets like RELEASE, where compilation produces a large 
+# flood of warnings within the standard library without them.  Eventually we'll get them isolated to 
+# just one target so we can still catch helpful warnings elsewhere.
+
+target_compile_options(fastgltf PRIVATE -Wno-maybe-uninitialized)
+target_compile_options(fastgltf PRIVATE -Wno-redundant-move)
+target_compile_options(lvgl_gltfview PRIVATE -Wno-maybe-uninitialized)
+target_compile_options(lvgl_gltfview PRIVATE -Wno-array-bounds)
+target_compile_options(lvgl_workspace PRIVATE -Wno-array-bounds)

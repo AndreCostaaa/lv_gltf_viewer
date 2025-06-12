@@ -36,9 +36,9 @@
 #include <vector>
 #include <map>
 
+using UintVector = std::vector<uint32_t>;                         // Vector of int32_t's
 using IntVector = std::vector<int32_t>;                         // Vector of int32_t's
 using LongVector = std::vector<int64_t>;                        // Vector of int64_t's
-//#include "lv_gltfview_fastgltf_stub.h"
 using NodePtr = fastgltf::Node*;                                // Pointer to fastgltf::Node
 using Transform = fastgltf::math::fmat4x4;                      // A standard 4x4 transform matrix
 using NodeIndexPair = std::pair<NodePtr, int32_t>;              // Pair of Node pointer and int32_t
@@ -271,8 +271,6 @@ typedef struct {
 typedef struct {
     _GLUINT texture;
 } Texture;
-
-
 
 typedef pViewer         _VIEW;
 typedef pGltf_data_t    _DATA;

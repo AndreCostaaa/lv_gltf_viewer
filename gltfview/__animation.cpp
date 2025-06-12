@@ -18,7 +18,9 @@
 
 
 #define TIME_LOC_PREPASS_COUNT 16
-FVEC3 __get_animated_vec3_at_timestamp(pGltf_data_t _data, uint32_t _animNum, fastgltf::AnimationSampler * sampler, float _seconds) {
+std::map<fastgltf::Node *, std::vector<uint32_t>> __channel_set_cache;
+
+FVEC3 animation_get_vec3_at_timestamp(pGltf_data_t _data, uint32_t _animNum, fastgltf::AnimationSampler * sampler, float _seconds) {
     const auto& asset = GET_ASSET(_data);
     auto& _inAcc = asset->accessors[sampler->inputAccessor];
     auto& _outAcc = asset->accessors[sampler->outputAccessor];
@@ -52,7 +54,7 @@ FVEC3 __get_animated_vec3_at_timestamp(pGltf_data_t _data, uint32_t _animNum, fa
     return fastgltf::math::lerp(_lowerValue, _upperValue, ( _seconds - _lowerTimestamp ) / ( _upperTimestamp - _lowerTimestamp ));
 }
 
-fastgltf::math::fquat __get_animated_quat_at_timestamp(pGltf_data_t _data, uint32_t _animNum, fastgltf::AnimationSampler * sampler, float _seconds) {
+fastgltf::math::fquat animation_get_quat_at_timestamp(pGltf_data_t _data, uint32_t _animNum, fastgltf::AnimationSampler * sampler, float _seconds) {
     const auto& asset = GET_ASSET(_data);
     auto& _inAcc = asset->accessors[sampler->inputAccessor];
     auto& _outAcc = asset->accessors[sampler->outputAccessor];
@@ -85,7 +87,7 @@ fastgltf::math::fquat __get_animated_quat_at_timestamp(pGltf_data_t _data, uint3
     return fastgltf::math::slerp( _lowerValue, fastgltf::getAccessorElement<fastgltf::math::fquat>(*asset, _outAcc, _upperIndex), ( _seconds - _lowerTimestamp ) / _linDist );
 }
 
-float __get_animation_total_time(pGltf_data_t _data, uint32_t _animNum) {
+float animation_get_total_time(pGltf_data_t _data, uint32_t _animNum) {
     const auto& asset = GET_ASSET(_data);
     auto& animation = asset->animations[_animNum];
     float _maxTime = -1.0f;
@@ -96,8 +98,7 @@ float __get_animation_total_time(pGltf_data_t _data, uint32_t _animNum) {
     return _maxTime;
 }
 
-std::map<fastgltf::Node *, std::vector<uint32_t>> __channel_set_cache;
-std::vector<uint32_t> * __get_channel_set(std::size_t anim_num, pGltf_data_t gltf_data,  fastgltf::Node& node) {
+UintVector * animation_get_channel_set(std::size_t anim_num, pGltf_data_t gltf_data,  fastgltf::Node& node) {
     const auto& asset = GET_ASSET(gltf_data);    
     const auto& probe = PROBE(gltf_data);  
     if (__channel_set_cache.find(&node) == __channel_set_cache.end())
@@ -120,10 +121,10 @@ std::vector<uint32_t> * __get_channel_set(std::size_t anim_num, pGltf_data_t glt
     return &__channel_set_cache[&node];
 }
 
-void animateMatrix(float timestamp, std::size_t anim_num, pGltf_data_t gltf_data,  fastgltf::Node& node, FMAT4& matrix) {
+void animation_matrix_apply(float timestamp, std::size_t anim_num, pGltf_data_t gltf_data,  fastgltf::Node& node, FMAT4& matrix) {
     const auto& asset = GET_ASSET(gltf_data);  
     const auto& probe = PROBE(gltf_data);  
-    auto _channel_set = __get_channel_set(anim_num, gltf_data, node);
+    auto _channel_set = animation_get_channel_set(anim_num, gltf_data, node);
     if (_channel_set->size() == 0) { return; }
     if (probe->animationCount > anim_num) {
         auto& anim = asset->animations[anim_num];
@@ -132,13 +133,13 @@ void animateMatrix(float timestamp, std::size_t anim_num, pGltf_data_t gltf_data
         for (const auto& c : (*_channel_set)) {
             switch (anim.channels[c].path) {
                 case fastgltf::AnimationPath::Translation:
-                    newPos = __get_animated_vec3_at_timestamp(gltf_data, anim_num, &anim.samplers[c], timestamp);
+                    newPos = animation_get_vec3_at_timestamp(gltf_data, anim_num, &anim.samplers[c], timestamp);
                     matrix[3][0] = newPos[0];
                     matrix[3][1] = newPos[1];
                     matrix[3][2] = newPos[2]; 
                     break;
                 case fastgltf::AnimationPath::Rotation:
-                    rotmat = fastgltf::math::asMatrix(__get_animated_quat_at_timestamp(gltf_data, anim_num, &anim.samplers[c], timestamp));
+                    rotmat = fastgltf::math::asMatrix(animation_get_quat_at_timestamp(gltf_data, anim_num, &anim.samplers[c], timestamp));
                     matrix[0][0] = rotmat[0][0];
                     matrix[0][1] = rotmat[0][1];
                     matrix[0][2] = rotmat[0][2];
@@ -152,7 +153,7 @@ void animateMatrix(float timestamp, std::size_t anim_num, pGltf_data_t gltf_data
                     matrix[2][2] = rotmat[2][2];
                     break;
                 case fastgltf::AnimationPath::Scale:
-                    newScale = __get_animated_vec3_at_timestamp(gltf_data, anim_num,  &anim.samplers[c], timestamp);
+                    newScale = animation_get_vec3_at_timestamp(gltf_data, anim_num,  &anim.samplers[c], timestamp);
                     for (int32_t rs = 0; rs < 3; ++rs)
                     {
                         matrix[0][rs] *= newScale[0];

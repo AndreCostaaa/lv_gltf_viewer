@@ -32,7 +32,7 @@ static constexpr std::array<std::string_view, 11> componentTypeNames = {
     "DOUBLE"
 };
 
-constexpr std::string_view getComponentTypeName(fastgltf::ComponentType componentType) noexcept {
+constexpr std::string_view reports_get_component_type_name(fastgltf::ComponentType componentType) noexcept {
     static_assert(std::is_same_v<std::underlying_type_t<fastgltf::ComponentType>, std::uint16_t>);
     if (componentType == fastgltf::ComponentType::Invalid)
         return "";
@@ -43,7 +43,7 @@ constexpr std::string_view getComponentTypeName(fastgltf::ComponentType componen
     return componentTypeNames[idx];
 }
 
-size_t get_mesh_total_vertex_count(ASSET* const asset, fastgltf::Mesh& mesh) {
+size_t reports_get_mesh_total_vertex_count(ASSET* const asset, fastgltf::Mesh& mesh) {
     size_t _outcount = 0;
     if (mesh.primitives.size() > 0) {
         auto it = mesh.primitives.begin();
@@ -56,13 +56,13 @@ size_t get_mesh_total_vertex_count(ASSET* const asset, fastgltf::Mesh& mesh) {
     return _outcount;
 }
 
-std::string __make_mesh_summary( pGltf_data_t data ) {
+std::string reports_make_mesh_summary( pGltf_data_t data ) {
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);
     std::string _out = "";
     _out += std::string("   + Meshes: ") + std::to_string(probe->meshCount) + "\n";
         for (auto& mesh : asset->meshes) {
-            _out += std::string("   |   + '") + std::string(mesh.name) + "' (" + std::to_string(get_mesh_total_vertex_count(asset, mesh)) + " vertices)" + "\n"; 
+            _out += std::string("   |   + '") + std::string(mesh.name) + "' (" + std::to_string(reports_get_mesh_total_vertex_count(asset, mesh)) + " vertices)" + "\n"; 
             auto _ptlbl = "(Unrecognized)";
             //if (data->__prim_type == 4) {
             //    _ptlbl = "Triangles";
@@ -77,14 +77,14 @@ std::string __make_mesh_summary( pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltf_make_mesh_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
+void lv_gltfdata_make_mesh_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
     dest_buffer[0] = '\0';
-    strncpy(dest_buffer, __make_mesh_summary( data ).c_str(), dest_buffer_size);
+    strncpy(dest_buffer, reports_make_mesh_summary( data ).c_str(), dest_buffer_size);
     dest_buffer[dest_buffer_size-1] = '\0';
 
 }
 
-std::string __make_material_summary(pGltf_data_t data ) {
+std::string reports_make_material_summary(pGltf_data_t data ) {
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);    
     std::string _out = "";
@@ -94,13 +94,13 @@ std::string __make_material_summary(pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltf_make_material_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
+void lv_gltfdata_make_material_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
     dest_buffer[0] = '\0';
-    strncpy(dest_buffer, __make_material_summary( data ).c_str(), dest_buffer_size);
+    strncpy(dest_buffer, reports_make_material_summary( data ).c_str(), dest_buffer_size);
     dest_buffer[dest_buffer_size-1] = '\0';
 }
 
-std::string __make_images_summary(pGltf_data_t data ) {
+std::string reports_make_images_summary(pGltf_data_t data ) {
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);
     int32_t _result;
@@ -156,14 +156,14 @@ std::string __make_images_summary(pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltf_make_images_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size){
+void lv_gltfdata_make_images_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size){
     dest_buffer[0] = '\0';
-    strncpy(dest_buffer, __make_images_summary( data ).c_str(), dest_buffer_size);
+    strncpy(dest_buffer, reports_make_images_summary( data ).c_str(), dest_buffer_size);
     dest_buffer[dest_buffer_size-1] = '\0';
 
 }
 
-std::string __make_scenes_summary(pGltf_data_t data ) {
+std::string reports_make_scenes_summary(pGltf_data_t data ) {
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);
     std::string _out = "";
@@ -173,15 +173,15 @@ std::string __make_scenes_summary(pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltf_make_scenes_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
+void lv_gltfdata_make_scenes_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
     dest_buffer[0] = '\0';
-    strncpy(dest_buffer, __make_scenes_summary( data ).c_str(), dest_buffer_size);
+    strncpy(dest_buffer, reports_make_scenes_summary( data ).c_str(), dest_buffer_size);
     dest_buffer[dest_buffer_size-1] = '\0';
 
 }
 
 
-std::string __make_animations_summary(pGltf_data_t data ) {
+std::string reports_make_animations_summary(pGltf_data_t data ) {
     //auto& asset = data->asset;
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);
@@ -223,7 +223,7 @@ std::string __make_animations_summary(pGltf_data_t data ) {
                 std::cout << " ByteOffset = " << std::to_string(_inAcc.byteOffset) << " | ";
                 std::cout << " Count = " << std::to_string(_inAcc.count) << " | ";
                 std::cout << " AccessorType = " << fastgltf::getAccessorTypeName(_inAcc.type) << " | ";
-                std::cout << " ComponentType = " << getComponentTypeName(_inAcc.componentType) << " | ";
+                std::cout << " ComponentType = " << reports_get_component_type_name(_inAcc.componentType) << " | ";
                 //if (_inAcc.bufferViewIndex.has_value()) {
                 //    for (size_t ii=0; ii < _inAcc.count; ii++) {
                 //        float inval = fastgltf::getAccessorElement<float>(asset, _inAcc, ii);
@@ -238,7 +238,7 @@ std::string __make_animations_summary(pGltf_data_t data ) {
                 std::cout << " ByteOffset = " << std::to_string(_outAcc.byteOffset) << " | ";
                 std::cout << " Count = " << std::to_string(_outAcc.count) << " | ";
                 std::cout << " AccessorType = " << fastgltf::getAccessorTypeName(_outAcc.type) << " | ";
-                std::cout << " ComponentType = " << getComponentTypeName(_outAcc.componentType) << " | ";
+                std::cout << " ComponentType = " << reports_get_component_type_name(_outAcc.componentType) << " | ";
 
                 std::cout << "\n";
             }
@@ -246,7 +246,7 @@ std::string __make_animations_summary(pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltf_make_animations_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size){
+void lv_gltfdata_make_animations_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size){
     dest_buffer[0] = '\0';
-    strncpy(dest_buffer, __make_animations_summary( data ).c_str(), dest_buffer_size);
+    strncpy(dest_buffer, reports_make_animations_summary( data ).c_str(), dest_buffer_size);
 }

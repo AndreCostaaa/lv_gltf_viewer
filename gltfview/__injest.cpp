@@ -99,8 +99,8 @@ struct Vertex {
     const auto& _tex = MATERIAL_PROP; \
     if (_tex) { \
         auto& texture = asset->textures[_tex->textureIndex]; \
-        if (any_image_index_valid(texture)) { \
-            PRIMITIVE_TEXPROP = TEXDGLID(viewer, any_image_index(texture) ); \
+        if (injest_check_any_image_index_valid(texture)) { \
+            PRIMITIVE_TEXPROP = TEXDGLID(viewer, injest_get_any_image_index(texture) ); \
             PRIMITIVE_TEXUVID = _tex.value().transform ? _tex.value().transform->texCoordIndex.has_value() ? _tex.value().transform->texCoordIndex.value() : _tex.value().texCoordIndex : _tex.value().texCoordIndex; } } }
 
 #define _MACRO_ADD_TEXTURE_DEFINES(GLTF_MATERIAL_VAR, TEX_DEFINE_TO_ADD, TEXUV_DEFINE_TO_ADD) \
@@ -118,7 +118,7 @@ void (*lv_gltfview_load_progress_callback)(const char*, const char* , float, flo
  * @param node Pointer to the GLTF node.
  * @param prim Pointer to the GLTF primitive.
  */
- void discover_defines(pGltf_data_t data_obj, void *node, void *prim) {
+ void injest_discover_defines(pGltf_data_t data_obj, void *node, void *prim) {
     const auto& asset = GET_ASSET(data_obj);
     auto it = (fastgltf::Primitive *)prim;
     clearDefines();
@@ -217,7 +217,7 @@ void (*lv_gltfview_load_progress_callback)(const char*, const char* , float, flo
  * @param matrix The transformation matrix.
  * @param mesh Reference to the mesh.
  */
-void set_initial_bounds(pGltf_data_t ret_data, ASSET* asset, FMAT4 matrix, fastgltf::Mesh& mesh){
+void injest_set_initial_bounds(pGltf_data_t ret_data, ASSET* asset, FMAT4 matrix, fastgltf::Mesh& mesh){
     FVEC3 _vmin, _vmax, _vcen;
     float _bradius = 0.f;
     if (mesh.primitives.size() > 0) {
@@ -268,7 +268,7 @@ void set_initial_bounds(pGltf_data_t ret_data, ASSET* asset, FMAT4 matrix, fastg
  * @param matrix The transformation matrix.
  * @param mesh Reference to the mesh.
  */
-void grow_bounds_to_include(pGltf_data_t ret_data, ASSET* asset, FMAT4 matrix, fastgltf::Mesh& mesh){
+void injest_grow_bounds_to_include(pGltf_data_t ret_data, ASSET* asset, FMAT4 matrix, fastgltf::Mesh& mesh){
     FVEC3 _vmin, _vmax, _vcen;
     
     { const auto& _t = get_bounds_min(ret_data); _vmin[0] = _t[0]; _vmin[1] = _t[1]; _vmin[2] = _t[2]; }
@@ -319,7 +319,7 @@ void grow_bounds_to_include(pGltf_data_t ret_data, ASSET* asset, FMAT4 matrix, f
  * @param tex Optional texture to check.
  * @return true if any image index is valid, false otherwise.
  */
-bool any_image_index_valid(std::optional<fastgltf::Texture> tex){
+bool injest_check_any_image_index_valid(std::optional<fastgltf::Texture> tex){
     if (tex->imageIndex.has_value()) return true;
     if (tex->webpImageIndex.has_value()) return true;
     return false;
@@ -331,7 +331,7 @@ bool any_image_index_valid(std::optional<fastgltf::Texture> tex){
  * @param tex Optional texture to check.
  * @return The index of the first valid image, or -1 if none is valid.
  */
-int32_t any_image_index(std::optional<fastgltf::Texture> tex){
+int32_t injest_get_any_image_index(std::optional<fastgltf::Texture> tex){
     if (tex->imageIndex.has_value()) return tex->imageIndex.value();
     if (tex->webpImageIndex.has_value()) return tex->webpImageIndex.value();
     return 0;
@@ -434,7 +434,7 @@ std::size_t injest_vec4_attribute(
  * @param mesh Reference to the mesh to load.
  * @return true if the mesh was loaded successfully, false otherwise.
  */
-bool load_mesh(pViewer viewer, pGltf_data_t data_obj, fastgltf::Mesh& mesh) {
+bool injest_mesh(pViewer viewer, pGltf_data_t data_obj, fastgltf::Mesh& mesh) {
     const auto& asset = GET_ASSET(data_obj);
     const auto& outMesh = lv_gltf_get_new_meshdata(viewer); //outMesh = {};
     outMesh->primitives.resize(mesh.primitives.size());
@@ -548,7 +548,7 @@ bool load_mesh(pViewer viewer, pGltf_data_t data_obj, fastgltf::Mesh& mesh) {
  * @param index The index of the image to load.
  * @return true if the image was loaded successfully, false otherwise.
  */
-bool load_image(pShaderCache shaders, pViewer viewer, pGltf_data_t data_obj, fastgltf::Image& image, uint32_t index) {
+bool injest_image(pShaderCache shaders, pViewer viewer, pGltf_data_t data_obj, fastgltf::Image& image, uint32_t index) {
     const auto& asset = GET_ASSET(data_obj);
     auto getLevelCount = [](int32_t width, int32_t height) -> GLsizei {
         return static_cast<GLsizei>(1 + floor(log2(width > height ? width : height)));
@@ -655,7 +655,7 @@ bool load_image(pShaderCache shaders, pViewer viewer, pGltf_data_t data_obj, fas
  * @param camera Reference to the camera to load.
  * @return true if the camera was loaded successfully, false otherwise.
  */
-bool lv_gltf_load_camera(pViewer viewer, fastgltf::Camera& camera) {
+bool injest_camera(pViewer viewer, fastgltf::Camera& camera) {
     return true;
 	// The following matrix math is for the projection matrices as defined by the glTF spec:
 	// https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#projection-matrices
@@ -700,7 +700,7 @@ bool lv_gltf_load_camera(pViewer viewer, fastgltf::Camera& camera) {
  * @param p_probe_info Pointer to the probe information structure.
  * @param data Pointer to the GLTF data.
  */
-void fill_probe_info(gltf_probe_info *p_probe_info, pGltf_data_t data){
+void injest_fill_probe_info(gltf_probe_info *p_probe_info, pGltf_data_t data){
     const auto& asset = GET_ASSET(data);
     p_probe_info->imageCount     = asset->images.size();
     p_probe_info->textureCount   = asset->textures.size();
@@ -768,7 +768,7 @@ void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, pViewer vie
     set_asset(_retdata, std::move(__asset.get()));
 
     gltf_probe_info _probe;
-    fill_probe_info(&_probe, _retdata);
+    injest_fill_probe_info(&_probe, _retdata);
     set_probe(_retdata, _probe);
     if (lv_gltfview_load_progress_callback != NULL) { lv_gltfview_load_progress_callback("Loading glTF file...", "SUBTEST1234", 2.0f, 5.f, 23.0f, 100.f); }
 
@@ -792,10 +792,10 @@ void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, pViewer vie
         if (_firstVisibleMesh) {
             if (node.meshIndex.has_value()) {
                 _firstVisibleMesh = false;
-                set_initial_bounds(_retdata, asset, matrix, asset->meshes[node.meshIndex.value()] ); } } 
+                injest_set_initial_bounds(_retdata, asset, matrix, asset->meshes[node.meshIndex.value()] ); } } 
         else {
             if (node.meshIndex.has_value()) {
-                grow_bounds_to_include(_retdata, asset, matrix, asset->meshes[node.meshIndex.value()] ); } } } );
+                injest_grow_bounds_to_include(_retdata, asset, matrix, asset->meshes[node.meshIndex.value()] ); } } } );
 
     allocate_index(_retdata, asset->nodes.size());
     fastgltf::namegen_iterateSceneNodes(*asset, _sceneIndex, [&](fastgltf::Node& node, std::string& nodePath, std::string& nodeIp, std::size_t nodeIndex, std::size_t childIndex) {
@@ -804,12 +804,12 @@ void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, pViewer vie
     } ); 
     // ---------
     
-    { uint32_t i = 0; for (auto& image : asset->images) { load_image(shaders, viewer, _retdata, image, i); i++; 
+    { uint32_t i = 0; for (auto& image : asset->images) { injest_image(shaders, viewer, _retdata, image, i); i++; 
         if (lv_gltfview_load_progress_callback != NULL) { lv_gltfview_load_progress_callback("Loading Images", "SUBTEST1234", 2.f + (((float)i / (float)(_probe.imageCount) ) * 3.0f), 5.f, 23.0f, 100.f); }
     } }
     //for (auto& material : asset.materials)  { loadMaterial(viewer, material); }
-    for (auto& mesh : asset->meshes)         { load_mesh(viewer, _retdata, mesh); }
-    for (auto& camera : asset->cameras)      { lv_gltf_load_camera(viewer, camera); }      // Loading the cameras (possibly) requires knowing the viewport size, which we get using glfwGetWindowSize above.
+    for (auto& mesh : asset->meshes)         { injest_mesh(viewer, _retdata, mesh); }
+    for (auto& camera : asset->cameras)      { injest_camera(viewer, camera); }      // Loading the cameras (possibly) requires knowing the viewport size, which we get using glfwGetWindowSize above.
 
     if (lv_gltfview_load_progress_callback != NULL) { lv_gltfview_load_progress_callback("Done.", "SUBTEST1234", 5.0, 5.f, 23.0f, 100.f); }
 
