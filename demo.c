@@ -244,6 +244,7 @@ int main(int argc, char *argv[]) {
             
             lv_task_handler();
             usleep(ms_delay * 1000);
+            
             float sec_span;
             if (frameCount > 0) {
                 sec_span = 1.f / 30.f;
@@ -296,6 +297,9 @@ int main(int argc, char *argv[]) {
                 MEASURED_CLOCKS_PER_SEC = ((MEASURED_CLOCKS_PER_SEC * 3.0f) + ((float)ticks_this_second)) / 4.0f;
                 ROLLING_FPS = ((ROLLING_FPS * 3.0f) + ((float)frames_this_second)) / 4.0f;
                 if (frames_rendered_this_second > 0) {
+                    #ifndef NDEBUG
+                        printf("[DEBUG BUILD] ");
+                    #endif
                     printf("Frames Drawn: %ld | Average FPS: %2.1f | Ticks per sec: %2.1f\n", frames_rendered_this_second, ROLLING_FPS, MEASURED_CLOCKS_PER_SEC);
                 }
                 ticks_this_second = 0;
