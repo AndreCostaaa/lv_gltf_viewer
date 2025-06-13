@@ -37,9 +37,11 @@ iblSampler::iblSampler(void) {
     lambertianSampleCount = 256;
     sheenSamplCount = 32;
     lodBias = 0.0;
-    lowestMipLevel = 2;
+    lowestMipLevel = 3;
     //lowestMipLevel = 4;
     lutResolution = 1024;
+    //lutSampleCount = 512;
+    lutSampleCount = 64;
     //lutResolution = 512;
 
     scaleValue = 1.0;
@@ -318,7 +320,8 @@ void iblSampler::applyFilter(
         GL_CALL(glUniform1i(location, 0)); // texture unit 0
         shader->updateUniform1f(shader, "u_roughness", roughness);
         shader->updateUniform1i(shader, "u_sampleCount", sampleCount);
-        shader->updateUniform1i(shader, "u_width", textureSize);
+        shader->updateUniform1i(shader, "u_width", currentTextureSize);
+        //shader->updateUniform1i(shader, "u_width", textureSize);
         shader->updateUniform1f(shader, "u_lodBias", _lodBias);
         shader->updateUniform1i(shader, "u_distribution", distribution);
         shader->updateUniform1i(shader, "u_currentFace", i);
@@ -401,7 +404,7 @@ void iblSampler::sampleLut(uint32_t distribution, uint32_t targetTexture, uint32
     uint32_t location = glGetUniformLocation(shader->program,"u_cubemapTexture");
     GL_CALL(glUniform1i(location, 0)); // texture unit 0
     shader->updateUniform1f( shader, "u_roughness", 0.0);
-    shader->updateUniform1i( shader, "u_sampleCount", 128);
+    shader->updateUniform1i( shader, "u_sampleCount", lutSampleCount);
     //shader->updateUniform1i( shader, "u_sampleCount", 512);
     shader->updateUniform1i( shader, "u_width", 0.0);
     shader->updateUniform1f( shader, "u_lodBias", 0.0);

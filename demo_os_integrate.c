@@ -3,8 +3,17 @@
 #include "demo.h"
 #include "stb_image/stb_image.h"
 #include <signal.h>     /* to trap ctrl-break */
+#include "lvgl/src/drivers/glfw/lv_opengles_texture.h"
 
-static GLFWwindow * glfw_window;
+
+typedef struct {
+    unsigned int texture_id;
+    uint8_t * fb1;
+} lv_opengles_texture_t;
+
+GLFWwindow * glfw_window;
+
+lv_display_t * temp_display = NULL;
 
 bool demo_os_integrate_window_should_close( void ){
     return glfwWindowShouldClose(glfw_window);
@@ -34,14 +43,30 @@ void os_integrate_window_close_callback(GLFWwindow* _window){
     demo_os_integrate_signal_window_close();
 }
 
-void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window ) {
+void os_integrate_window_resize_callback(GLFWwindow* _glfw_window, int width, int height) {
+    printf("Window is resizing: New size: %d,%d\n");
+    lv_gltfview_set_width(demo_gltfview, width);
+    lv_gltfview_set_height(demo_gltfview, height);
+    lv_display_set_resolution(display_texture, width, height);
+    demo_ui_reposition_all();
+}
+
+void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window, bool lock_window_size ) {
     
     glfw_window = (GLFWwindow *)lv_glfw_window_get_glfw_window(lv_window);
 
     glfwSetWindowCloseCallback(glfw_window, os_integrate_window_close_callback);
-    glfwSetWindowSizeLimits(glfw_window, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
-    glfwSetWindowAttrib(glfw_window, GLFW_RESIZABLE, false);
-    glfwSetWindowAspectRatio(glfw_window, WINDOW_WIDTH, WINDOW_HEIGHT);
+    if (lock_window_size) {
+        glfwSetWindowSizeLimits(glfw_window, ui_get_window_width(), ui_get_window_height(), ui_get_window_width(), ui_get_window_height());
+        glfwSetWindowAttrib(glfw_window, GLFW_RESIZABLE, false);
+    } else {
+        glfwSetWindowSize(glfw_window, ui_get_window_width(), ui_get_window_height());
+        //glfwRestoreWindow(window);
+        glfwSetFramebufferSizeCallback(glfw_window, os_integrate_window_resize_callback);
+        glfwSetWindowSizeLimits(glfw_window, 300, 300, ui_get_max_window_width(), ui_get_max_window_height());
+        glfwSetWindowAttrib(glfw_window, GLFW_RESIZABLE, true);
+    }
+    //glfwSetWindowAspectRatio(glfw_window, ui_get_window_width(), ui_get_window_height());
     glfwSetDropCallback(glfw_window, os_integrate_filedrop_callback);
     
     GLFWimage images[1]; 

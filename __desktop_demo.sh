@@ -1,1 +1,1 @@
-./build/lvgl_workspace ./gltfs/torusknot.gltf -aa 2 -env 7 -bg 0 -spin_rate 10 -yaw -470 -pitch 240 -distance 340 -desktop
+./build/lvgl_workspace ./gltfs/torusknot_hd.glb -aa 1 -env 2 -bg 2 -blur_bg 200 -spin_rate 10 -yaw -470 -pitch 240 -distance 340 -desktop

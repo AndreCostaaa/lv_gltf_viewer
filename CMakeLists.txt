@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.25.1)
 
 project(lvgl_workspace LANGUAGES C CXX)
 
-set(CONFIG_LV_BUILD_EXAMPLES 1)
-set(CONFIG_LV_BUILD_DEMOS 1)
+set(CONFIG_LV_BUILD_EXAMPLES 0)
+set(CONFIG_LV_BUILD_DEMOS 0)
 set(FASTGLTF_ENABLE_DEPRECATED_EXT 1)
 # set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -34,9 +34,13 @@ add_executable(lvgl_workspace
     sprites1_32x32x7.c
 )
 
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
-set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas")
+#set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
+#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
+#set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas")
+
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
+set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -Wno-unused-parameter -Wno-unknown-pragmas")
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/fastgltf)
 

@@ -18,6 +18,8 @@ class iblSampler
     uint32_t ggxSampleCount;
     uint32_t lambertianSampleCount;
     uint32_t sheenSamplCount;
+    uint32_t lutSampleCount;
+
     float lodBias;
     uint32_t lowestMipLevel;
     uint32_t lutResolution;

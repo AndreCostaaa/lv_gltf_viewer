@@ -97,7 +97,7 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                 i++;
             } else if (strcmp(argv[i], "-blur_bg") == 0 && (i + 1) < argc) {
                 if (i + 1 < argc) {
-                    lv_gltfview_set_blur_bg(viewer, (int)(atoi(argv[i + 1]) * 1000.f) );
+                    lv_gltfview_set_blur_bg(viewer, (float)(atoi(argv[i + 1])) / 1000.f );
                     i++;
                 } else {
                     printf("Error: -blur_bg option requires an integer value.\n");

@@ -19,11 +19,11 @@
 #include <math.h>       /* pow */
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
-#define BIG_TEXTURE_WIDTH 256 * 3
-#define BIG_TEXTURE_HEIGHT 192 * 3
+#define BIG_TEXTURE_WIDTH 256 * 4
+#define BIG_TEXTURE_HEIGHT 192 * 4
 
-#define WINDOW_WIDTH BIG_TEXTURE_WIDTH
-#define WINDOW_HEIGHT BIG_TEXTURE_HEIGHT
+//#define WINDOW_WIDTH BIG_TEXTURE_WIDTH
+//#define WINDOW_HEIGHT BIG_TEXTURE_HEIGHT
 
 #define STUB_WINDOW_WIDTH 200
 #define STUB_WINDOW_HEIGHT 60
@@ -59,12 +59,16 @@ extern bool use_scenecam;
 extern bool anim_enabled;
 extern bool desktop_mode;
 
+extern lv_display_t * display_texture;
+extern lv_glfw_texture_t * window_texture;
+extern lv_glfw_window_t * window;
+extern lv_indev_t * mouse;
+
 extern lv_obj_t * grp_loading;
 extern lv_obj_t * spin_checkbox;
 extern lv_obj_t * spin_slider;
 extern lv_obj_t * progText1;
 extern lv_obj_t * tabview;
-extern lv_glfw_window_t * window;
 extern lv_obj_t * titleText;
 extern lv_obj_t * tab_pages[MAX_TABS];
 extern lv_obj_t * progbar1;
@@ -73,12 +77,14 @@ extern lv_obj_t * anim_checkbox;
 
 extern lv_gltfdata_t * demo_gltfdata;
 extern lv_gltfview_t * demo_gltfview;
+extern lv_obj_t * gltfview_3dtex;
 
 extern pOverride ov_boom;
 extern pOverride ov_stick;
 extern pOverride ov_bucket;
 extern pOverride ov_swing;
 extern pOverride ov_cursor;
+extern GLFWwindow * glfw_window;
 
 LV_IMAGE_DECLARE(lvgl_icon_40px);
 LV_IMAGE_DECLARE(sprites1_32x32x7);
@@ -96,8 +102,19 @@ void demo_ui_make_underlayer(void);
 void demo_ui_load_progress_callback(const char* phase_title, const char* sub_phase_title, float phase_progress, float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max);
 bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char * hdrFile, int * frame_count, bool * software_only, float * _anim_rate, int argc, char *argv[] );
 void demo_nav_process_drag(float movement_power, uint32_t mouse_state_ex, int mouse_x, int mouse_y, int last_mouse_x, int last_mouse_y);
-void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window );
+void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_windowa, bool lock_window_size );
 bool demo_os_integrate_window_should_close(void);
 void demo_os_integrate_signal_window_close(void);
 bool demo_os_integrate_confirm_desktop_mode_ok(void);
+void os_integrate_window_resize_callback(GLFWwindow* window, int width, int height);
+
+uint32_t ui_get_window_width(void);
+uint32_t ui_get_window_height(void);
+uint32_t ui_get_primary_texture_width(void);
+uint32_t ui_get_primary_texture_height(void);
+uint32_t ui_get_max_window_width(void);
+uint32_t ui_get_max_window_height(void);
+
+void demo_ui_reposition_all( void );
+
 #endif // MAINUI_SHARED_H

@@ -413,8 +413,11 @@ uint32_t lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * viewer, pGltf
     view_desc->frame_was_cached = true;
     view_desc->render_width = view_desc->width * (opt_aa_this_frame ? 2 : 1);
     view_desc->render_height = view_desc->height * (opt_aa_this_frame ? 2 : 1);
+    bool size_changed = false;
+    if (view_desc->width != _lastViewDesc.width) size_changed = true;
+    if (view_desc->height != _lastViewDesc.height) size_changed = true;
 
-    if (opt_aa_this_frame != _lastFrameWasAntialiased) {
+    if ((opt_aa_this_frame != _lastFrameWasAntialiased) || size_changed) {
         // Antialiasing state has changed since the last render
         if (vstate->render_state_ready) {
             setup_cleanup_opengl_output(&vstate->render_state);

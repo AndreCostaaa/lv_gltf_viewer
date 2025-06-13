@@ -231,6 +231,14 @@ uint32_t lv_gltfview_get_aa_mode(lv_gltfview_t * view);
  */
 uint32_t lv_gltfview_get_bg_mode(lv_gltfview_t * view);
 
+
+
+uint32_t lv_gltfview_get_width (lv_gltfview_t * view );
+uint32_t lv_gltfview_get_height (lv_gltfview_t * view );
+
+
+
+
 /**
  * @brief Set the viewing angle pitch in degrees x 10 (3600 per full turn)
  *

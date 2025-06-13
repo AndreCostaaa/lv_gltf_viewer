@@ -27,6 +27,12 @@ gl_environment_textures _environment;
 
 lv_gltfdata_t * demo_gltfdata;
 lv_gltfview_t * demo_gltfview;
+lv_obj_t * gltfview_3dtex;
+
+lv_indev_t * mouse;
+lv_glfw_window_t * window;
+lv_display_t * display_texture;
+lv_glfw_texture_t * window_texture;
 
 //GLFWwindow * glfw_window;
 
@@ -74,7 +80,6 @@ void reload(const char * _filename, const char * _hdr_filename) {
 int main(int argc, char *argv[]) {
     demo_gltfview = lv_malloc(get_viewer_datasize() );
     init_viewer_struct(demo_gltfview);
-
     int lastMouseX = 0, lastMouseY = 0;
     int frameCount = 0;
     bool softwareOnly = false;
@@ -114,20 +119,38 @@ int main(int argc, char *argv[]) {
 
         if (softwareOnly) setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
+        uint32_t max_window_width = ui_get_max_window_width();
+        uint32_t max_window_height = ui_get_max_window_height();
+
+        glfwInit();
+        // Get the primary monitor
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        if (monitor) {
+            // Get the work area of the monitor
+            int xpos, ypos, width, height;
+            glfwGetMonitorWorkarea(monitor, &xpos, &ypos, &width, &height);
+            max_window_width = width;
+            max_window_height = height;
+            // Print the maximum window size
+            printf("Maximum window size: %dx%d\n", width, height);
+        }
+
+
         /* create a window and initialize OpenGL */
-        window = lv_glfw_window_create_ex( stubmode ? STUB_WINDOW_WIDTH : WINDOW_WIDTH, stubmode ? STUB_WINDOW_HEIGHT : WINDOW_HEIGHT, true, false, false, MY_WINDOW_TITLE, "gltf-view-new");
-        demo_os_integrate_setup_glfw_window(window);
+        window = lv_glfw_window_create_ex( stubmode ? STUB_WINDOW_WIDTH : max_window_width, stubmode ? STUB_WINDOW_HEIGHT : max_window_height, true, false, false, MY_WINDOW_TITLE, "gltf-view-new");
+        demo_os_integrate_setup_glfw_window(window, stubmode);
 
         /* create a display that flushes to a texture */
-        lv_display_t * texture = lv_opengles_texture_create(WINDOW_WIDTH, WINDOW_HEIGHT);
-        lv_display_set_default(texture);
+        display_texture = lv_opengles_texture_create(max_window_width, max_window_height);
+        lv_display_set_default(display_texture);
 
         demo_ui_make_underlayer();
 
         /* add the texture to the window */
-        lv_glfw_texture_t * window_texture = lv_glfw_window_add_texture(window, lv_opengles_texture_get_texture_id(texture), WINDOW_WIDTH, WINDOW_HEIGHT);
+        window_texture = lv_glfw_window_add_texture(window, lv_opengles_texture_get_texture_id(display_texture), max_window_width, max_window_height);
+        
         /* get the mouse indev of the window texture */
-        lv_indev_t * mouse = lv_glfw_texture_get_mouse_indev(window_texture);
+        mouse = lv_glfw_texture_get_mouse_indev(window_texture);
 
         lv_obj_clear_flag(lv_screen_active(), LV_OBJ_FLAG_SCROLLABLE );
 
@@ -141,12 +164,12 @@ int main(int argc, char *argv[]) {
         lv_gltfview_ibl_set_loadphase_callback(demo_ui_load_progress_callback);
         lv_gltfview_set_loadphase_callback(demo_ui_load_progress_callback);
 
-        lv_obj_t * tex = lv_3dtexture_create(tab_pages[TAB_VIEW]);
-        lv_obj_set_size(tex, BIG_TEXTURE_WIDTH, BIG_TEXTURE_HEIGHT);   
-        lv_obj_add_flag(tex, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_align(tex, LV_ALIGN_TOP_LEFT, 0, 0);
-        lv_obj_clear_flag(tex, LV_OBJ_FLAG_CLICKABLE  );
-        lv_3dtexture_set_src_flip(tex, false, false);
+        gltfview_3dtex = lv_3dtexture_create(tab_pages[TAB_VIEW]);
+        lv_obj_set_size(gltfview_3dtex, max_window_width, max_window_height);   
+        lv_obj_add_flag(gltfview_3dtex, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_align(gltfview_3dtex, LV_ALIGN_TOP_LEFT, 0, 0);
+        lv_obj_clear_flag(gltfview_3dtex, LV_OBJ_FLAG_CLICKABLE  );
+        lv_3dtexture_set_src_flip(gltfview_3dtex, false, false);
 
         demo_ui_pitch_yaw_distance_sliders(tab_pages[TAB_VIEW]);
         demo_ui_camera_select(tab_pages[TAB_VIEW]);
@@ -179,14 +202,15 @@ int main(int argc, char *argv[]) {
         lv_gltfview_set_focal_y(demo_gltfview, 0.f);
         lv_gltfview_set_focal_z(demo_gltfview, 0.f);
         lv_gltfview_set_anim(demo_gltfview, anim_enabled ? anim : -1);
+        lv_refr_now(NULL);
 
         lv_3dtexture_id_t gltf_texture = lv_gltfview_render( shaderCache, demo_gltfview, demo_gltfdata );
-        lv_3dtexture_set_src(tex, gltf_texture);
+        lv_3dtexture_set_src(gltfview_3dtex, gltf_texture);
 
         lv_obj_add_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
         if (!stubmode) {
-            lv_obj_clear_flag(tex, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_invalidate(tex);
+            lv_obj_clear_flag(gltfview_3dtex, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_invalidate(gltfview_3dtex);
         }
         glfwPollEvents();
         lv_refr_now(NULL);
@@ -202,8 +226,6 @@ int main(int argc, char *argv[]) {
         }
 
         const int WINDOW_CONTROL_MARGIN = 80; 
-        const int WINDOW_WIDTH_MINUS_MARGIN = WINDOW_WIDTH-WINDOW_CONTROL_MARGIN;
-        const int WINDOW_HEIGHT_MINUS_MARGIN = WINDOW_HEIGHT-WINDOW_CONTROL_MARGIN;
 
         struct timeval start;
         lv_point_t _mousepoint;
@@ -224,7 +246,7 @@ int main(int argc, char *argv[]) {
         clock_t last_clock = clock();
         double subjectRadius = lv_gltf_get_int_radiusX1000(demo_gltfdata) / 1000.f;
         double movePow = min(subjectRadius, pow(subjectRadius, 0.5));
-        char * pixels = lv_malloc(BIG_TEXTURE_HEIGHT * BIG_TEXTURE_WIDTH * 4);
+        //char * pixels = lv_malloc(BIG_TEXTURE_HEIGHT * BIG_TEXTURE_WIDTH * 4);
 
         {   
             bool _timing_break_flag = false;
@@ -244,7 +266,7 @@ int main(int argc, char *argv[]) {
             
             lv_task_handler();
             usleep(ms_delay * 1000);
-            
+
             float sec_span;
             if (frameCount > 0) {
                 sec_span = 1.f / 30.f;
@@ -263,12 +285,15 @@ int main(int argc, char *argv[]) {
 
 
             lv_indev_get_point(mouse, &_mousepoint);
+            
+            int WINDOW_WIDTH_MINUS_MARGIN = ui_get_window_width()-WINDOW_CONTROL_MARGIN;
+            int WINDOW_HEIGHT_MINUS_MARGIN = ui_get_window_height()-WINDOW_CONTROL_MARGIN;
             bool mouse_in_window = ((_mousepoint.x >= WINDOW_CONTROL_MARGIN) && (_mousepoint.x <= (WINDOW_WIDTH_MINUS_MARGIN)) && (_mousepoint.y >= WINDOW_CONTROL_MARGIN) && (_mousepoint.y <= (WINDOW_HEIGHT_MINUS_MARGIN)) );
 
             if (mouse_in_window) {
 
                 #ifdef EXPERIMENTAL_GROUNDCAST
-                bool _res = lv_gltfview_raycast_ground_position(demo_gltfview, _mousepoint.x, _mousepoint.y, WINDOW_WIDTH, WINDOW_HEIGHT,  1.0, _groundpos);
+                bool _res = lv_gltfview_raycast_ground_position(demo_gltfview, _mousepoint.x, _mousepoint.y, ui_get_window_width(), ui_get_window_height(),  1.0, _groundpos);
                 if (_res && (ov_cursor != NULL)) {
                     ov_cursor->data1 = _groundpos[0];
                     ov_cursor->data2 = _groundpos[1];
@@ -313,20 +338,22 @@ int main(int argc, char *argv[]) {
             if (!lv_gltfview_check_frame_was_cached(demo_gltfview)) {
                 frames_rendered_this_second += 1;
                 if (!stubmode) {
-                    lv_3dtexture_set_src(tex, gltf_texture);
-                    lv_obj_invalidate(tex);
+                    lv_3dtexture_set_src(gltfview_3dtex, gltf_texture);
+                    lv_obj_invalidate(gltfview_3dtex);
                 }
                 glfwPollEvents();
                 lv_refr_now(NULL);
 
+                bool file_alpha = lv_gltfview_get_bg_mode(demo_gltfview) != BG_ENVIRONMENT;
+
                 if (desktop_mode){
-                    lv_gltfview_utils_save_png(demo_gltfview, DESKTOP_OUTPUT_FILEPATH, true, 0);
+                    lv_gltfview_utils_save_png(demo_gltfview, DESKTOP_OUTPUT_FILEPATH, file_alpha, 0);
                     system(DESKTOP_APPLY_COMMAND);
                 } else {
                     if (frameCount > 0) {
                         char _buffer[100];
                         snprintf(_buffer, sizeof(_buffer), "/home/pi/Desktop/lv_gltf_viewer/render_frames/frame%03d.png", (maxFrames - frameCount));
-                        lv_gltfview_utils_save_png(demo_gltfview, _buffer, true, 0);
+                        lv_gltfview_utils_save_png(demo_gltfview, _buffer, file_alpha, 10);
                     }
                 }
             } else {
@@ -343,7 +370,7 @@ int main(int argc, char *argv[]) {
         }
         
         lv_obj_clear_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(tex, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(gltfview_3dtex, LV_OBJ_FLAG_HIDDEN);
         demo_ui_load_progress_callback("Closing Application", "", 0.f, 0.f, 0.f, 0.f);
         usleep(20 * 1000);
         
@@ -353,7 +380,7 @@ int main(int argc, char *argv[]) {
         lv_task_handler();
         
         lv_gltfview_destroy(demo_gltfview, demo_gltfdata, shaderCache);
-        lv_free(pixels);
+        //lv_free(pixels);
     }
     lv_free(demo_gltfview);
     exit(0);

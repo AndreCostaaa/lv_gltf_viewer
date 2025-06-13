@@ -14,6 +14,8 @@ float lv_gltfview_get_focal_z (lv_gltfview_t * view) { return lv_gltfview_get_de
 float lv_gltfview_get_spin_degree_offset(lv_gltfview_t * view){ return lv_gltfview_get_desc(view)->spin_degree_offset; }
 uint32_t lv_gltfview_get_aa_mode(lv_gltfview_t * view) { return lv_gltfview_get_desc(view)->aa_mode; }
 uint32_t lv_gltfview_get_bg_mode(lv_gltfview_t * view) { return lv_gltfview_get_desc(view)->bg_mode; }
+uint32_t lv_gltfview_get_width (lv_gltfview_t * view ) { return lv_gltfview_get_desc(view)->width; }
+uint32_t lv_gltfview_get_height (lv_gltfview_t * view ) { return lv_gltfview_get_desc(view)->height; }
 
 void lv_gltfview_set_pitch (lv_gltfview_t * view, int pitch_degrees_x10 ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltfview_get_desc(view);

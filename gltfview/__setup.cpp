@@ -483,7 +483,7 @@ void setup_view_proj_matrix_from_camera( lv_gltfview_t * viewer, int32_t _cur_ca
     if (transmission_pass) {
         mat4_perspective_fov(perspective,to_radians(45.0), 256, 256, _mindist, _maxdist);
     } else {
-        mat4_perspective_fov(perspective,to_radians(45.0), 256, 192, _mindist, _maxdist);
+        mat4_perspective_fov(perspective,to_radians(45.0), view_desc->render_width, view_desc->render_height, _mindist, _maxdist);
     }
 
     mfloat_t viewProj[MAT4_SIZE];
@@ -545,7 +545,7 @@ void setup_view_proj_matrix( lv_gltfview_t * viewer, gl_viewer_desc_t * view_des
     if (transmission_pass) {
         mat4_perspective_fov(perspective,to_radians(45.0), 256, 256, _bradius * 0.05f, _bradius * std::max(2.0, 4.0 * view_desc->distance));
     } else {
-        mat4_perspective_fov(perspective,to_radians(45.0), 256, 192, _bradius * 0.05f, _bradius * std::max(2.0, 4.0 * view_desc->distance));
+        mat4_perspective_fov(perspective,to_radians(45.0), view_desc->render_width, view_desc->render_height, _bradius * 0.05f, _bradius * std::max(2.0, 4.0 * view_desc->distance));
     }
 
     mfloat_t viewProj[MAT4_SIZE];
