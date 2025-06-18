@@ -32,7 +32,7 @@
 #define DESKTOP_OUTPUT_FILEPATH_TEMPLATE "/var/ramtemp/background%05d.png"
 #define DESKTOP_APPLY_COMMAND "pcmanfm --set-wallpaper /var/ramtemp/background.png&"
 #define DESKTOP_APPLY_COMMAND_TEMPLATE "pcmanfm --set-wallpaper /var/ramtemp/background%05d.png&"
-#define RESIZE_RAMDRIVE_COMMAND_TEMPLATE "sudo ./ex/__resize_ramdrive.sh %s %dM"
+#define RESIZE_RAMDRIVE_COMMAND_TEMPLATE "sudo ./ex/__resize_ramdrive.sh %s %dM > /dev/null"
 extern bool desktop_mode;
 extern float desktop_ratio;
 #endif
@@ -93,6 +93,7 @@ extern bool running;
 extern bool enable_intro_zoom;
 extern float spin_counter_degrees;
 extern bool reapply_layout_flag;
+extern uint32_t cycle_frames;
 
 extern lv_display_t * display_texture;
 extern lv_glfw_texture_t * window_texture;

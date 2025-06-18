@@ -32,6 +32,7 @@ bool frame_grab_ui = false;
 bool enable_intro_zoom = true;
 bool reapply_layout_flag = true;
 bool stub_mode = false;
+uint32_t cycle_frames = 1;
 
 #ifdef ENABLE_DESKTOP_MODE
 float desktop_ratio = 0.5f;
@@ -336,7 +337,7 @@ int main(int argc, char *argv[]) {
         #ifdef EXPERIMENTAL_GROUNDCAST 
         float _groundpos[3] = {0.f, 0.f, 0.f};
         #endif /* EXPERIMENTAL_GROUNDCAST */
-        uint32_t cycle_frames = ui_max(1, (uint32_t)(cycle_seconds * goal_fps));
+        cycle_frames = ui_max(1, (uint32_t)(cycle_seconds * goal_fps));
         //printf ("With a spin rate of %.2f degrees per second, and an FPS of %.2f, it would take %d frames to complete one cycle.\n", spin_rate, goal_fps, cycle_frames);
 
         bool _timing_break_flag = false;

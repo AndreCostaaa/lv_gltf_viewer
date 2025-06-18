@@ -38,7 +38,7 @@ int os_integrate_increase_ramdrive_size( unsigned long increase_byte_count ) {
     snprintf(command, sizeof(command), RESIZE_RAMDRIVE_COMMAND_TEMPLATE, DESKTOP_OUTPUT_RAMTEMP_PATH, ramtemp_drive_size);
     // Call the script
     int result = system(command);
-    printf("Increased ram drive to: %d mB\n", ramtemp_drive_size);
+    printf("RAM drive /var/ramtemp resized to: %d mB\n", ramtemp_drive_size);
     return (result == 0) ? 0 : -1;
 }
 
@@ -52,14 +52,26 @@ unsigned long os_integrate_get_available_drive_bytes(const char *path){
     return 0; // Error occurred
 }
 
-int os_integrate_check_drive_space() {//const char *path, unsigned long limit) {
+int os_integrate_check_drive_space(int32_t current_frame_num) {//const char *path, unsigned long limit) {
     // Check if available space is below the limit
     const unsigned long limit = 1 * 1024 * 1024;
+    float norm_ratio = 0.99f;
+    if (cycle_frames > 0) { norm_ratio = ((float)current_frame_num)/((float)cycle_frames); }
+    float inv_norm_ratio = 1.f - norm_ratio;
+    inv_norm_ratio = inv_norm_ratio < 0.f ? 0.f : inv_norm_ratio  > 1.f ? 1.f : inv_norm_ratio;
+    float bytes_total_estimate = ((float)(ramtemp_drive_size * 1024 * 1024) / norm_ratio) - (ramtemp_drive_size * 1024 * 1024) + (1024 * 1024);
+    //printf( "estimated required megabytes to complete job: %.2f\n", (bytes_total_estimate / (float)( 1024 * 1024 ) ));
+    unsigned long newbytes = 10 * limit;
+
     // Construct the path
     char path[256];
     snprintf(path, sizeof(path), "/var/%s", DESKTOP_OUTPUT_RAMTEMP_PATH);
     if (os_integrate_get_available_drive_bytes(&path) < limit) {
-       return os_integrate_increase_ramdrive_size((10 * limit));
+        if (norm_ratio > 0.04f) {
+            newbytes = (unsigned long)(bytes_total_estimate);
+            printf( "estimated required megabytes to complete job: %.2f\n", (bytes_total_estimate / (float)( 1024 * 1024 ) ));
+        }
+       return os_integrate_increase_ramdrive_size(newbytes);
     }
     return 0; // Success
 }
@@ -266,7 +278,7 @@ void *demo_os_integrate_save_desktop_png_thread(void *arg) {
                 snprintf(_buffer, sizeof(_buffer), DESKTOP_OUTPUT_FILEPATH_TEMPLATE, task->suffix);
                 struct stat file_stat;
                 if (stat(_buffer, &file_stat) != 0) {
-                    os_integrate_check_drive_space();
+                    os_integrate_check_drive_space(task->suffix);
                     lv_gltfview_utils_save_pixelbuffer_to_png( demo_gltfview,  task->pixels, _buffer, task->file_has_alpha, 0, ui_get_primary_texture_width(), ui_get_primary_texture_height() );
                 }
                 lv_free(task->pixels);

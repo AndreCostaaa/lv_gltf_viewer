@@ -180,7 +180,7 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                     printf("ramdrive was not detected at this time.  To create it, run the following\n");
                     printf("script from the application root directory:\n\n");
                     char command[256];
-                    snprintf(command, sizeof(command), "./__resize_ramdrive.sh %s 2M\n", DESKTOP_OUTPUT_RAMTEMP_PATH);
+                    snprintf(command, sizeof(command), "./ex/__create_ramdrive.sh %s 1M\n", DESKTOP_OUTPUT_RAMTEMP_PATH);
                     printf(command);
                     passedParamChecks = false;
                 }
