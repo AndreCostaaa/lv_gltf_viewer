@@ -2,7 +2,7 @@
 #include <stdlib.h> 
 #include <string.h> /* strlen, strcpy: for replaceWord and lineCount */
  
-#include "__include/shader_includes.h"
+#include "include/shader_includes.h"
 
 #include <iostream> /* for debug cout */
 #include <sstream>  /* for replaceWord */

@@ -6,8 +6,8 @@
 
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
-#include "__include/ibl_sampler.h"
-#include "__include/shader_cache.h"
+#include "include/ibl_sampler.h"
+#include "include/shader_cache.h"
 
 #include <unistd.h> /* usleep */
 #include <vector>
@@ -230,8 +230,9 @@ void iblSampler::doinit(t_image* xpanoramaImage, const char* env_filename)
     stbi_image_free(data);
     inputTextureID = loadTextureHDR(&panoramaImage);
     free(panoramaImage.dataFloat);
-    cubemapTextureID = createCubemapTexture(true);
+
     GL_CALL(glCreateFramebuffers(1, {&framebuffer}));
+    cubemapTextureID = createCubemapTexture(true);
     lambertianTextureID = createCubemapTexture(false);
     ggxTextureID = createCubemapTexture(true);
     sheenTextureID = createCubemapTexture(true);
@@ -305,7 +306,7 @@ void iblSampler::applyFilter(
         GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, targetTexture, targetMipLevel));
         GL_CALL(glBindTexture(GL_TEXTURE_CUBE_MAP, targetTexture));
         GL_CALL(glViewport(0, 0, currentTextureSize, currentTextureSize));
-        GL_CALL(glClearColor(1.0, 0.0, 0.0, 0.0));
+        GL_CALL(glClearColor(0.0, 1.0, 0.0, 0.0));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT));
         pProgram shader = shaderCache->getShaderProgram( shaderCache, 
             shaderCache->selectShader ( shaderCache, "ibl_filtering.frag", NO_DEFINES, 0 ), 
@@ -333,6 +334,8 @@ void iblSampler::applyFilter(
         //    usleep(199000);
 
     }
+
+
 }
 
 void iblSampler::cubeMapToLambertian(void )
@@ -389,7 +392,7 @@ void iblSampler::sampleLut(uint32_t distribution, uint32_t targetTexture, uint32
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetTexture, 0));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, targetTexture));
     GL_CALL(glViewport(0, 0, currentTextureSize, currentTextureSize));
-    GL_CALL(glClearColor(1.0, 0.0, 0.0, 0.0));
+    GL_CALL(glClearColor(0.0, 1.0, 1.0, 0.0));
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT));
     pProgram shader = shaderCache->getShaderProgram( shaderCache, 
         shaderCache->selectShader ( shaderCache, "ibl_filtering.frag", NO_DEFINES, 0 ), 
@@ -413,6 +416,7 @@ void iblSampler::sampleLut(uint32_t distribution, uint32_t targetTexture, uint32
     shader->updateUniform1i( shader, "u_isGeneratingLUT", 1);
     //fullscreen triangle
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 3)); 
+
 }
 
 void iblSampler::sampleGGXLut( void )
@@ -430,6 +434,8 @@ void iblSampler::sampleCharlieLut( void )
 void iblSampler::filterAll( void (*_callback)(const char *, float, float) )
 {
     callback = _callback;
+    GLint previousFramebuffer;
+    GL_CALL(glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previousFramebuffer));
 
     #ifdef IBL_SAMPLER_VERBOSITY
     if (IBL_SAMPLER_VERBOSITY >= VERBOSITY_MIN) std::cout << "Processing Environment...\n";
@@ -439,36 +445,46 @@ void iblSampler::filterAll( void (*_callback)(const char *, float, float) )
     if (IBL_SAMPLER_VERBOSITY >= VERBOSITY_MAX) std::cout << "  +--> panorama->CubeMap filter\n";
     #endif
     panoramaToCubeMap();
-    if (callback != NULL) { callback("Panorama To Cubemap...", 6, 36); }
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, previousFramebuffer));
+
+    //if (callback != NULL) { callback("Panorama To Cubemap...", 6, 36); }
 
     #ifdef IBL_SAMPLER_VERBOSITY
     if (IBL_SAMPLER_VERBOSITY >= VERBOSITY_MAX) std::cout << "  +--> cubeMap->Lambertian filter\n"; 
     #endif
     cubeMapToLambertian();
+        
+    //GL_CALL(glClearDepth(1.0));
+    //GL_CALL(glClearColor(0.8, 0.8, 0.8, 0.0));
+    //GL_CALL(glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT));
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, previousFramebuffer));
     if (callback != NULL) { callback("Lambertian filter...", 12, 36); }
     
     #ifdef IBL_SAMPLER_VERBOSITY
     if (IBL_SAMPLER_VERBOSITY >= VERBOSITY_MAX) std::cout << "  +--> cubeMap->GGX filter\n";
     #endif
     cubeMapToGGX();
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, previousFramebuffer));
     
     #ifdef IBL_SAMPLER_VERBOSITY
     if (IBL_SAMPLER_VERBOSITY >= VERBOSITY_MAX) std::cout << "  +--> cubeMap->Sheen filter\n";
     #endif
     cubeMapToSheen();
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, previousFramebuffer));
     if (callback != NULL) { callback("Sampling GGX LUT...", 27, 36); }
     
     #ifdef IBL_SAMPLER_VERBOSITY
     if (IBL_SAMPLER_VERBOSITY >= VERBOSITY_MAX) std::cout << "  +--> Sampling GGX Lut\n";
     #endif
     sampleGGXLut();
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, previousFramebuffer));
     if (callback != NULL) { callback("Sampling Charlie LUT...", 33, 36); }
     
     #ifdef IBL_SAMPLER_VERBOSITY
     if (IBL_SAMPLER_VERBOSITY >= VERBOSITY_MAX) std::cout << "  +--> Sampling Charlie Lut\n";
     #endif
     sampleCharlieLut();
-    GL_CALL(glBindFramebuffer( GL_FRAMEBUFFER, GL_NONE));
+    GL_CALL(glBindFramebuffer( GL_FRAMEBUFFER, previousFramebuffer));
 }
 
 void iblSampler::destroy_iblSampler(void) {

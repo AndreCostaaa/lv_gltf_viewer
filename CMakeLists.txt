@@ -7,10 +7,14 @@ project(lvgl_workspace LANGUAGES C CXX)
 set(CONFIG_LV_BUILD_EXAMPLES 0)
 set(CONFIG_LV_BUILD_DEMOS 0)
 set(FASTGLTF_ENABLE_DEPRECATED_EXT 1)
+set(ASAN_OPTIONS alloc_dealloc_mismatch=0)
+
 # set(CMAKE_VERBOSE_MAKEFILE ON)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
+#set(CMAKE_PREFIX_PATH /usr/lib/aarch64-linux-gnu/cmake/glfw3)
+#find_package(glfw3 REQUIRED)
 
 # LVGL
 include(${CMAKE_CURRENT_LIST_DIR}/lvgl/CMakeLists.txt)
@@ -29,18 +33,48 @@ add_executable(lvgl_workspace
     demo_cli.c
     demo_nav.c
     demo_os_integrate.c
-    mouse_cursor_icon.c
-    lvgl_icon_40px_ARGB888.c
-    sprites1_32x32x7.c
+    demo_file_load_dialog.c
+    resources/mouse_cursor_icon.c
+    resources/lvgl_icon_40px_ARGB888.c
+    resources/sprites1_32x32x7.c
 )
 
 #set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
 #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
 #set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas")
 
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
-set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -Wno-unused-parameter -Wno-unknown-pragmas")
+#set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
+#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
+#set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -Wno-unused-parameter -Wno-unknown-pragmas")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17")
+set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS}")
+
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_definitions(-DNDEBUG)
+endif()
+
+
+if(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+    add_definitions(-DNDEBUG)
+endif()
+
+# Set flags for Debug build
+set(CMAKE_C_FLAGS_DEBUG "-g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
+set(CMAKE_LINKER_FLAGS_DEBUG "-fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas")
+
+# Set flags for Release build
+set(CMAKE_C_FLAGS_RELEASE "-O3 -Wall -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
+set(CMAKE_LINKER_FLAGS_RELEASE "-O3 -Wno-unused-parameter -Wno-unknown-pragmas")
+
+#  Set flags for MinSizeRel build
+set(CMAKE_C_FLAGS_MINSIZEREL "-Os -Wall -Wno-unused-parameter -Wno-unknown-pragmas -Wshadow")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -Wall -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
+set(CMAKE_LINKER_FLAGS_MINSIZEREL "-Wl,--gc-sections")  # Remove unused sections
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/fastgltf)
 

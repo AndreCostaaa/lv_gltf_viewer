@@ -3,8 +3,8 @@
 #include <GLFW/glfw3.h>
 
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
-#include "__include/shader_includes.h"
-#include "__include/shader_cache.h"
+#include "include/shader_includes.h"
+#include "include/shader_cache.h"
 
 #include <map>
 #include <string>
@@ -138,6 +138,7 @@ long unsigned int __selectShader(pShaderCache This, const char* shaderIdentifier
 
         GL_CALL(glShaderSource(shader, 1, &_fullsrc, NULL));
         GL_CALL(glCompileShader(shader));
+        free(_fullsrc);
         
         int shader_compiled;
         GL_CALL(glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_compiled));
@@ -146,7 +147,6 @@ long unsigned int __selectShader(pShaderCache This, const char* shaderIdentifier
             GL_CALL(glGetShaderInfoLog(shader, sizeof(InfoLog), NULL, InfoLog));
             LV_LOG_ERROR("GLSL ERROR: %s", InfoLog);
             exit(1); }
-        free(_fullsrc);
         (*shaders)[hash] = shader; 
     }// else {
      //    std::cout << "__selectShader -> Reusing shader hash: " << hash << "\n";
@@ -251,8 +251,9 @@ void destroy_ShaderCache(pShaderCache This) {
     for (const auto& [hashstr, program] : (*programs)) {
         destroy_Program(&((*programs)[hashstr]));
     }
-    programs = NULL;
+    programs->clear();
     delete (std::map<std::string, Program_struct>*)This->map_programs;
+    programs = nullptr;
     if (This->lastEnv && (This->lastEnv->loaded)) {
         destroy_environment(This->lastEnv);
     }

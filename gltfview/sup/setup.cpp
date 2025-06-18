@@ -22,8 +22,8 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "lv_gltfview_internal.h"
-#include "__include/shader_cache.h"
+#include "../lv_gltfview_internal.h"
+#include "include/shader_cache.h"
 #include "lib/mathc/mathc.h"
 
 void set_matrix_view(_VIEW _viewer, FMAT4 _mat);
@@ -377,16 +377,17 @@ gl_renwin_state_t setup_primary_output(uint32_t texture_width, uint32_t texture_
 
 
 //return value = cancel this frame?
-bool setup_restore_opaque_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h) {
+bool setup_restore_opaque_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h, bool prepare_bg) {
 
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _ret.framebuffer));
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _ret.texture, 0));
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _ret.renderbuffer, 0));
     GL_CALL(glViewport(0, 0, texture_w, texture_h));
-    GL_CALL(glClearColor(208.0/255.0, 220.0/255.0, 230.0/255.0, 1.0f));
-    GL_CALL(glClearDepth(1.0f));
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    if (prepare_bg) {
+        GL_CALL(glClearColor(208.0/255.0, 220.0/255.0, 230.0/255.0, 0.0f));
+        GL_CALL(glClearDepth(1.0f));
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
     if (glGetError() != GL_NO_ERROR) return true;
     return false;
 }
@@ -419,15 +420,18 @@ bool checkOpenGLError() {
 }
 
 //return value = cancel this frame?
-bool setup_restore_primary_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h) {
+bool setup_restore_primary_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h, uint32_t texture_offset_w, uint32_t texture_offset_h, bool prepare_bg) {
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _ret.framebuffer));
     if (checkOpenGLError()) { std::cout << "AAA "; return true; }
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _ret.texture, 0));
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _ret.renderbuffer, 0));
-    GL_CALL(glViewport(0, 0, texture_w, texture_h));
+    GL_CALL(glViewport(texture_offset_w, texture_offset_h, texture_w, texture_h));
+    if (prepare_bg) {
         GL_CALL(glClearColor(208.0/255.0, 220.0/255.0, 230.0/255.0, 0.0f));
-    GL_CALL(glClearDepth(1.0f));
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GL_CALL(glClearDepth(1.0f));
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+
     if (glGetError() != GL_NO_ERROR) return true;
     return false;
 
@@ -440,6 +444,14 @@ void setup_finish_frame( void ) {
     GL_CALL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
     GL_CALL(glUseProgram(0));
 }
+
+void setup_view_proj_matrix_from_link(lv_gltfview_t * viewer, pGltf_data_t link_data){
+//    { auto _t = view;         set_matrix_view(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
+//    { auto _t = perspective;  set_matrix_proj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
+//   { auto _t = viewProj; set_matrix_viewproj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
+//    set_cam_pos(viewer, view_pos[0], view_pos[1], view_pos[2]);
+}
+
 
 // Function to create a view-projection matrix from the camera
 void setup_view_proj_matrix_from_camera( lv_gltfview_t * viewer, int32_t _cur_cam_num, gl_viewer_desc_t * view_desc, const FMAT4 view_mat,  const FVEC3 view_pos, pGltf_data_t gltf_data, bool transmission_pass) {
@@ -468,7 +480,7 @@ void setup_view_proj_matrix_from_camera( lv_gltfview_t * viewer, int32_t _cur_ca
     
     // Create Perspective Matrix
     mfloat_t perspective[MAT4_SIZE];
-    auto _bradius = get_radius(gltf_data);
+    auto _bradius = get_model_radius(gltf_data);
     float _mindist = _bradius * 0.05f;
     float _maxdist = _bradius * std::max(2.0, 4.0 * view_desc->distance);
     const auto& asset = GET_ASSET(gltf_data);    
@@ -513,7 +525,7 @@ void setup_view_proj_matrix( lv_gltfview_t * viewer, gl_viewer_desc_t * view_des
         view_desc->focal_z = cen_z = _autocenpos[2];
     }
 
-    auto _bradius = get_radius(gltf_data);
+    auto _bradius = get_model_radius(gltf_data);
 
     float radius = _bradius * 2.5;
 
@@ -527,11 +539,14 @@ void setup_view_proj_matrix( lv_gltfview_t * viewer, gl_viewer_desc_t * view_des
     mfloat_t rcam_dir[VEC3_SIZE];
     vec3(rcam_dir, 0.0, 0.0, 1.0);
 
-    mfloat_t rotation[MAT3_SIZE];
-    mat3_identity(rotation);
-    mat3_rotation_x(rotation, to_radians(view_desc->pitch));
-    mat3_rotation_y(rotation, to_radians(view_desc->yaw + view_desc->spin_degree_offset));
-    vec3_multiply_mat3(rcam_dir, rcam_dir, rotation);
+    mfloat_t rotation1[MAT3_SIZE];
+    mfloat_t rotation2[MAT3_SIZE];
+    mat3_identity(rotation1);
+    mat3_identity(rotation2);
+    mat3_rotation_x(rotation1, to_radians(view_desc->pitch));
+    mat3_rotation_y(rotation2, to_radians(view_desc->yaw + view_desc->spin_degree_offset));
+    vec3_multiply_mat3(rcam_dir, rcam_dir, rotation1);
+    vec3_multiply_mat3(rcam_dir, rcam_dir, rotation2);
 
     mfloat_t ncam_dir[VEC3_SIZE];
     vec3_normalize(ncam_dir, rcam_dir);
@@ -543,9 +558,9 @@ void setup_view_proj_matrix( lv_gltfview_t * viewer, gl_viewer_desc_t * view_des
     // Create Perspective Matrix
     mfloat_t perspective[MAT4_SIZE];
     if (transmission_pass) {
-        mat4_perspective_fov(perspective,to_radians(45.0), 256, 256, _bradius * 0.05f, _bradius * std::max(2.0, 4.0 * view_desc->distance));
+        mat4_perspective_fov(perspective,to_radians(45.0), 256, 256, _bradius * 0.05f, _bradius * std::max(4.0, 8.0 * view_desc->distance));
     } else {
-        mat4_perspective_fov(perspective,to_radians(45.0), view_desc->render_width, view_desc->render_height, _bradius * 0.05f, _bradius * std::max(2.0, 4.0 * view_desc->distance));
+        mat4_perspective_fov(perspective,to_radians(45.0), view_desc->render_width, view_desc->render_height, _bradius * 0.05f, _bradius * std::max(4.0, 8.0 * view_desc->distance));
     }
 
     mfloat_t viewProj[MAT4_SIZE];
@@ -613,4 +628,9 @@ void setup_draw_environment_background(pShaderCache shaders, lv_gltfview_t * vie
     GL_CALL(glBindVertexArray(0));
     return;
 
+}
+
+void lv_gltfdata_link_view_to( lv_gltfdata_t * link_target,  lv_gltfdata_t * link_source) {
+    link_target->view_is_linked = true;
+    link_target->linked_view_source = link_source;
 }

@@ -18,18 +18,43 @@ void cli_print_usage() {
     printf("  -pitch <int value>       Viewing angle pitch in degrees x 10.\n");
     printf("  -yaw <int value>         Viewing angle yaw in degrees x 10.\n");
     printf("  -distance <int value>    Viewing distance where the default of 1000 = 1x the model bounding size.\n");
+    printf("  -cam <int value>         Which camera to use, or 0 to explicitly select the default platter camera even if the scene defines others.\n");
     printf("  -anim <int value>        Which animation number to play, or -1 to explicitly disable animation.\n");
     printf("  -anim_rate <int value>   How fast to play back the animation where 1000 is 1x normal rate.\n");
     printf("  -frame_count <int value> If this is specified and greater than zero, that many frames will be output as png files into\n");
     printf("                           the render_frames subdirectory, and then the program will shutdown.  See the __compile_clip.sh\n");
     printf("                           script for more information and an example of using ffmpeg to turn the frames into an mp4.\n");
+    printf("  -frame_grab_ui           Capture the window UI too when taking frame grabs (off by default).\n");
     printf("  -sw                      Software Rendering mode (this is more compatible but far slower than using the GPU).\n");
+    printf("  -grid <int value>        Show or hide the ground grid (0 = hide, 1 = show (default)).\n");
+    printf("  -intro_zoom <int value>  Enable or disable the short zooming in intro effect (0 = disable, 1 = enable (default)).\n");
+    printf("  -maximized               Start the window in maximized mode (off by default).\n");
+#ifdef ENABLE_DESKTOP_MODE
+    printf("  -desktop                 Experimental feature that puts the rendered image on your desktop with pcmanfm.\n");
+    printf("  -ratio <int value>       Used with -desktop to limit the rendered size to a portion of the display resolution where 1000 = the full display.\n");
+#endif
+
 }
 
-bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char * hdrFile, int * frame_count, bool * software_only, float * _anim_rate, int argc, char *argv[] ){
+bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char * hdrFile, int * frame_count, bool * software_only, bool * start_maximized, bool *_stub_mode, float * _anim_rate, int argc, char *argv[] ){
+
+    /* First apply the defaults */
+    lv_gltfview_set_env_pow(viewer, 1.8f );
+    lv_gltfview_set_exposure(viewer, 0.8f );
+    lv_gltfview_set_distance(viewer, 1000);
+    lv_gltfview_set_yaw(viewer, 420 );
+    lv_gltfview_set_pitch(viewer, -200 );
+    lv_gltfview_set_blur_bg(viewer, 0.25f );
+    lv_gltfview_set_aa_mode(viewer, ANTIALIAS_NOT_MOVING );
+    lv_gltfview_set_bg_mode(viewer, BG_CLEAR);
+    lv_gltfview_set_width(viewer, BIG_TEXTURE_WIDTH);
+    lv_gltfview_set_height(viewer, BIG_TEXTURE_HEIGHT);
+
     bool gotFilenameInput = false;
     bool passedParamChecks = true;
-    
+
+    //desktop_mode = false;
+
     gltfFile[0] = '\0';
     
     // Check if at least one argument is provided
@@ -102,6 +127,13 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                 } else {
                     printf("Error: -blur_bg option requires an integer value.\n");
                 }
+            } else if (strcmp(argv[i], "-cam") == 0 && (i + 1) < argc) {
+                if (i + 1 < argc) {
+                    camera = atoi(argv[i + 1]);
+                    i++;
+                } else {
+                    printf("Error: -cam option requires an integer value.\n");
+                }
             } else if (strcmp(argv[i], "-env_pow") == 0 && (i + 1) < argc) {
                 if (i + 1 < argc) {
                     lv_gltfview_set_env_pow(viewer, atoi(argv[i + 1]) / 100.0f );
@@ -118,6 +150,26 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                 }
             } else if (strcmp(argv[i], "-sw") == 0) {
                 *software_only = true;
+            } else if (strcmp(argv[i], "-maximized") == 0) {
+                *start_maximized = true;
+            } else if (strcmp(argv[i], "-frame_grab_ui") == 0) {
+                frame_grab_ui = true;
+            } else if (strcmp(argv[i], "-grid") == 0) {
+                if (i + 1 < argc) {
+                    show_grid = atoi(argv[i + 1]) > 0; // Convert string to int
+                    i++;
+                } else {
+                    printf("Error: -grid option requires an integer value.\n");
+                }
+            } else if (strcmp(argv[i], "-intro_zoom") == 0) {
+                if (i + 1 < argc) {
+                    enable_intro_zoom = atoi(argv[i + 1]) > 0; // Convert string to int
+                    i++;
+                } else {
+                    printf("Error: -intro_zoom option requires an integer value.\n");
+                }
+
+#ifdef ENABLE_DESKTOP_MODE
             } else if (strcmp(argv[i], "-desktop") == 0) {
                 if (demo_os_integrate_confirm_desktop_mode_ok()) {
                     desktop_mode = true;                
@@ -128,10 +180,18 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                     printf("ramdrive was not detected at this time.  To create it, run the following\n");
                     printf("script from the application root directory:\n\n");
                     char command[256];
-                    snprintf(command, sizeof(command), "./__resize_ramdrive.sh %s %s\n", DESKTOP_OUTPUT_RAMTEMP_PATH, DESKTOP_OUTPUT_RAMTEMP_SIZE);
+                    snprintf(command, sizeof(command), "./__resize_ramdrive.sh %s 2M\n", DESKTOP_OUTPUT_RAMTEMP_PATH);
                     printf(command);
                     passedParamChecks = false;
                 }
+            } else if (strcmp(argv[i], "-ratio") == 0 && (i + 1) < argc) {
+                if (i + 1 < argc) {
+                    desktop_ratio = atoi(argv[i + 1]) / 1000.0f;
+                    i++;
+                } else {
+                    printf("Error: -ratio option requires an integer value.\n");
+                }
+#endif
             } else if (strcmp(argv[i], "-anim") == 0 && (i + 1) < argc) {
                 if (i + 1 < argc) {
                     anim = atoi(argv[i + 1]); // Convert string to int
@@ -181,11 +241,11 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
             } else if (strcmp(argv[i], "-distance") == 0 && (i + 1) < argc) {
                 if (i + 1 < argc) {
                     lv_gltfview_set_distance(viewer, atoi(argv[i + 1]));
-
                     i++;
                 } else {
                     printf("Error: -distance option requires an integer value.\n");
                 }                
+
             } else {
                 printf("Unknown option: %s\n", argv[i]);
                 cli_print_usage();
@@ -195,5 +255,45 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
     }
 
     passedParamChecks &= gotFilenameInput;
+
+    if (passedParamChecks) {
+        goal_focal_x = lv_gltfview_get_focal_x(viewer);
+        goal_focal_y = lv_gltfview_get_focal_y(viewer);
+        goal_focal_z = lv_gltfview_get_focal_z(viewer);
+        goal_pitch = lv_gltfview_get_pitch(viewer);
+        goal_yaw = lv_gltfview_get_yaw(viewer);
+        goal_distance = lv_gltfview_get_distance(viewer);
+        if (enable_intro_zoom) {
+            int _zoomdist = (int)((goal_distance*1.25f+0.1f)*1000.f);
+            lv_gltfview_set_distance(viewer, _zoomdist);
+            printf ("goal distance before: %0.4f, and as x1000 int after: %d\n", goal_distance, _zoomdist );
+            printf ("goal distance as float after confirm: %0.4f\n", lv_gltfview_get_distance(viewer) );
+        }
+
+        *_stub_mode = false;
+        *_stub_mode |= ((*frame_count > 0) && (frame_grab_ui == false));
+
+        if (spin_rate == 0.f) {
+            spin_rate = 5.0f;
+            animate_spin = false;
+        }
+
+        // Output the parsed parameters
+        printf("glTF File Path: %s\n", gltfFile[0] ? gltfFile : "None provided");
+        printf("HDR File Path: %s\n", hdrFile[0] ? hdrFile : "None provided");
+        printf("Antialiasing Mode: %d\n", lv_gltfview_get_aa_mode(demo_gltfview));
+        printf("Background Mode: %d\n",  lv_gltfview_get_bg_mode(demo_gltfview));
+        printf("Pitch: %.2f\n", lv_gltfview_get_pitch(demo_gltfview));
+        printf("Yaw: %.2f\n", lv_gltfview_get_yaw(demo_gltfview));
+        printf("Frame Count: %d\n", *frame_count);
+        printf("Spin Rate (degrees per sec): %.3f\n", spin_rate);
+        printf("Software Only: %s\n", *software_only ? "true" : "false");
+        #ifdef ENABLE_DESKTOP_MODE
+            printf("Desktop Mode: %s\n", desktop_mode ? "true" : "false");        
+            if (desktop_mode) *_stub_mode = true; // Enable stub mode for a small window presentation
+        #endif
+        printf("Stub Mode: %s\n", *_stub_mode ? "true" : "false");        
+
+    }
     return passedParamChecks;
 }

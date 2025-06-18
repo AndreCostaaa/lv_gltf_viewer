@@ -36,36 +36,19 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 
 #include "lv_gltfview.h"
 #include "lv_gltfview_internal.h"
-#include "__animation.cpp"
-#include "__datatypes.cpp"
-#include "__ibl_sampler.cpp"
-#include "__injest.cpp"
-#include "__reports.cpp"
-#include "__setup.cpp"
-#include "__shader_cache.cpp"
-#include "__shader_includes.cpp"
-#include "__utils.cpp"
+#include "sup/animation.cpp"
+#include "sup/datatypes.cpp"
+#include "sup/ibl_sampler.cpp"
+#include "sup/injest.cpp"
+#include "sup/reports.cpp"
+#include "sup/setup.cpp"
+#include "sup/shader_cache.cpp"
+#include "sup/shader_includes.cpp"
+#include "sup/utils.cpp"
 
 #define __GLFW_SAMPLES 0x0002100D
 
 static MapofTransformMap _ibmBySkinThenNode;
-
-static bool foundView = false;
-static int32_t cur_cam_num = -1;
-static float cur_anim_maxtime = -1.f;
-static float temp_timestamp = 0.0f;
-static int32_t last_cam_num = -5;
-static int32_t last_anim_num = -5;
-static uint64_t _lastMaterialIndex = 99999; 
-static bool _lastPassWasTransmission = false;
-static bool _lastFrameWasAntialiased = false;
-static bool _lastFrameNoMotion = false;
-static bool __lastFrameNoMotion = false;
-static gl_viewer_desc_t _lastViewDesc;
-
-static fastgltf::Node * foundCam = NULL;
-static FMAT4 viewMat;
-static FVEC3 viewPos;
 
 gltf_probe_info*        lv_gltfview_get_probe(pGltf_data_t D){return ((gltf_probe_info*)(&(D->probe)));}
 
@@ -193,10 +176,16 @@ int64_t lv_gltfview_get_node_handle_by_name(const char * _nodename) {
     return -1;
 }
 
-void lv_gltfview_destroy(lv_gltfview_t * _viewer, pGltf_data_t _data, pShaderCache _shaders){
+void lv_gltfdata_destroy(pGltf_data_t _data){
     __free_data_struct(_data);
-    __free_viewer_struct(_viewer);
+}
+
+void lv_gltfview_destroy(lv_gltfview_t * _viewer){
+    __free_viewer_struct(_viewer);  // Currently does nothing, this could be removed
     clearDefines();
+}
+
+void lv_gltfview_shadercache_destroy(pShaderCache _shaders){
     destroy_ShaderCache(_shaders);
 }
 
@@ -209,27 +198,27 @@ void draw_primitive(  int32_t prim_num,
                 const FMAT4& matrix,
                 gl_environment_textures env_tex,
                 bool is_transmission_pass) {
-    const auto& meshes = MESHDSET(viewer);
-    auto& mesh = (*meshes)[mesh_index];
+    auto mesh = get_meshdata_num(gltf_data, mesh_index);
     const auto& asset = GET_ASSET(gltf_data);    
     const auto& vopts = get_viewer_opts(viewer);
-    const auto& _prim_data = GET_PRIM_FROM_MESH(&mesh, prim_num);
+    const auto& _prim_data = GET_PRIM_FROM_MESH(mesh, prim_num);
     auto& _prim_gltf_data = asset->meshes[mesh_index].primitives[prim_num];
     auto& mappings = _prim_gltf_data.mappings;
     std::size_t materialIndex = (!mappings.empty() && mappings[vopts->materialVariant].has_value()) 
         ? mappings[vopts->materialVariant].value() + 1 
         : ( ( _prim_gltf_data.materialIndex.has_value() ) ? ( _prim_gltf_data.materialIndex.value() + 1 ) : 0 );
     
+    gltf_data->_lastMaterialIndex = 999999;
 
     GL_CALL(glBindVertexArray(_prim_data->vertexArray));            
-    if ((_lastMaterialIndex == materialIndex) && (_lastPassWasTransmission == is_transmission_pass)) {
-        GL_CALL(glUniformMatrix4fv(get_uniform_ids(viewer, materialIndex)->modelMatrixUniform, 1, GL_FALSE, &matrix[0][0]));
+    if ((gltf_data->_lastMaterialIndex == materialIndex) && (gltf_data->_lastPassWasTransmission == is_transmission_pass)) {
+        GL_CALL(glUniformMatrix4fv(get_uniform_ids(gltf_data, materialIndex)->modelMatrixUniform, 1, GL_FALSE, &matrix[0][0]));
     } else {
         view_desc->error_frames += 1;
-        _lastMaterialIndex = materialIndex;
-        _lastPassWasTransmission = is_transmission_pass;
-        auto program = get_shader_program(viewer, materialIndex);
-        const auto& uniforms = get_uniform_ids(viewer, materialIndex);
+        gltf_data->_lastMaterialIndex = materialIndex;
+        gltf_data->_lastPassWasTransmission = is_transmission_pass;
+        auto program = get_shader_program(gltf_data, materialIndex);
+        const auto& uniforms = get_uniform_ids(gltf_data, materialIndex);
         GL_CALL(glUseProgram(program));
 
         GL_CALL(glUniformMatrix4fv(uniforms->modelMatrixUniform, 1, GL_FALSE, &matrix[0][0]));
@@ -397,15 +386,25 @@ void draw_primitive(  int32_t prim_num,
     }
 }
 
-uint32_t lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * viewer, pGltf_data_t gltf_data ) {
+void lv_gltfview_reset_between_models( lv_gltfview_t * viewer ){
+    const auto& vstate =    get_viewer_state(viewer);
+    if (vstate->render_state_ready) {
+        setup_cleanup_opengl_output(&vstate->render_state);
+        vstate->render_state_ready = false;
+    }
+    vstate->renderOpaqueBuffer = false;
+    _ibmBySkinThenNode.clear();
+}
+
+uint32_t lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * viewer, pGltf_data_t gltf_data, bool prepare_bg, uint32_t crop_left,  uint32_t crop_right,  uint32_t crop_top,  uint32_t crop_bottom ) {
     const auto& asset =     GET_ASSET(gltf_data);
     const auto& probe =     PROBE(gltf_data);
     const auto& vstate =    get_viewer_state(viewer);
     const auto view_desc = lv_gltfview_get_desc(viewer);
     const auto& vopts =     &(vstate->options);
     const auto& vmetrics =  &(vstate->metrics);
-    bool opt_draw_bg = view_desc->bg_mode == BG_ENVIRONMENT;
-    bool opt_aa_this_frame = (view_desc->aa_mode == ANTIALIAS_CONSTANT) || ((view_desc->aa_mode == ANTIALIAS_NOT_MOVING) && (_lastFrameNoMotion == true) );//((_lastFrameNoMotion == true) && (_lastFrameWasAntialiased == false)));
+    bool opt_draw_bg = prepare_bg && (view_desc->bg_mode == BG_ENVIRONMENT);
+    bool opt_aa_this_frame = (view_desc->aa_mode == ANTIALIAS_CONSTANT) || ((view_desc->aa_mode == ANTIALIAS_NOT_MOVING) && (gltf_data->_lastFrameNoMotion == true) );//((_lastFrameNoMotion == true) && (_lastFrameWasAntialiased == false)));
     lv_gltf_opengl_state_push();
     uint sceneIndex = 0;
     gl_renwin_state_t _output;
@@ -414,23 +413,33 @@ uint32_t lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * viewer, pGltf
     view_desc->render_width = view_desc->width * (opt_aa_this_frame ? 2 : 1);
     view_desc->render_height = view_desc->height * (opt_aa_this_frame ? 2 : 1);
     bool size_changed = false;
-    if (view_desc->width != _lastViewDesc.width) size_changed = true;
-    if (view_desc->height != _lastViewDesc.height) size_changed = true;
+    if (view_desc->width != gltf_data->_lastViewDesc.width) size_changed = true;
+    if (view_desc->height != gltf_data->_lastViewDesc.height) size_changed = true;
 
-    if ((opt_aa_this_frame != _lastFrameWasAntialiased) || size_changed) {
+    if ((opt_aa_this_frame != gltf_data->_lastFrameWasAntialiased) || size_changed) {
         // Antialiasing state has changed since the last render
         if (vstate->render_state_ready) {
             setup_cleanup_opengl_output(&vstate->render_state);
             vstate->render_state = setup_primary_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height, opt_aa_this_frame);
         }
-        _lastFrameWasAntialiased = opt_aa_this_frame;
+        gltf_data->_lastFrameWasAntialiased = opt_aa_this_frame;
+    }
+
+    if (opt_aa_this_frame) {
+        crop_left = crop_left << 1;
+        crop_right = crop_right << 1;
+        crop_top = crop_top << 1;
+        crop_bottom = crop_bottom << 1;
     }
     view_desc->frame_was_antialiased = opt_aa_this_frame;
     if (!vstate->render_state_ready) {
-        vstate->render_state_ready = true;
         _output = setup_primary_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height, opt_aa_this_frame);
         setup_finish_frame( ); 
         vstate->render_state = _output;
+    }
+
+    if (!gltf_data->nodes_parsed) {
+        gltf_data->nodes_parsed = true;
         std::vector<int64_t> _used = std::vector<int64_t>();
         int64_t _max_index = 0;
         fastgltf::iterateSceneNodes(*asset, sceneIndex, FMAT4(), [&](fastgltf::Node& node, FMAT4 matrix) {
@@ -465,7 +474,7 @@ uint32_t lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * viewer, pGltf
                             add_opaque_node_prim(gltf_data, materialIndex + 1, &node, mp); }
                         _max_index = std::max(_max_index, materialIndex); } } } } );
 
-        init_shaders(viewer, _max_index);
+        init_shaders(gltf_data, _max_index);
         setup_compile_and_load_bg_shader(shaders);
         fastgltf::iterateSceneNodes(*asset, sceneIndex, FMAT4(), [&](fastgltf::Node& node, FMAT4 matrix) {
             if (node.meshIndex) { 
@@ -474,37 +483,50 @@ uint32_t lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * viewer, pGltf
                     auto& _prim_gltf_data = asset->meshes[mesh_index].primitives[mp];
                     auto& mappings = _prim_gltf_data.mappings;
                     int64_t materialIndex = (!mappings.empty() && mappings[vopts->materialVariant]) ?  mappings[vopts->materialVariant].value() + 1 : ( ( _prim_gltf_data.materialIndex) ? ( _prim_gltf_data.materialIndex.value() + 1 ) : 0 );
-                    const auto& _ss = get_shader_set(viewer, materialIndex);
+                    const auto& _ss = get_shader_set(gltf_data, materialIndex);
                     if (materialIndex > -1 && _ss->ready == false) {
                         injest_discover_defines(gltf_data, &node, &_prim_gltf_data);
                         auto _shaderset  = setup_compile_and_load_shaders(shaders);
                         auto _unilocs = UniformLocs();
                         setup_uniform_locations(&_unilocs, _shaderset.program); 
-                        set_shader(viewer, materialIndex, _unilocs, _shaderset);
-                    } } } } ); 
+                        set_shader(gltf_data, materialIndex, _unilocs, _shaderset);
+                    } } } } );         
+    }
+    
+    if (!vstate->render_state_ready) {
+        vstate->render_state_ready = true;
         if (vstate->renderOpaqueBuffer) {
             std::cout << "**** CREATING OPAQUE RENDER BUFFER OBJECTS ****\n";
             _opaque = setup_opaque_output(vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight);
             vstate->opaque_render_state = _opaque;
             setup_finish_frame( ); } 
     }
-
     bool _motionDirty = false;
+    if (gltf_data->view_is_linked) {
+        //std::cout << "LINKED VIEW TRIGGER WINDOW MOTION\n";
+        _motionDirty = true;
+    }
+    if (view_desc->dirty) {
+        //std::cout << "DIRTY VIEW TRIGGER WINDOW MOTION\n";
+        _motionDirty = true;
+    }
+    view_desc->dirty = false;
 
     _output = vstate->render_state;
     int32_t anim_num = view_desc->anim;
     if ((anim_num >= 0) && ((int64_t)probe->animationCount > anim_num)) {
         if (std::abs(view_desc->timestep) > 0.0001f) {
-            temp_timestamp += view_desc->timestep;
+            //std::cout << "ACTIVE ANIMATION TRIGGER WINDOW MOTION\n";
+            gltf_data->local_timestamp += view_desc->timestep;
             _motionDirty = true;
         }
-        if (last_anim_num != anim_num) {
-            cur_anim_maxtime = animation_get_total_time(gltf_data, anim_num);
-            last_anim_num = anim_num;
+        if (gltf_data->last_anim_num != anim_num) {
+            gltf_data->cur_anim_maxtime = animation_get_total_time(gltf_data, anim_num);
+            gltf_data->last_anim_num = anim_num;
         }
-        if (temp_timestamp >= cur_anim_maxtime) temp_timestamp = 0.05f;
-        else if (temp_timestamp < 0.0f ) temp_timestamp = cur_anim_maxtime -0.05f;
-        //std::cout << "Animation #" << std::to_string(anim_num) << " | Time = " << std::to_string(temp_timestamp) << "\n";
+        if (gltf_data->local_timestamp >= gltf_data->cur_anim_maxtime) gltf_data->local_timestamp = 0.05f;
+        else if (gltf_data->local_timestamp < 0.0f ) gltf_data->local_timestamp = gltf_data->cur_anim_maxtime -0.05f;
+        //std::cout << "Animation #" << std::to_string(anim_num) << " | Time = " << std::to_string(local_timestamp) << "\n";
     }
 
     // To-do: check if the override actually affects the transform and that the affected object is visible in the scene
@@ -513,29 +535,30 @@ uint32_t lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * viewer, pGltf
         _motionDirty = true;
     }
 
-    if (lv_gltf_compare_viewer_desc(view_desc, &_lastViewDesc)) {
-        //std::cout << "VIEWER DESC CHANGE TRIGGER WINDOW MOTION\n";
-        _motionDirty = true;
-        lv_gltf_copy_viewer_desc(view_desc, &_lastViewDesc);
-    }
+    //if (lv_gltf_compare_viewer_desc(view_desc, &(gltf_data->_lastViewDesc))) {
+    //    std::cout << "VIEWER DESC CHANGE TRIGGER WINDOW MOTION\n";
+    //    _motionDirty = true;
+    //    lv_gltf_copy_viewer_desc(view_desc, &(gltf_data->_lastViewDesc));
+    //}
+        lv_gltf_copy_viewer_desc(view_desc, &(gltf_data->_lastViewDesc));
 
-    bool ___lastFrameNoMotion = __lastFrameNoMotion;
-    __lastFrameNoMotion = _lastFrameNoMotion;
-    _lastFrameNoMotion = true;
+    bool ___lastFrameNoMotion = gltf_data->__lastFrameNoMotion;
+    gltf_data->__lastFrameNoMotion = gltf_data->_lastFrameNoMotion;
+    gltf_data->_lastFrameNoMotion = true;
     int32_t PREF_CAM_NUM = std::min(view_desc->camera, (int32_t)probe->cameraCount - 1);
-    if (_motionDirty || (PREF_CAM_NUM != last_cam_num) )  {
+    if (_motionDirty || (PREF_CAM_NUM != gltf_data->last_camera_index) || transform_cache_is_empty(gltf_data) )  {
         //printf("View info: focal x/y/z = %.2f/%.2f/%.2f | pitch/yaw/distance = %.2f/%.2f/%.2f\n", view_desc->focal_x, view_desc->focal_y, view_desc->focal_z, view_desc->pitch, view_desc->yaw, view_desc->distance );
-        _lastFrameNoMotion = false;
+        gltf_data->_lastFrameNoMotion = false;
         clear_transform_cache(gltf_data);
-        last_cam_num = PREF_CAM_NUM;
-        cur_cam_num = -1;
-        foundView = false;
-        foundCam = NULL;
+        gltf_data->last_camera_index = PREF_CAM_NUM;
+        gltf_data->current_camera_index = -1;
+        gltf_data->has_any_cameras = false;
+        gltf_data->selected_camera_node = NULL;
         _motionDirty = false;
         auto tmat = FMAT4();
         auto cammat = FMAT4();
         fastgltf::custom_iterateSceneNodes(*asset, sceneIndex, &tmat, [&](fastgltf::Node& node, FMAT4& parentworldmatrix, FMAT4& localmatrix) {
-            animation_matrix_apply(temp_timestamp, anim_num, gltf_data, node, localmatrix);
+            animation_matrix_apply(gltf_data->local_timestamp, anim_num, gltf_data, node, localmatrix);
             if (gltf_data->overrides->find(&node) != gltf_data->overrides->end() ) {
                 const auto& _override = (*gltf_data->overrides)[&node];
                 FVEC3 _pos;
@@ -566,24 +589,26 @@ uint32_t lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * viewer, pGltf
                          _scale);
             }
             set_cached_transform(gltf_data, &node, parentworldmatrix * localmatrix);
-            if (node.cameraIndex.has_value() && (cur_cam_num < PREF_CAM_NUM)) {
-                foundView = true; foundCam = &node; cammat = (parentworldmatrix * localmatrix); cur_cam_num += 1; } } ); 
-        if (foundView) {
-            viewPos[0] = cammat[3][0];
-            viewPos[1] = cammat[3][1];
-            viewPos[2] = cammat[3][2];
-            viewMat = fastgltf::math::invert(cammat); }
+            if (node.cameraIndex.has_value() && (gltf_data->current_camera_index < PREF_CAM_NUM)) {
+                gltf_data->has_any_cameras = true; gltf_data->selected_camera_node = &node; cammat = (parentworldmatrix * localmatrix); gltf_data->current_camera_index += 1; } } ); 
+        if (gltf_data->has_any_cameras) {
+            gltf_data->viewPos[0] = cammat[3][0];
+            gltf_data->viewPos[1] = cammat[3][1];
+            gltf_data->viewPos[2] = cammat[3][2];
+            gltf_data->viewMat = fastgltf::math::invert(cammat); }
         else
-            cur_cam_num = -1; } 
+            gltf_data->current_camera_index = -1; } 
 
-    if ((_lastFrameNoMotion == true) && (__lastFrameNoMotion == true) && (___lastFrameNoMotion == true)) {
+    if ((gltf_data->_lastFrameNoMotion == true) && (gltf_data->__lastFrameNoMotion == true) && (___lastFrameNoMotion == true)) {
         // Nothing changed at all, return the previous output frame
         setup_finish_frame( ); 
         lv_gltf_opengl_state_pop();
         return _output.texture;
     }
+
     uint32_t _ss = get_skins_size(gltf_data);
     if (_ss > 0) {
+        glDeleteTextures(SKINTEXS(gltf_data)->size(), (const GLuint *)SKINTEXS(gltf_data)->data());
         SKINTEXS(gltf_data)->clear();
         uint64_t i = 0u;
         while (i < _ss) {
@@ -625,17 +650,21 @@ uint32_t lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * viewer, pGltf
     for (MaterialIndexMap::iterator kv = get_blended_begin(gltf_data); kv != get_blended_end(gltf_data); kv++ ) {
             for (NodePairVector::iterator nodeElem = kv->second.begin(); nodeElem != kv->second.end(); nodeElem++ ) {
                 auto node = nodeElem->first;
-                add_distance_sort_prim( gltf_data, NodeIndexDistancePair(fastgltf::math::length(viewPos - lv_gltf_get_centerpoint(gltf_data, get_cached_transform( gltf_data, node ), node->meshIndex.value(), nodeElem->second)), NodeIndexPair(node, nodeElem->second))); } }
+                add_distance_sort_prim( gltf_data, NodeIndexDistancePair(fastgltf::math::length(gltf_data->viewPos - lv_gltf_get_centerpoint(gltf_data, get_cached_transform( gltf_data, node ), node->meshIndex.value(), nodeElem->second)), NodeIndexPair(node, nodeElem->second))); } }
     // Sort __distance_sort_nodes by the first member (distance)
     std::sort(get_distance_sort_begin(gltf_data), get_distance_sort_end(gltf_data),
         [](const NodeIndexDistancePair& a, const NodeIndexDistancePair& b) { return a.first < b.first; } );
 
-    _lastMaterialIndex = 99999;  // Reset the last material index to an unused value once per frame at the start
+    gltf_data->_lastMaterialIndex = 99999;  // Reset the last material index to an unused value once per frame at the start
     if (vstate->renderOpaqueBuffer) {
-        if (foundView) setup_view_proj_matrix_from_camera( viewer, cur_cam_num, view_desc, viewMat, viewPos, gltf_data, true );
-        else setup_view_proj_matrix( viewer, view_desc, gltf_data, true );
+        if (gltf_data->view_is_linked) {
+            //setup_view_proj_matrix_from_link(viewer, gltf_data->linked_view_source, true);
+        } else {
+            if (gltf_data->has_any_cameras) setup_view_proj_matrix_from_camera( viewer, gltf_data->current_camera_index, view_desc, gltf_data->viewMat, gltf_data->viewPos, gltf_data, true );
+            else setup_view_proj_matrix( viewer, view_desc, gltf_data, true );
+        }
         _opaque = vstate->opaque_render_state;
-        if (setup_restore_opaque_output(_opaque, vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight) ) {
+        if (setup_restore_opaque_output(_opaque, vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight, prepare_bg) ) {
             // Should drawing this frame be canceled due to GL_INVALID_OPERATION error from possibly conflicting update cycles?
             view_desc->error_frames += 1;
             std::cout<< "CANCELED FRAME A\n";
@@ -662,13 +691,16 @@ uint32_t lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * viewer, pGltf
             //GL_CALL(glBlitFramebuffer(0, 0, viewer->opaqueFramebufferWidth, viewer->opaqueFramebufferHeight, 0, 0, viewer->opaqueFramebufferWidth, viewer->opaqueFramebufferHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST));
     }
 
-    if (foundView) setup_view_proj_matrix_from_camera( viewer, cur_cam_num, view_desc, viewMat, viewPos, gltf_data, false );
-    else setup_view_proj_matrix( viewer, view_desc, gltf_data, false );
-
+    if (gltf_data->view_is_linked) {
+        //setup_view_proj_matrix_from_link(viewer, gltf_data->linked_view_source, false);
+    } else {
+        if (gltf_data->has_any_cameras) setup_view_proj_matrix_from_camera( viewer, gltf_data->current_camera_index, view_desc, gltf_data->viewMat, gltf_data->viewPos, gltf_data, false );
+        else setup_view_proj_matrix( viewer, view_desc, gltf_data, false );
+    }
     viewer->envRotationAngle = shaders->lastEnv->angle;
 
     {
-        if (setup_restore_primary_output(_output, (uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height) ) {
+        if (setup_restore_primary_output(_output, (uint32_t)view_desc->render_width - (crop_left + crop_right), (uint32_t)view_desc->render_height - (crop_top + crop_bottom), crop_left, crop_bottom, prepare_bg) ) {
             // Should drawing this frame be canceled due to GL_INVALID_OPERATION error from possibly conflicting update cycles?
             view_desc->error_frames += 1;
             std::cout << "CANCELED FRAME B\n";

@@ -28,10 +28,10 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
                               WebPBitstreamFeatures* features);
 
 
-#include "__include/datatypes.h"
-#include "lv_gltfview_internal.h"
-#include "__include/shader_cache.h"
-#include "__include/shader_includes.h"
+#include "include/datatypes.h"
+#include "../lv_gltfview_internal.h"
+#include "include/shader_cache.h"
+#include "include/shader_includes.h"
 
 #ifndef __MESH_DATA_DEFINED
 #define __MESH_DATA_DEFINED
@@ -100,7 +100,7 @@ struct Vertex {
     if (_tex) { \
         auto& texture = asset->textures[_tex->textureIndex]; \
         if (injest_check_any_image_index_valid(texture)) { \
-            PRIMITIVE_TEXPROP = TEXDGLID(viewer, injest_get_any_image_index(texture) ); \
+            PRIMITIVE_TEXPROP = TEXDGLID(data_obj, injest_get_any_image_index(texture) ); \
             PRIMITIVE_TEXUVID = _tex.value().transform ? _tex.value().transform->texCoordIndex.has_value() ? _tex.value().transform->texCoordIndex.value() : _tex.value().texCoordIndex : _tex.value().texCoordIndex; } } }
 
 #define _MACRO_ADD_TEXTURE_DEFINES(GLTF_MATERIAL_VAR, TEX_DEFINE_TO_ADD, TEXUV_DEFINE_TO_ADD) \
@@ -274,7 +274,7 @@ void injest_grow_bounds_to_include(pGltf_data_t ret_data, ASSET* asset, FMAT4 ma
     { const auto& _t = get_bounds_min(ret_data); _vmin[0] = _t[0]; _vmin[1] = _t[1]; _vmin[2] = _t[2]; }
     { const auto& _t = get_bounds_max(ret_data); _vmax[0] = _t[0]; _vmax[1] = _t[1]; _vmax[2] = _t[2]; }
     { const auto& _t = get_center(ret_data);     _vcen[0] = _t[0]; _vcen[1] = _t[1]; _vcen[2] = _t[2]; }
-    float _bradius = get_radius(ret_data);
+    float _bradius = get_model_radius(ret_data);
 
     if (mesh.primitives.size() > 0) {
         auto it = mesh.primitives.begin();
@@ -429,14 +429,13 @@ std::size_t injest_vec4_attribute(
 /**
  * @brief Load a mesh from the GLTF data.
  *
- * @param viewer Pointer to the viewer.
  * @param data_obj Pointer to the GLTF data object.
  * @param mesh Reference to the mesh to load.
  * @return true if the mesh was loaded successfully, false otherwise.
  */
-bool injest_mesh(lv_gltfview_t * viewer, pGltf_data_t data_obj, fastgltf::Mesh& mesh) {
+bool injest_mesh(pGltf_data_t data_obj, fastgltf::Mesh& mesh) {
     const auto& asset = GET_ASSET(data_obj);
-    const auto& outMesh = lv_gltf_get_new_meshdata(viewer); //outMesh = {};
+    const auto& outMesh = lv_gltf_get_new_meshdata(data_obj); //outMesh = {};
     outMesh->primitives.resize(mesh.primitives.size());
 
     for (auto it = mesh.primitives.begin(); it != mesh.primitives.end(); ++it) {
@@ -542,13 +541,12 @@ bool injest_mesh(lv_gltfview_t * viewer, pGltf_data_t data_obj, fastgltf::Mesh& 
  * @brief Load an image from the GLTF data.
  *
  * @param shaders Pointer to the shader cache.
- * @param viewer Pointer to the viewer.
  * @param data_obj Pointer to the GLTF data object.
  * @param image Reference to the image to load.
  * @param index The index of the image to load.
  * @return true if the image was loaded successfully, false otherwise.
  */
-bool injest_image(pShaderCache shaders, lv_gltfview_t * viewer, pGltf_data_t data_obj, fastgltf::Image& image, uint32_t index) {
+bool injest_image(pShaderCache shaders, pGltf_data_t data_obj, fastgltf::Image& image, uint32_t index) {
     const auto& asset = GET_ASSET(data_obj);
     auto getLevelCount = [](int32_t width, int32_t height) -> GLsizei {
         return static_cast<GLsizei>(1 + floor(log2(width > height ? width : height)));
@@ -644,7 +642,8 @@ bool injest_image(pShaderCache shaders, lv_gltfview_t * viewer, pGltf_data_t dat
         shaders->setTextureCacheItem(shaders, hash, texture);
     }
     // ----
-    TEXDSET(viewer)->emplace_back(Texture { texture });
+    data_obj->textures->emplace_back(Texture { texture });
+    //TEXDSET(data_obj)->emplace_back(Texture { texture });
     return true;
 }
 
@@ -655,6 +654,7 @@ bool injest_image(pShaderCache shaders, lv_gltfview_t * viewer, pGltf_data_t dat
  * @param camera Reference to the camera to load.
  * @return true if the camera was loaded successfully, false otherwise.
  */
+/*
 bool injest_camera(lv_gltfview_t * viewer, fastgltf::Camera& camera) {
     return true;
 	// The following matrix math is for the projection matrices as defined by the glTF spec:
@@ -692,7 +692,7 @@ bool injest_camera(lv_gltfview_t * viewer, fastgltf::Camera& camera) {
 	}, camera.camera);
 	return true;
 }
-
+*/
 
 /**
  * @brief Fill probe information from the GLTF data.
@@ -717,7 +717,7 @@ bool lv_gltfview_set_loadphase_callback(void (*_load_progress_callback)(const ch
     return true;
 }
 
-void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, lv_gltfview_t * viewer, pShaderCache shaders) {
+void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, pShaderCache shaders) {
     __init_gltf_datastruct(_retdata, gltf_path);
 
     std::filesystem::path gltfFilePath = std::string_view { gltf_path };
@@ -764,7 +764,6 @@ void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, lv_gltfview
         std::cerr << "Failed to load glTF: " << fastgltf::getErrorMessage(__asset.error()) << '\n';
         return; }
 
-    //init_viewer_struct(viewer);
     set_asset(_retdata, std::move(__asset.get()));
 
     gltf_probe_info _probe;
@@ -774,13 +773,13 @@ void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, lv_gltfview
 
     // We load images first.
     const auto& asset = GET_ASSET(_retdata);
-    const auto& metrics = get_viewer_metrics(viewer);
-    metrics->vertex_count = 0;
-    if (_probe.meshCount > 0) {
-        metrics->vertex_count = 0;
+    //const auto& metrics = get_viewer_metrics(viewer);
+    //metrics->vertex_count = 0;
+    //if (_probe.meshCount > 0) {
+    //    metrics->vertex_count = 0;
         /* for (auto& mesh : asset->meshes) {
             metrics->vertex_count += get_mesh_total_vertex_count(asset, mesh);
-        } */ }  
+        } */ //}  
 
     // Parse the visible node structure to get a world transform matrix for each mesh component 
     // instance per node, and apply that matrix to the min/max of the untransformed mesh, then 
@@ -804,16 +803,17 @@ void lv_gltfview_load(const char * gltf_path, pGltf_data_t _retdata, lv_gltfview
     } ); 
     // ---------
     
-    { uint32_t i = 0; for (auto& image : asset->images) { injest_image(shaders, viewer, _retdata, image, i); i++; 
+    { uint32_t i = 0; for (auto& image : asset->images) { injest_image(shaders, _retdata, image, i); i++; 
         if (lv_gltfview_load_progress_callback != NULL) { lv_gltfview_load_progress_callback("Loading Images", "SUBTEST1234", 2.f + (((float)i / (float)(_probe.imageCount) ) * 3.0f), 5.f, 23.0f, 100.f); }
     } }
     //for (auto& material : asset.materials)  { loadMaterial(viewer, material); }
-    for (auto& mesh : asset->meshes)         { injest_mesh(viewer, _retdata, mesh); }
-    for (auto& camera : asset->cameras)      { injest_camera(viewer, camera); }      // Loading the cameras (possibly) requires knowing the viewport size, which we get using glfwGetWindowSize above.
+    for (auto& mesh : asset->meshes)         { injest_mesh( _retdata, mesh); }
+    //for (auto& camera : asset->cameras)      { injest_camera(viewer, camera); }      // Loading the cameras (possibly) requires knowing the viewport size, which we get using glfwGetWindowSize above.
 
     if (lv_gltfview_load_progress_callback != NULL) { lv_gltfview_load_progress_callback("Done.", "SUBTEST1234", 5.0, 5.f, 23.0f, 100.f); }
 
-    get_viewer_state(viewer)->load_success = true;
+    _retdata->load_success = true;
+    //get_viewer_state(viewer)->load_success = true;
 
     // -----------
 

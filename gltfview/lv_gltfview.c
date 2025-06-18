@@ -5,6 +5,7 @@ gl_viewer_desc_t* lv_gltfview_get_desc(lv_gltfview_t * view);
 
 float absf(float v) { return v > 0 ? v : -v; }
 
+void lv_gltfview_mark_dirty(lv_gltfview_t * view) {lv_gltfview_get_desc(view)->dirty = true;}
 float lv_gltfview_get_pitch (lv_gltfview_t * view) { return lv_gltfview_get_desc(view)->pitch; }
 float lv_gltfview_get_yaw (lv_gltfview_t * view) { return lv_gltfview_get_desc(view)->yaw; }
 float lv_gltfview_get_distance (lv_gltfview_t * view) { return lv_gltfview_get_desc(view)->distance; }
@@ -36,21 +37,21 @@ void lv_gltfview_set_yaw (lv_gltfview_t * view, int yaw_degrees_x10 ) {
 void lv_gltfview_set_distance (lv_gltfview_t * view, int distance_units_x1000 ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltfview_get_desc(view);
     float _newval = distance_units_x1000 * 0.001f; 
-    if (absf(desc->distance - _newval) > 0.00001f ) {
+    if (absf(desc->distance - _newval) > 0.001f ) {
         desc->distance = _newval;
         desc->dirty = true;
     }
 }
 void lv_gltfview_set_focal_x (lv_gltfview_t * view, float focal_x ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltfview_get_desc(view);
-    if (absf(desc->focal_x - focal_x) > 0.00001f ) {
+    if (absf(desc->focal_x - focal_x) > 0.0001f ) {
         desc->focal_x = focal_x;
         desc->dirty = true;
     }
 }
 void lv_gltfview_set_focal_y (lv_gltfview_t * view, float focal_y ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltfview_get_desc(view);
-    if (absf(desc->focal_y - focal_y) > 0.00001f ) {
+    if (absf(desc->focal_y - focal_y) > 0.0001f ) {
         desc->focal_y = focal_y;
         desc->dirty = true;
     }
@@ -62,6 +63,23 @@ void lv_gltfview_set_focal_z (lv_gltfview_t * view, float focal_z ) {
         desc->dirty = true;
     }
 }
+
+/*
+void lv_gltfview_set_recenter_flag(lv_gltfview_t * view, lv_gltfdata_t * gltf_data,  bool should_recenter ) {
+    //gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltfview_get_desc(view);
+    //if (desc->recenter_flag !=  should_recenter ) {
+    //    desc->recenter_flag = should_recenter;
+    //    desc->dirty = true;
+    //}
+    if (should_recenter){
+        float * _autocenpos = get_center(gltf_data);
+        lv_gltfview_set_focal_x(view, _autocenpos[0]);
+        lv_gltfview_set_focal_y(view, _autocenpos[1]);
+        lv_gltfview_set_focal_z(view, _autocenpos[2]);
+    }
+}
+*/
+
 void lv_gltfview_inc_pitch (lv_gltfview_t * view, float pitch_inc_degrees ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltfview_get_desc(view);
     if (absf(pitch_inc_degrees) > 0.0001f ) {
@@ -127,9 +145,9 @@ void lv_gltfview_set_camera (lv_gltfview_t * view, int camera_number ) {
 void lv_gltfview_set_timestep (lv_gltfview_t * view, float timestep ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltfview_get_desc(view);
     desc->timestep = timestep;
-    if (absf(timestep) > 0.00001f ) {
-        desc->dirty = true;
-    }
+    //if (absf(timestep) > 0.00001f ) {
+    //    desc->dirty = true;
+    //}
 }
 void lv_gltfview_set_width (lv_gltfview_t * view, uint32_t new_width ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltfview_get_desc(view);

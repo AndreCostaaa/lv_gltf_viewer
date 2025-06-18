@@ -2,7 +2,7 @@
 
 A simple glTF file viewer, made using the LVGL `3dtexture` widget.
 
-![example running screenclip one](readme_image.png)
+![example running screenclip one](readme_images/readme_image.png)
 
 Ensure [GLFW is installed](https://docs.lvgl.io/master/details/integration/driver/opengles.html) for this example.
 
@@ -52,7 +52,7 @@ You can confirm the mime-types are setup correctly by viewing
 ---
 More Samples:
 
-![example running screenclip two](screenshot_image1.png)
+![example running screenclip two](readme_images/screenshot_image1.png)
 
 
-![example running screenclip three](screenshot_image2.png)
+![example running screenclip three](readme_images/screenshot_image2.png)

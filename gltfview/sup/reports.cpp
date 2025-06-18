@@ -16,7 +16,7 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "lv_gltfview_internal.h"
+#include "../lv_gltfview_internal.h"
 
 static constexpr std::array<std::string_view, 11> componentTypeNames = {
     "BYTE",

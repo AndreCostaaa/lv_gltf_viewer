@@ -27,15 +27,24 @@ lv_obj_t * yaw_slider;
 lv_obj_t * distance_slider;
 
 lv_obj_t * infoTab;
-    lv_obj_t * lbl_filename;
-    lv_obj_t * lbl_mesh_summary;
-    lv_obj_t * lbl_treesummary;
+lv_obj_t * bottomBlankTab;
+lv_obj_t * lbl_filename;
+lv_obj_t * lbl_mesh_summary;
+lv_obj_t * lbl_treesummary;
+
+lv_obj_t * window_bevel_1;
+lv_obj_t * window_bevel_2;
+lv_obj_t * window_bevel_3;
+lv_obj_t * window_bevel_4;
 
 lv_style_t style_knob;
 lv_style_t style_bg_vert;
 lv_style_t style_bg_horiz;
+lv_style_t style_file_button;
+lv_style_t style_folder_button;
 
 bool __styles_ready = false;
+bool ignore_event = false;
 
 #define MAX_CAM_BUTTONS 16
 lv_obj_t * use_scenecam_checkbox;
@@ -45,16 +54,15 @@ lv_obj_t * anim_buttons[MAX_ANIM_BUTTONS];
 
 uint32_t ui_get_window_width(){
     
-    return lv_gltfview_get_width(demo_gltfview);
+    return lv_gltfview_get_width(demo_gltfview)+(INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT);
     //return WINDOW_WIDTH;
 }
 
 
 uint32_t ui_get_window_height(){
-    return lv_gltfview_get_height(demo_gltfview);
+    return lv_gltfview_get_height(demo_gltfview)+(INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM);
     //return WINDOW_HEIGHT;
 }
-
 uint32_t ui_get_primary_texture_width(){ return lv_gltfview_get_width(demo_gltfview); }
 uint32_t ui_get_primary_texture_height(){ return lv_gltfview_get_height(demo_gltfview); }
 
@@ -98,6 +106,29 @@ void __make_styles() {
     lv_style_set_bg_grad_stop(&style_bg_horiz, 64);
     lv_style_set_bg_main_stop(&style_bg_horiz, 16);
 
+
+    lv_style_init(&style_file_button);
+    lv_style_set_pad_top(&style_file_button, 6);
+    lv_style_set_pad_bottom(&style_file_button, 0);
+    lv_style_set_pad_left(&style_file_button, 0);
+    lv_style_set_pad_right(&style_file_button, 0);
+    lv_style_set_margin_top(&style_file_button, 0);
+    lv_style_set_margin_bottom(&style_file_button, 0);
+    lv_style_set_margin_left(&style_file_button, 0);
+    lv_style_set_margin_right(&style_file_button, 0);
+
+
+    lv_style_init(&style_folder_button);
+    lv_style_set_pad_top(&style_folder_button, 6);
+    lv_style_set_pad_bottom(&style_folder_button, 0);
+    lv_style_set_pad_left(&style_folder_button, 0);
+    lv_style_set_pad_right(&style_folder_button, 0);
+    lv_style_set_margin_top(&style_folder_button, 0);
+    lv_style_set_margin_bottom(&style_folder_button, 0);
+    lv_style_set_margin_left(&style_folder_button, 0);
+    lv_style_set_margin_right(&style_folder_button, 0);
+
+
 }
 
 lv_obj_t * __make_sprite(unsigned int _spriteNum, lv_obj_t * _parent){
@@ -121,29 +152,101 @@ void demo_ui_set_tab(unsigned int _tabnum) {
     }
 }
 
+// Function to set the slider value without triggering events
+void demo_ui_set_slider_value_without_event(lv_obj_t * slider, int value) {
+    // Set the flag to ignore events
+    ignore_event = true;
+
+    // Set the slider value
+    lv_slider_set_value(slider, value, LV_ANIM_OFF);
+
+    // Reset the flag after setting the value
+    ignore_event = false;
+}
+// Function to set the slider value without triggering events
+void demo_ui_set_checkbox_value_without_event(lv_obj_t * checkbox, bool value) {
+    // Set the flag to ignore events
+    ignore_event = true;
+
+    // Set the slider value
+    if (value) {
+        lv_obj_add_state(checkbox, LV_STATE_CHECKED);
+    } else {
+        lv_obj_remove_state(checkbox, LV_STATE_CHECKED);
+    }
+
+    // Reset the flag after setting the value
+    ignore_event = false;
+}
+
+bool demo_ui_apply_yaw_value(float visual_yaw )             { 
+    float norm_val = (visual_yaw/ 360.f) + 0.5f;
+    bool looped = false;
+    if (norm_val < 0.f) {
+        looped = true;
+        while (norm_val < 0.f) {norm_val += 1.0f; }
+    } else if (norm_val > 1.0f) {
+        looped = true;
+        while (norm_val > 1.f) {norm_val -= 1.0f; }
+    }
+    //norm_val -= (int)(norm_val);
+    norm_val -= 0.5f;
+    //printf ("Norm yaw val = %.3f\n", norm_val);
+    demo_ui_set_slider_value_without_event(yaw_slider, norm_val * 1000.f ); 
+    return looped;
+}
+
 static void yaw_slider_event_cb(lv_event_t * e){
+    if (ignore_event) { return; }
     if (animate_spin) {
         animate_spin = false;
         lv_obj_remove_state(spin_checkbox, LV_STATE_CHECKED);
         lv_obj_add_flag(spin_slider, LV_OBJ_FLAG_HIDDEN);
     }
     lv_obj_t * slider = lv_event_get_target_obj(e);
-    lv_gltfview_set_yaw(demo_gltfview, (int)(((float)lv_slider_get_value(slider) / 1000.0f ) * 3600.f));
-    //yaw_degree_offset = ((float)lv_slider_get_value(slider) / 1000.0f ) * 360.f;
+    goal_yaw = ((float)lv_slider_get_value(slider) / 1000.0f ) * 360.f;
+    lv_refr_now(NULL);  // This forced update here helps reduce any screen flashing effects that occur during windowed operation while we're figuring out that bug
 }
 
+void demo_ui_apply_pitch_value(float visual_pitch )         { demo_ui_set_slider_value_without_event(pitch_slider, (visual_pitch / 180.f) * 100.0f ); }
+
 static void pitch_slider_event_cb(lv_event_t * e){
+    if (ignore_event) { return; }
     lv_obj_t * slider = lv_event_get_target_obj(e);
-    lv_gltfview_set_pitch(demo_gltfview, (int)(((float)lv_slider_get_value(slider) / 100.0f ) * 1800.f));
-    //pitch_degrees = ((float)lv_slider_get_value(slider) / 100.0f ) * 180.f;
+    goal_pitch = ((float)lv_slider_get_value(slider) / 100.0f ) * 180.f;
+    //lv_gltfview_set_pitch(demo_gltfview, (int)(((float)lv_slider_get_value(slider) / 100.0f ) * 1800.f));
+    lv_refr_now(NULL);
+}
+
+void demo_ui_apply_spin_rate_value(float visual_spin_rate) {
+    demo_ui_set_slider_value_without_event(spin_slider, (int)((visual_spin_rate / 40.f) * 100.0f ));
+}
+
+void demo_ui_apply_spin_enabled_value(bool visual_animate_spin) {
+    demo_ui_set_checkbox_value_without_event(spin_checkbox, visual_animate_spin);
+    if (visual_animate_spin){
+        lv_obj_remove_flag(spin_slider, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(spin_slider, LV_OBJ_FLAG_HIDDEN);
+    }
 }
 
 static void spin_slider_event_cb(lv_event_t * e){
+    if (ignore_event) { return; }
     lv_obj_t * slider = lv_event_get_target_obj(e);
-    spin_rate = ((float)lv_slider_get_value(slider) / 100.0f ) * 4.f * 60.0f;
+    spin_rate = ((float)lv_slider_get_value(slider) / 100.0f ) * 4.f * 10.0f;
+    lv_refr_now(NULL);
 }
 
+void demo_ui_apply_distance_value(float visual_distance )   { 
+    visual_distance = pow(visual_distance, (visual_distance < 1.0f)? 0.25: 0.5);
+    visual_distance /= 2.0f;
+    visual_distance = -(visual_distance - 1.0f);
+    visual_distance *= 100.0f;
+    demo_ui_set_slider_value_without_event(distance_slider, visual_distance); }
+
 static void distance_slider_event_cb(lv_event_t * e){
+    if (ignore_event) { return; }
     lv_obj_t * slider = lv_event_get_target_obj(e);
     float _distance = (1.f - ((float)lv_slider_get_value(slider) / 100.0f )) * 2.0f;
     if (_distance < 1.0f) {
@@ -151,7 +254,9 @@ static void distance_slider_event_cb(lv_event_t * e){
     } else {
         _distance = pow(_distance, 2.0);
     }
-    lv_gltfview_set_distance(demo_gltfview, (int)(_distance * 1000.0f));
+    goal_distance = _distance;
+    //lv_gltfview_set_distance(demo_gltfview, (int)(_distance * 1000.0f));
+    lv_refr_now(NULL);
 }
 
 /*
@@ -161,6 +266,7 @@ static void elev_slider_event_cb(lv_event_t * e){
 } */
 
 static void spin_checkbox_event_cb(lv_event_t * e){
+    if (ignore_event) { return; }
     LV_UNUSED(e);
     animate_spin = (lv_obj_get_state(spin_checkbox) & LV_STATE_CHECKED);
     if (animate_spin) {
@@ -168,12 +274,15 @@ static void spin_checkbox_event_cb(lv_event_t * e){
     } else{
         lv_obj_add_flag(spin_slider, LV_OBJ_FLAG_HIDDEN);
     }
+    //lv_refr_now(NULL);
 }
 
 static void tab_clicked_event_cb(lv_event_t * e){
     lv_obj_t * button = lv_event_get_current_target(e);
     int32_t idx = lv_obj_get_index_by_type(button, &lv_button_class);
     demo_ui_set_tab(idx - 1);
+    demo_ui_reposition_all();
+
 }
 
 void demo_ui_apply_camera_button_visibility(pGltf_data_t _data){
@@ -198,6 +307,7 @@ static void use_scenecam_checkbox_event_cb(lv_event_t * e){
     LV_UNUSED(e);
     use_scenecam = (lv_obj_get_state(use_scenecam_checkbox) & LV_STATE_CHECKED);
     demo_ui_apply_camera_button_visibility(demo_gltfdata);
+    demo_ui_reposition_all();
 }
 
 static void anim_checkbox_event_cb(lv_event_t * e){
@@ -207,26 +317,26 @@ static void anim_checkbox_event_cb(lv_event_t * e){
 }
 
 // default value means no preference, it will use the first available scene camera if defined, otherwise the generated platter camera
-void __select_camera_default_cb(lv_event_t * e) { LV_UNUSED(e); camera = -2; }
+void __select_camera_default_cb(lv_event_t * e) { LV_UNUSED(e); camera = -2;  demo_ui_reposition_all();}
 // this explictly selects the platter camera even if a scene camera exists
-void __select_camera_0_cb(lv_event_t * e) { LV_UNUSED(e); camera = -1; }
+void __select_camera_0_cb(lv_event_t * e) { LV_UNUSED(e); camera = -1;  demo_ui_reposition_all();}
 // these select scene cameras #1->#16 (base 0 internally)
-void __select_camera_1_cb(lv_event_t * e) { LV_UNUSED(e); camera = 0; }
-void __select_camera_2_cb(lv_event_t * e) { LV_UNUSED(e); camera = 1; }
-void __select_camera_3_cb(lv_event_t * e) { LV_UNUSED(e); camera = 2; }
-void __select_camera_4_cb(lv_event_t * e) { LV_UNUSED(e); camera = 3; }
-void __select_camera_5_cb(lv_event_t * e) { LV_UNUSED(e); camera = 4; }
-void __select_camera_6_cb(lv_event_t * e) { LV_UNUSED(e); camera = 5; }
-void __select_camera_7_cb(lv_event_t * e) { LV_UNUSED(e); camera = 6; }
-void __select_camera_8_cb(lv_event_t * e) { LV_UNUSED(e); camera = 7; }
-void __select_camera_9_cb(lv_event_t * e) { LV_UNUSED(e); camera = 8; }
-void __select_camera_10_cb(lv_event_t * e) { LV_UNUSED(e); camera = 9; }
-void __select_camera_11_cb(lv_event_t * e) { LV_UNUSED(e); camera = 10; }
-void __select_camera_12_cb(lv_event_t * e) { LV_UNUSED(e); camera = 11; }
-void __select_camera_13_cb(lv_event_t * e) { LV_UNUSED(e); camera = 12; }
-void __select_camera_14_cb(lv_event_t * e) { LV_UNUSED(e); camera = 13; }
-void __select_camera_15_cb(lv_event_t * e) { LV_UNUSED(e); camera = 14; }
-void __select_camera_16_cb(lv_event_t * e) { LV_UNUSED(e); camera = 15; }
+void __select_camera_1_cb(lv_event_t * e) { LV_UNUSED(e); camera = 0; demo_ui_reposition_all();}
+void __select_camera_2_cb(lv_event_t * e) { LV_UNUSED(e); camera = 1; demo_ui_reposition_all(); }
+void __select_camera_3_cb(lv_event_t * e) { LV_UNUSED(e); camera = 2; demo_ui_reposition_all(); }
+void __select_camera_4_cb(lv_event_t * e) { LV_UNUSED(e); camera = 3; demo_ui_reposition_all(); }
+void __select_camera_5_cb(lv_event_t * e) { LV_UNUSED(e); camera = 4; demo_ui_reposition_all(); }
+void __select_camera_6_cb(lv_event_t * e) { LV_UNUSED(e); camera = 5; demo_ui_reposition_all(); }
+void __select_camera_7_cb(lv_event_t * e) { LV_UNUSED(e); camera = 6; demo_ui_reposition_all(); }
+void __select_camera_8_cb(lv_event_t * e) { LV_UNUSED(e); camera = 7; demo_ui_reposition_all(); }
+void __select_camera_9_cb(lv_event_t * e) { LV_UNUSED(e); camera = 8; demo_ui_reposition_all(); }
+void __select_camera_10_cb(lv_event_t * e) { LV_UNUSED(e); camera = 9; demo_ui_reposition_all(); }
+void __select_camera_11_cb(lv_event_t * e) { LV_UNUSED(e); camera = 10; demo_ui_reposition_all(); }
+void __select_camera_12_cb(lv_event_t * e) { LV_UNUSED(e); camera = 11; demo_ui_reposition_all(); }
+void __select_camera_13_cb(lv_event_t * e) { LV_UNUSED(e); camera = 12; demo_ui_reposition_all(); }
+void __select_camera_14_cb(lv_event_t * e) { LV_UNUSED(e); camera = 13; demo_ui_reposition_all(); }
+void __select_camera_15_cb(lv_event_t * e) { LV_UNUSED(e); camera = 14; demo_ui_reposition_all(); }
+void __select_camera_16_cb(lv_event_t * e) { LV_UNUSED(e); camera = 15; demo_ui_reposition_all(); }
 
 
 void __select_anim_1_cb(lv_event_t * e) { LV_UNUSED(e); anim = 0; }
@@ -404,6 +514,9 @@ void demo_ui_fill_in_InfoTab( pGltf_data_t _data ) {
     free(_tbuf);
 }
 
+void __make_LoadTab(void) {
+    create_file_open_dialog(tab_pages[TAB_LOAD]);
+}
 void __make_InfoTab(void) {
     lv_obj_t * background = tab_pages[TAB_INFO];
     infotab_white_bg = lv_obj_create(background);
@@ -470,6 +583,7 @@ void __make_WindowBevelsAndIcon(void) {
         lv_obj_set_style_bg_opa(tbev, LV_OPA_80, LV_PART_MAIN);
         lv_obj_align(tbev, LV_ALIGN_TOP_MID, 0, 0);
         lv_obj_clear_flag(tbev, LV_OBJ_FLAG_CLICKABLE  );
+        window_bevel_1 = tbev;
     }
     {
         lv_obj_t * tbev = lv_obj_create(lv_screen_active());
@@ -479,6 +593,7 @@ void __make_WindowBevelsAndIcon(void) {
         lv_obj_set_style_bg_opa(tbev, LV_OPA_50, LV_PART_MAIN);
         lv_obj_align(tbev, LV_ALIGN_BOTTOM_MID , 0, -1);
         lv_obj_clear_flag(tbev, LV_OBJ_FLAG_CLICKABLE  );
+        window_bevel_2 = tbev;
     }
     {
         lv_obj_t * tbev = lv_obj_create(lv_screen_active());
@@ -488,6 +603,7 @@ void __make_WindowBevelsAndIcon(void) {
         lv_obj_set_style_bg_opa(tbev, LV_OPA_80, LV_PART_MAIN);
         lv_obj_align(tbev, LV_ALIGN_BOTTOM_MID, 0, 0);
         lv_obj_clear_flag(tbev, LV_OBJ_FLAG_CLICKABLE  );
+        window_bevel_3 = tbev;
     }
     {
         lv_obj_t * tbev = lv_obj_create(lv_screen_active());
@@ -497,13 +613,14 @@ void __make_WindowBevelsAndIcon(void) {
         lv_obj_set_style_bg_opa(tbev, LV_OPA_50, LV_PART_MAIN);
         lv_obj_align(tbev, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
         lv_obj_clear_flag(tbev, LV_OBJ_FLAG_CLICKABLE  );
+        window_bevel_4 = tbev;
     }
     lv_obj_t * img1 = lv_image_create(lv_screen_active());
     lv_image_set_src(img1, &lvgl_icon_40px);
     lv_obj_align(img1, LV_ALIGN_TOP_LEFT, 10, 9);
 }
 
-unsigned int __add_blanktab_px(lv_obj_t * _tabview, unsigned int _px_length) {
+lv_obj_t *  __add_blanktab_px(lv_obj_t * _tabview, unsigned int _px_length) {
     lv_obj_t * _tabs = lv_tabview_get_tab_bar(_tabview);
     lv_obj_t * _blankTabContents = lv_tabview_add_tab(_tabview, "");
     LV_UNUSED(_blankTabContents);
@@ -518,11 +635,12 @@ unsigned int __add_blanktab_px(lv_obj_t * _tabview, unsigned int _px_length) {
             lv_obj_set_flex_grow(_newTab, 0.1f);
             lv_obj_set_style_bg_opa(_newTab, LV_OPA_0, LV_PART_ANY);
             lv_obj_set_size(button, lv_pct(100), lv_dpx(_px_length));
+            return button;
         }
         i++;
         button = lv_obj_get_child_by_type(_tabs, (int32_t)i, &lv_button_class);
     }
-    return _px_length;
+    return NULL;
 }
 
 void __customize_last_tab(lv_obj_t * _tabview, lv_obj_t * _tabContents) {
@@ -558,7 +676,7 @@ void __make_main_tabview(void) {
     __customize_last_tab(tabview, loadTab);
     infoTab = lv_tabview_add_tab(tabview, "Info");
     __customize_last_tab(tabview, infoTab);
-    __add_blanktab_px(tabview, 360);//, -1, -1);
+    bottomBlankTab = __add_blanktab_px(tabview, 360);//, -1, -1);
 
     lv_tabview_set_active(tabview, 1, LV_ANIM_OFF);
     for (int i=0; i<MAX_TABS; i++) {
@@ -634,7 +752,8 @@ void demo_ui_pitch_yaw_distance_sliders(lv_obj_t * _cont){
         lv_obj_set_size(spin_checkbox, 65, 40);
         lv_obj_align(spin_checkbox, LV_ALIGN_TOP_RIGHT, -62, 5);
         lv_obj_add_event_cb(spin_checkbox, spin_checkbox_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
-        lv_obj_set_style_anim(spin_checkbox, LV_ANIM_OFF, LV_PART_ANY);
+        //lv_obj_set_style_anim(spin_checkbox, LV_ANIM_OFF, LV_PART_ANY);
+        lv_obj_set_style_anim(spin_checkbox, false, LV_PART_ANY);
         lv_obj_set_style_anim_duration(spin_checkbox, 0, 0);
         lv_obj_add_state(spin_checkbox, LV_STATE_CHECKED);
         lv_checkbox_set_text(spin_checkbox, "Spin");
@@ -862,34 +981,67 @@ void demo_ui_make_underlayer( void ) {
     __make_main_tabview();
     demo_ui_set_tab(TAB_VIEW);
     __make_ViewTab();
+    __make_LoadTab();
     __make_InfoTab();
     __make_WindowBevelsAndIcon();
+
+    titleText = lv_label_create(tab_pages[TAB_VIEW]);
+    lv_obj_align(titleText, LV_ALIGN_TOP_LEFT, 70, 10);
+    lv_obj_set_style_text_opa(titleText, LV_OPA_80, LV_PART_MAIN);
+    lv_obj_set_style_text_color(titleText, lv_color_hex(LVGL_BLUE), LV_PART_MAIN);
+    lv_label_set_text(titleText, "");
 }
 
 void demo_ui_reposition_all( void ) {
+    reapply_layout_flag = false;
 
-    lv_obj_set_size(tabview, ui_get_primary_texture_width(), ui_get_primary_texture_height());   
-    lv_obj_align(tabview, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+    lv_obj_set_size(tabview, ui_get_window_width(), ui_get_window_height());   
+    lv_obj_align(tabview, LV_ALIGN_TOP_LEFT, 0, 0);
 
     for (int i=0; i<MAX_TABS; i++) {
         lv_obj_set_size(tab_pages[i], ui_get_window_width(), ui_get_window_height());
-        lv_obj_center(tab_pages[i]);
-
-        //lv_obj_set_size(tab_pages[i], ui_get_primary_texture_width(), ui_get_primary_texture_height());   
-        //lv_obj_align(tab_pages[i], LV_ALIGN_BOTTOM_LEFT, 0, 0);
-
+        lv_obj_align(tab_pages[i], LV_ALIGN_TOP_LEFT, 0,0);
     }
     lv_obj_set_size(infotab_white_bg, ui_get_window_width()-60, ui_get_window_height());
     lv_obj_set_size(infotab_inner_background, ui_get_window_width()-74, ui_get_window_height()-44);
     lv_obj_set_size(viewtab_white_bg, ui_get_window_width()-60, ui_get_window_height());
     lv_obj_set_size(viewtab_inner_background, ui_get_window_width()-114, ui_get_window_height()-84);
 
-    lv_obj_set_size(yaw_slider, ui_get_window_width() - 140, 24);
-    lv_obj_set_size(pitch_slider, 24, ((ui_get_window_height() - 90) / 2));
-    lv_obj_set_size(distance_slider, 24, ((ui_get_window_height() - 90) / 2)-20);
-
+    if (use_scenecam && (camera > -1)) {
+        lv_obj_add_flag(yaw_slider, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(pitch_slider, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(distance_slider, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_remove_flag(yaw_slider, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(pitch_slider, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(distance_slider, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_size(yaw_slider, ui_get_window_width() - 140, 24);
+        lv_obj_set_size(pitch_slider, 24, ((ui_get_window_height() - 90) / 2));
+        lv_obj_set_size(distance_slider, 24, ((ui_get_window_height() - 90) / 2)-20);
+    }
     lv_obj_set_size(gltfview_3dtex, ui_get_primary_texture_width(), ui_get_primary_texture_height());   
-    lv_obj_center(gltfview_3dtex);
-    //lv_obj_align(gltfview_3dtex, LV_ALIGN_TOP_RIGHT,0, 0);
+    lv_obj_align(use_scenecam_checkbox, LV_ALIGN_TOP_LEFT, 62, 36);
+    lv_obj_align(anim_checkbox, LV_ALIGN_BOTTOM_LEFT, 62,-45);
 
+    unsigned int _rx = 150;
+    unsigned int _xspacing = 34;
+    for (unsigned int i=0; i<MAX_CAM_BUTTONS; i++) {
+        lv_obj_align(cam_buttons[i], LV_ALIGN_TOP_LEFT, _rx, 36); 
+        _rx += _xspacing;
+    }
+
+    _rx = 150;
+    for (unsigned int i=0; i<MAX_ANIM_BUTTONS; i++) {
+        lv_obj_align(anim_buttons[i], LV_ALIGN_BOTTOM_LEFT, _rx, -65);
+        _rx += _xspacing;
+    }
+
+    // Update little window trim elements
+    lv_obj_set_size(window_bevel_1, ui_get_window_width(), 2);
+    lv_obj_set_size(window_bevel_2, ui_get_window_width(), 1);
+    lv_obj_set_size(window_bevel_3, ui_get_window_width(), 1);
+    lv_obj_set_size(window_bevel_4, 1, ui_get_window_height());
+
+    lv_obj_set_size(bottomBlankTab, 60, ui_get_window_height() - 300);
+    ui_resize_all_file_open_dialog_widgets(tab_pages[TAB_LOAD]);
 }

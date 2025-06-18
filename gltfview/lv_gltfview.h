@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
-#include "__include/datatypes.h"
-#include "__include/ibl_sampler.h"
-#include "__include/shader_includes.h"
-#include "__include/shader_v1.h"
+#include "sup/include/datatypes.h"
+#include "sup/include/ibl_sampler.h"
+#include "sup/include/shader_includes.h"
+#include "sup/include/shader_v1.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////
 typedef struct ShaderCache_struct ShaderCache_struct, *pShaderCache;
@@ -72,7 +72,7 @@ void lv_gltfdata_make_animations_summary(lv_gltfdata_t * data, char *dest_buffer
  * @param viewer Pointer to the viewer object this file will be displayed within.
  * @param shaders Pointer to the shader cache object this file uses.
  */
-void lv_gltfview_load(const char * gltf_path, lv_gltfdata_t * ret_data, lv_gltfview_t * viewer, pShaderCache shaders);
+void lv_gltfview_load(const char * gltf_path, lv_gltfdata_t * ret_data, pShaderCache shaders);
 
 /**
  * @brief Set the callback function that is called when loading increments.
@@ -127,9 +127,11 @@ void lv_gltf_copy_viewer_desc(gl_viewer_desc_t* from_state, gl_viewer_desc_t* to
  */
 bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t* from_state, gl_viewer_desc_t* to_state);
 
+void lv_gltfview_utils_save_texture_to_png( lv_gltfview_t * viewer, uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height );
 
 void lv_gltfview_utils_save_png( lv_gltfview_t * viewer, const char * filename, bool alpha_enabled, uint32_t compression_level );
-
+void lv_gltfview_utils_save_pixelbuffer_to_png( lv_gltfview_t * viewer,  char * pixels, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t width, uint32_t height );
+void lv_gltfview_utils_get_capture_buffer( char * pixels, lv_gltfview_t * viewer, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height );
 
 gl_viewer_desc_t* lv_gltfview_get_desc           (lv_gltfview_t * V);
 
@@ -140,9 +142,14 @@ unsigned int get_primitive_datasize(void);
 gl_environment_textures lv_gltfview_ibl_sampler_setup(gl_environment_textures* _lastEnv, const char* _env_filename, int _env_rotation_degreesX10 );
 void lv_gltfview_ibl_set_loadphase_callback(void (*_load_progress_callback)(const char*, const char* , float, float, float, float));
 
-uint32_t            lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * view, lv_gltfdata_t * gltf_data );
-void                lv_gltfview_destroy(lv_gltfview_t * _viewer, lv_gltfdata_t * _data, pShaderCache _shaders);
+uint32_t            lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * view, lv_gltfdata_t * gltf_data, bool prepare_bg, uint32_t crop_left,  uint32_t crop_right,  uint32_t crop_top,  uint32_t crop_bottom );
+//uint32_t            lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * view, lv_gltfdata_t * gltf_data, bool prepare_bg );
+void                lv_gltfdata_destroy(lv_gltfdata_t * _data);
+void                lv_gltfview_destroy(lv_gltfview_t * _viewer);
+void                lv_gltfview_shadercache_destroy(pShaderCache _shaders);
 gltf_probe_info *   lv_gltfview_get_probe(lv_gltfdata_t * _data);
+void lv_gltfdata_copy_bounds_info(lv_gltfdata_t * to, lv_gltfdata_t * from);
+void lv_gltfdata_link_view_to( lv_gltfdata_t * link_target,  lv_gltfdata_t * link_source);
 
 pOverride lv_gltfview_add_override_by_index(lv_gltfdata_t * _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask);
 pOverride lv_gltfview_add_override_by_ip(lv_gltfdata_t * _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask);
@@ -150,7 +157,6 @@ pOverride lv_gltfview_add_override_by_id(lv_gltfdata_t * _data, const char * nod
 
 void lv_gltf_get_isolated_filename(const char* filename, char* out_buffer, uint32_t max_out_length);
 bool lv_gltfview_set_loadphase_callback(void (*load_progress_callback)(const char*, const char* , float, float, float, float));
-void lv_gltfview_load(const char * gltf_path, lv_gltfdata_t * ret_data, lv_gltfview_t * view, pShaderCache shaders);
 int64_t lv_gltf_get_int_radiusX1000 (lv_gltfdata_t * _data);
 bool lv_gltfview_raycast_ground_position(lv_gltfview_t * view, int32_t mouse_x, int32_t mouse_y, int32_t win_width, int32_t win_height, double ground_height, float* out_pos);
 
@@ -158,6 +164,8 @@ void init_viewer_struct(lv_gltfview_t * _ViewerMem);
 
 void lv_gltfview_set_width (lv_gltfview_t * view, uint32_t new_width );
 void lv_gltfview_set_height (lv_gltfview_t * view, uint32_t new_height );
+
+void lv_gltfview_mark_dirty(lv_gltfview_t * view);
 
 /**
  * @brief Get the viewing pitch angle (up/down). This is only valid when a scene camera is not enabled.
@@ -308,6 +316,10 @@ bool lv_gltfview_check_frame_was_antialiased(lv_gltfview_t * view);
 
 // TO-DO: This should be in gltf_data, not view
 void lv_gltfview_set_timestep (lv_gltfview_t * view, float timestep );
+//void lv_gltfview_set_recenter_flag(lv_gltfview_t * view, bool should_recenter );
+//void lv_gltfview_set_recenter_flag(lv_gltfview_t * view, lv_gltfdata_t * gltf_data,  bool should_recenter );
+void lv_gltfview_recenter_view_on_model( lv_gltfview_t * viewer, pGltf_data_t gltf_data);
+void lv_gltfview_reset_between_models( lv_gltfview_t * viewer );
 
 
 #ifdef __cplusplus

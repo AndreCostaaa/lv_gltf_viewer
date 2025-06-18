@@ -52,7 +52,7 @@ using StringNodeMap = std::map<std::string, NodePtr>;           // Map of Nodes 
 using NodeIntMap = std::map<NodePtr, uint32_t>;                 // Map of Nodes by string (name)
 using NodeVector = std::vector<NodePtr>;                        // Map of Nodes by string (name)
 using NodePrimCenterMap = std::map<uint32_t, std::map<uint32_t, fastgltf::math::fvec4>>; // Map of Node Index to Map of Prim Index to CenterXYZ+RadiusW Vec4
-#include "__include/datatypes.h"
+#include "sup/include/datatypes.h"
 using NodeOverrideMap = std::map<NodePtr, _Override>;           // Map of Overrides by Node
 
 struct MeshData;
@@ -92,7 +92,6 @@ typedef struct  {
     gl_renwin_state_t opaque_render_state;
     bool render_state_ready;
     bool renderOpaqueBuffer;
-    bool load_success;
 } _ViewerState;
 
 typedef struct {
@@ -279,19 +278,19 @@ void*                   get_asset (_DATA D);
 void*                   get_matrix_view(_VIEW V);
 void*                   get_matrix_proj(_VIEW V);
 void*                   get_matrix_viewproj(_VIEW V);
-void*                   get_texdata_set(_VIEW V);
-Texture *               get_texdata(_VIEW V, _UINT I);
-uint64_t                get_texdata_glid(_VIEW V, _UINT I);
+void*                   get_texdata_set(_DATA D);
+Texture *               get_texdata(_DATA D, _UINT I);
+uint64_t                get_texdata_glid(_DATA D, _UINT I);
 _ViewerState*           get_viewer_state(_VIEW V);
 gl_viewer_desc_t*       lv_gltfview_get_desc(_VIEW V);
 _ViewerOpts*            get_viewer_opts(_VIEW V);
-UniformLocs*            get_uniform_ids(_VIEW V, _UINT I);
-uint64_t                get_shader_program(_VIEW V, _UINT I);
+UniformLocs*            get_uniform_ids(_DATA D, _UINT I);
+uint64_t                get_shader_program(_DATA D, _UINT I);
 _ViewerMetrics*         get_viewer_metrics(_VIEW V);
-gl_renwin_shaderset_t * get_shader_set(_VIEW V, _UINT I);
+gl_renwin_shaderset_t * get_shader_set(_DATA D, _UINT I);
 float*                  get_bounds_min (_DATA D);
 float*                  get_bounds_max (_DATA D);
-float*                  get_center(_DATA D);
+float*                  setup_get_center(_DATA D);
 double                  get_radius(_DATA D);
 const char*             lv_gltf_get_filename(_DATA D);
 gltf_probe_info *       lv_gltfview_get_probe(_DATA _data);
@@ -307,7 +306,7 @@ bool centerpoint_cache_contains (_DATA D,_UINT I,int32_t P);
 #define GET_PROJ_MAT(v)                 ((FMAT4*)get_matrix_proj(v))
 #define GET_VIEWPROJ_MAT(v)             ((FMAT4*)get_matrix_viewproj(v))
 #define SKINTEXS(d)                 ((IntVector*)get_skintex_set(d))
-#define MESHDSET(v)     ((std::vector<MeshData>*)get_meshdata_set(v))
+//#define MESHDSET(v)     ((std::vector<MeshData>*)get_meshdata_set(v))
 #define GET_PRIM_FROM_MESH(m, i)    ((Primitive*)get_prim_from_mesh(m,i))
 
 void set_shader         (_VIEW V,_UINT I, UniformLocs _uniforms, gl_renwin_shaderset_t _shaderset);

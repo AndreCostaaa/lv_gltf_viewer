@@ -43,27 +43,17 @@ if(NOT DEFINED CMAKE_OBJDUMP)
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE DIRECTORY FILES "/home/pi/Desktop/lv_gltf_viewer/src" FILES_MATCHING REGEX "/[^/]*\\.h$")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE DIRECTORY FILES "/home/pi/Desktop/lv_gltf_viewer/lvgl/src" FILES_MATCHING REGEX "/[^/]*\\.h$" REGEX "/[^/]*\\_private\\.h$" EXCLUDE)
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE FILE FILES
+    "/home/pi/Desktop/lv_gltf_viewer/demo.h"
+    "/home/pi/Desktop/lv_gltf_viewer/lv_conf.h"
+    "/home/pi/Desktop/lv_gltf_viewer/lv_version.h"
     "/home/pi/Desktop/lv_gltf_viewer/lvgl/lv_version.h"
     "/home/pi/Desktop/lv_gltf_viewer/lvgl/lvgl.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lv_conf.h"
     )
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE DIRECTORY FILES "/home/pi/Desktop/lv_gltf_viewer/examples" FILES_MATCHING REGEX "/[^/]*\\.h$")
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE DIRECTORY FILES "/home/pi/Desktop/lv_gltf_viewer/demos" FILES_MATCHING REGEX "/[^/]*\\.h$")
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" TYPE FILE FILES "/home/pi/Desktop/lv_gltf_viewer/lvgl.pc")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
@@ -72,10 +62,16 @@ endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE FILE FILES
+    "/home/pi/Desktop/lv_gltf_viewer/demo.h"
+    "/home/pi/Desktop/lv_gltf_viewer/lv_conf.h"
+    "/home/pi/Desktop/lv_gltf_viewer/lv_version.h"
     "/home/pi/Desktop/lv_gltf_viewer/lvgl/lv_version.h"
     "/home/pi/Desktop/lv_gltf_viewer/lvgl/lvgl.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lv_conf.h"
     )
+endif()
+
+if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" TYPE FILE FILES "/home/pi/Desktop/lv_gltf_viewer/lvgl.pc")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
@@ -84,33 +80,11 @@ endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE FILE FILES
+    "/home/pi/Desktop/lv_gltf_viewer/demo.h"
+    "/home/pi/Desktop/lv_gltf_viewer/lv_conf.h"
+    "/home/pi/Desktop/lv_gltf_viewer/lv_version.h"
     "/home/pi/Desktop/lv_gltf_viewer/lvgl/lv_version.h"
     "/home/pi/Desktop/lv_gltf_viewer/lvgl/lvgl.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lv_conf.h"
-    )
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/pi/Desktop/lv_gltf_viewer/lib/liblvgl_demos.a")
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE FILE FILES
-    "/home/pi/Desktop/lv_gltf_viewer/lvgl/lv_version.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lvgl/lvgl.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lv_conf.h"
-    )
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/pi/Desktop/lv_gltf_viewer/lib/liblvgl_examples.a")
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE FILE FILES
-    "/home/pi/Desktop/lv_gltf_viewer/lvgl/lv_version.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lvgl/lvgl.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lv_conf.h"
     )
 endif()
 
