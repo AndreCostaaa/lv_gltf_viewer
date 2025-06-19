@@ -131,6 +131,8 @@ extern lv_style_t style_file_button;
 extern lv_style_t style_folder_button;
 extern bool __styles_ready;
 
+extern pShaderCache shaderCache;
+
 LV_IMAGE_DECLARE(lvgl_icon_40px);
 LV_IMAGE_DECLARE(sprites1_32x32x7);
 
@@ -144,6 +146,7 @@ void demo_ui_apply_camera_button_visibility( pGltf_data_t _data);
 void demo_ui_apply_anim_button_visibility( pGltf_data_t _data);
 void demo_ui_set_tab(unsigned int _tabnum);
 void demo_ui_make_underlayer(void);
+void demo_ui_make_overlayer(void);
 void demo_ui_load_progress_callback(const char* phase_title, const char* sub_phase_title, float phase_progress, float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max);
 bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char * hdrFile, int * frame_count, bool * software_only, bool * start_maximized, bool *stub_mode, float * _anim_rate, int argc, char *argv[] );
 void demo_nav_process_drag(float movement_power, uint32_t mouse_state_ex, int mouse_x, int mouse_y, int last_mouse_x, int last_mouse_y);
@@ -173,7 +176,7 @@ void demo_ui_apply_distance_value(float visual_distance );
 void demo_ui_reposition_all( void );
 
 void reload(char * _filename, const char * _hdr_filename);
-void demo_refocus(lv_gltfview_t * gltfview);
+void demo_refocus(lv_gltfview_t * gltfview, bool first_call);
 
 
 void create_file_open_dialog(lv_obj_t * container);
@@ -185,5 +188,15 @@ void demo_file_load_dialog_set_directory_from_filepath(char *current_filename);
 uint32_t ui_max(uint32_t a, uint32_t b);
 void demo_ui_apply_spin_rate_value(float visual_spin_rate);
 void demo_ui_apply_spin_enabled_value(bool visual_animate_spin);
+void demo_nav_gradual_to_goals( void );
+
+double d_min(double a, double b);
+uint32_t ui_max(uint32_t a, uint32_t b);
+float lerp(float start, float end, float t);
+
+void setup_shadercache(const char * hdr_filepath, int degrees_x10 );
+void demo_set_overrides(void);
+void demo_refocus(lv_gltfview_t * gltfview, bool first_call);
+uint32_t demo_make_small_clear_texture();
 
 #endif // MAINUI_SHARED_H

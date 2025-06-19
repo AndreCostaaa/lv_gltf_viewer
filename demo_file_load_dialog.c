@@ -330,7 +330,7 @@ void ok_button_event_handler(lv_event_t *e) {
     }
 
     reload(selected_file, "");
-    demo_refocus(demo_gltfview);
+    demo_refocus(demo_gltfview, false);
     demo_ui_set_tab(TAB_VIEW);
     demo_ui_reposition_all();    
 }

@@ -1,6 +1,13 @@
 #include "demo.h"
 #include <math.h>
 
+float goal_pitch;
+float goal_yaw;
+float goal_distance;
+float goal_focal_x;
+float goal_focal_y;
+float goal_focal_z;
+
 void nav_turn( int mouse_x, int mouse_y,int last_mouse_x, int last_mouse_y) {
     // Calculate the change in mouse position
     float deltaX = (float)(mouse_x - last_mouse_x);
@@ -81,4 +88,41 @@ void demo_nav_process_drag(float movement_power, uint32_t mouse_state_ex, int mo
     else if (mouse_state_ex == LV_INDEV_STATE_EX_MOUSE_MIDDLE)  nav_drag_y(movement_power, mouse_y, last_mouse_y);
     else if (mouse_state_ex == LV_INDEV_STATE_EX_MOUSE_4)       nav_zoom(mouse_y, last_mouse_y);
     else if (mouse_state_ex == LV_INDEV_STATE_EX_MOUSE_5)       printf("Mouse Button #5 Pressed\n");
+}
+
+void demo_nav_gradual_to_goals( void ) {
+    float EASE_POWER = 0.5f;
+    float EASE_CLOSE_ENOUGH = 0.001f;
+
+    float tfx = lerp(lv_gltfview_get_focal_x(demo_gltfview), goal_focal_x, EASE_POWER / 8.f);
+    if (fabsf(tfx - goal_focal_x) < (EASE_CLOSE_ENOUGH/100.f)) {tfx = goal_focal_x;}
+    lv_gltfview_set_focal_x(demo_gltfview, tfx); 
+
+    float tfy = lerp(lv_gltfview_get_focal_y(demo_gltfview), goal_focal_y, EASE_POWER / 8.f);
+    if (fabsf(tfy - goal_focal_y) < (EASE_CLOSE_ENOUGH/100.f)) {tfy = goal_focal_y;}
+    lv_gltfview_set_focal_y(demo_gltfview, tfy); 
+
+    float tfz = lerp(lv_gltfview_get_focal_z(demo_gltfview), goal_focal_z, EASE_POWER / 8.f);
+    if (fabsf(tfz - goal_focal_z) < (EASE_CLOSE_ENOUGH/100.f)) {tfz = goal_focal_z;}
+    lv_gltfview_set_focal_z(demo_gltfview, tfz); 
+
+    float tyaw = lerp(lv_gltfview_get_yaw(demo_gltfview), goal_yaw, EASE_POWER / 28.f);
+    if (fabsf(tyaw - goal_yaw) < EASE_CLOSE_ENOUGH/100.f) {tyaw = goal_yaw;}
+    bool looped = demo_ui_apply_yaw_value(tyaw );
+    if (looped) {
+        // Move the goal and lerped yaw back into the -180 <-> +180 degree range
+        while (goal_yaw < -180.f) goal_yaw += 360.f;
+        while (goal_yaw > 180.f) goal_yaw -= 360.f;
+        while (tyaw < -180.f) tyaw += 360.f;
+        while (tyaw > 180.f) tyaw -= 360.f;
+    }
+    lv_gltfview_set_yaw(demo_gltfview, (int)(tyaw * 10.f)); 
+
+    float tpitch = lerp(lv_gltfview_get_pitch(demo_gltfview), goal_pitch, EASE_POWER / 28.f);
+    if (fabsf(tpitch - goal_pitch) < EASE_CLOSE_ENOUGH/100.f) {tpitch = goal_pitch;}
+    lv_gltfview_set_pitch(demo_gltfview, (int)(tpitch * 10.f)); demo_ui_apply_pitch_value(tpitch );
+
+    float tdistance = lerp(lv_gltfview_get_distance(demo_gltfview), goal_distance, EASE_POWER / 8.f);
+    if (fabsf(tdistance - goal_distance) < (EASE_CLOSE_ENOUGH/100.f)) {tdistance = goal_distance;}
+    lv_gltfview_set_distance(demo_gltfview, (int)(tdistance * 1000.f)); demo_ui_apply_distance_value(tdistance );
 }

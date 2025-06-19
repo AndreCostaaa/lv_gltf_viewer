@@ -34,6 +34,7 @@ add_executable(lvgl_workspace
     demo_nav.c
     demo_os_integrate.c
     demo_file_load_dialog.c
+    demo_misc_utils.c
     resources/mouse_cursor_icon.c
     resources/lvgl_icon_40px_ARGB888.c
     resources/sprites1_32x32x7.c

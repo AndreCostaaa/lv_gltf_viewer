@@ -57,10 +57,7 @@ int os_integrate_check_drive_space(int32_t current_frame_num) {//const char *pat
     const unsigned long limit = 1 * 1024 * 1024;
     float norm_ratio = 0.99f;
     if (cycle_frames > 0) { norm_ratio = ((float)current_frame_num)/((float)cycle_frames); }
-    float inv_norm_ratio = 1.f - norm_ratio;
-    inv_norm_ratio = inv_norm_ratio < 0.f ? 0.f : inv_norm_ratio  > 1.f ? 1.f : inv_norm_ratio;
     float bytes_total_estimate = ((float)(ramtemp_drive_size * 1024 * 1024) / norm_ratio) - (ramtemp_drive_size * 1024 * 1024) + (1024 * 1024);
-    //printf( "estimated required megabytes to complete job: %.2f\n", (bytes_total_estimate / (float)( 1024 * 1024 ) ));
     unsigned long newbytes = 10 * limit;
 
     // Construct the path
@@ -92,7 +89,7 @@ void os_integrate_filedrop_callback(GLFWwindow* _window, int count, const char**
             system_gltfdata = NULL;
         }
         reload(paths[0], "");
-        demo_refocus(demo_gltfview);
+        demo_refocus(demo_gltfview, false);
     }
 }
 
@@ -117,7 +114,6 @@ void os_integrate_window_resize_callback(GLFWwindow* _glfw_window, int width, in
     demo_ui_reposition_all();
     lv_refr_now(NULL); 
     reapply_layout_flag = true;  // Signal that the layout should update one more time next frame;
-
 }
 
 void demo_os_integrate_window_standard_title(const char * file_path) {
@@ -130,10 +126,9 @@ void demo_os_integrate_window_standard_title(const char * file_path) {
     lv_glfw_window_set_title(window, buffer);
     lv_free(FILENAME_BUFF);
 }
-void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window, bool lock_window_size, bool start_maximized ) {
-    
-    glfw_window = (GLFWwindow *)lv_glfw_window_get_glfw_window(lv_window);
 
+void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window, bool lock_window_size, bool start_maximized ) {
+    glfw_window = (GLFWwindow *)lv_glfw_window_get_glfw_window(lv_window);
     glfwSetWindowCloseCallback(glfw_window, os_integrate_window_close_callback);
     if (lock_window_size) {
         glfwSetWindowSizeLimits(glfw_window, ui_get_window_width(), ui_get_window_height(), ui_get_window_width(), ui_get_window_height());
@@ -159,8 +154,6 @@ void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window, bool loc
     glfwSetWindowIcon(glfw_window, 1, images);
     stbi_image_free(images[0].pixels);
 
-    //glfwMakeContextCurrent(glfw_window);
-
     /* Capture ctrl-c keystrokes in a multi-threaded compatible way */
     struct sigaction sa;
     sa.sa_handler = os_integrate_handle_sigint;
@@ -170,12 +163,9 @@ void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window, bool loc
         perror("sigaction");
         exit(EXIT_FAILURE);
     }
-
-    //lv_obj_clear_flag(lv_screen_active(), LV_OBJ_FLAG_SCROLLABLE );
 }
 
 bool demo_os_integrate_get_maximum_window_framebuffer_size(uint32_t * _max_window_width, uint32_t * _max_window_height) {
-
     *_max_window_width = ui_get_max_window_width();
     *_max_window_height = ui_get_max_window_height();
     int window_top_trim = 28;
@@ -242,11 +232,9 @@ typedef struct {
     int maxFrames;
     int suffix;
     char * pixels;
-    // Add other necessary parameters here
 } RenderTask;
 
 pthread_mutex_t task_mutex = PTHREAD_MUTEX_INITIALIZER;
-//pthread_mutex_t task_mutex2 = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t task_cond = PTHREAD_COND_INITIALIZER;
 RenderTask *task_queue[MAX_THREADS];
 int task_count = 0;

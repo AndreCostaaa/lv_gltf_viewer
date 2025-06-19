@@ -450,6 +450,10 @@ void demo_ui_loading_info_objects(void){
     lv_obj_align(progText1, LV_ALIGN_TOP_LEFT, 20, -10);
     lv_obj_set_style_text_color(progText1, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
     lv_label_set_text(progText1, "Loading...");
+
+    /* Set the loading info update callbacks */
+    lv_gltfview_ibl_set_loadphase_callback(demo_ui_load_progress_callback);
+    lv_gltfview_set_loadphase_callback(demo_ui_load_progress_callback);
 }
 
 #define TBUF_SIZE 32768
@@ -975,6 +979,14 @@ void demo_ui_load_progress_callback(const char* phase_title, const char* sub_pha
     lv_obj_invalidate(grp_loading);
     lv_refr_now(NULL);
     usleep(1000);
+}
+
+void demo_ui_make_overlayer( void ) {
+    /* Create the loading info ui objects */
+    demo_ui_loading_info_objects();
+    demo_ui_pitch_yaw_distance_sliders(tab_pages[TAB_VIEW]);
+    demo_ui_camera_select(tab_pages[TAB_VIEW]);
+    demo_ui_animation_select(tab_pages[TAB_VIEW]);
 }
 
 void demo_ui_make_underlayer( void ) {
