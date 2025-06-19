@@ -5,7 +5,8 @@
 extern "C" {
 #endif
 
-#include "sup/include/datatypes.h"
+#include "sup/include/lv_gltf_data_datatypes.h"
+#include "sup/include/lv_gltf_view_datatypes.h"
 #include "sup/include/ibl_sampler.h"
 #include "sup/include/shader_includes.h"
 #include "sup/include/shader_v1.h"

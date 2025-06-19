@@ -1,6 +1,5 @@
-#ifndef LV_GLTFDATATYPES_H
-#define LV_GLTFDATATYPES_H
-
+#ifndef LV_GLTFVIEW_DATATYPES_H
+#define LV_GLTFVIEW_DATATYPES_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -20,23 +19,6 @@ typedef int32_t  _GLINT;
 extern "C" {
 #endif
 
-typedef enum  {
-    OP_VISIBILITY,
-    OP_POSITION,
-    OP_ROTATION,
-    OP_SCALE,
-    OP_BASE_COLOR,
-    OP_ALPHA_FACTOR,
-    OP_EMIS_COLOR
-} OverrideProp;
-
-typedef enum  {
-    OMC_CHAN1 = 0x01,
-    OMC_CHAN2 = 0x02,
-    OMC_CHAN3 = 0x04,
-    OMC_CHAN4 = 0x08
-} OverrideMaskChannels;
-
 typedef enum {
     ANTIALIAS_OFF=0,
     ANTIALIAS_CONSTANT=1,
@@ -51,26 +33,11 @@ typedef enum {
     BG_UNKNOWN=999
 } BackgroundMode;
 
-struct lv_gltf_data_struct;
 struct lv_gltf_view_struct;
 
-typedef struct lv_gltf_data_struct lv_gltf_data_t;
 typedef struct lv_gltf_view_struct lv_gltf_view_t;
 
-typedef lv_gltf_data_t * pGltf_data_t;
 typedef lv_gltf_view_t * pViewer;
-
-typedef struct {
-    uint32_t imageCount;
-    uint32_t textureCount;
-    uint32_t materialCount;
-    uint32_t cameraCount;
-    uint32_t nodeCount;
-    uint32_t meshCount;
-    uint32_t sceneCount;
-    uint32_t animationCount;
-} gltf_probe_info;
-//typedef gltf_probe_info * pProbeInfo;
 
 typedef struct {
     float pitch;
@@ -98,21 +65,9 @@ typedef struct {
     float env_pow;              // Environmental brightness, 1.0 default
     float exposure;             // Image exposure level, 1.0 default
 } gl_viewer_desc_t;
-// typedef gl_viewer_desc_t * pViewerDesc;
-
-typedef struct {
-    OverrideProp prop;
-    uint32_t dataMask;
-    float data1;
-    float data2;
-    float data3;
-    float data4;
-} lv_gltf_override_t;
-
-typedef lv_gltf_override_t * pOverride;
 
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
 
-#endif /*LV_GLTFDATATYPES_H*/
+#endif /*LV_GLTFVIEW_DATATYPES_H*/

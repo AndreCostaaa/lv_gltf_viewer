@@ -4,7 +4,7 @@
 #include "lvgl/demos/lv_demos.h"
 #include "lvgl/examples/lv_examples.h"
 
-#include "gltfview/lv_gltf_view.h"
+#include "lvgl_proto/src/others/gltf/view/lv_gltf_view.h"
 
 #include <unistd.h>     /* usleep */
 #include <GL/glew.h>    /* For window size restrictions */

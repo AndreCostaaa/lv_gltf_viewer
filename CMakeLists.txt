@@ -27,8 +27,8 @@ add_library(lvgl_opengl_shader_cache
 )
 
 add_library(lvgl_gltfview 
-    gltfview/lv_gltf_view.c
-    gltfview/lv_gltf_view.cpp
+    lvgl_proto/src/others/gltf/view/lv_gltf_view.c
+    lvgl_proto/src/others/gltf/view/lv_gltf_view.cpp
 )
 
 add_executable(lvgl_workspace

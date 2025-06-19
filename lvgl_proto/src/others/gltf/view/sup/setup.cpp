@@ -23,7 +23,7 @@
 #endif
 
 #include "../lv_gltf_view_internal.h"
-#include "../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
+#include "../../../../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
 #include "lib/mathc/mathc.h"
 
 void set_matrix_view(_VIEW _viewer, FMAT4 _mat);

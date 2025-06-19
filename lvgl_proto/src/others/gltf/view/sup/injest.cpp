@@ -28,9 +28,9 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
                               WebPBitstreamFeatures* features);
 
 
-#include "include/datatypes.h"
+#include "include/lv_gltf_view_datatypes.h"
 #include "../lv_gltf_view_internal.h"
-#include "../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
+#include "../../../../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
 #include "include/shader_includes.h"
 
 #ifndef __MESH_DATA_DEFINED

@@ -1,5 +1,5 @@
-#include "gltfview/lv_gltf_view.h"
-#include "gltfview/lv_gltf_view_internal.h"
+#include "lv_gltf_view.h"
+#include "lv_gltf_view_internal.h"
 
 gl_viewer_desc_t* lv_gltf_view_get_desc(lv_gltf_view_t * view);
 
