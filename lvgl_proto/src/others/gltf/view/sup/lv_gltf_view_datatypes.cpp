@@ -1,6 +1,6 @@
 #include "lib/fastgltf/include/fastgltf/types.hpp"
 
-#include "include/lv_gltf_data_datatypes.h"
+#include "../../data/sup/include/lv_gltf_data_datatypes.h"
 #include "include/lv_gltf_view_datatypes.h"
 #include "../lv_gltf_view_internal.h"
 #include <algorithm>
@@ -33,6 +33,8 @@ struct lv_gltf_view_struct {
     float bound_radius;
 
     gl_viewer_desc_t desc;
+    gl_viewer_desc_t _lastViewDesc;
+
 };
 
 uint32_t get_viewer_datasize(void) {

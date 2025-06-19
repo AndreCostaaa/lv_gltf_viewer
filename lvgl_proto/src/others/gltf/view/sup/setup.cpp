@@ -23,6 +23,7 @@
 #endif
 
 #include "../lv_gltf_view_internal.h"
+#include "../../data/lv_gltf_data_internal.h"
 #include "../../../../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
 #include "lib/mathc/mathc.h"
 
@@ -480,7 +481,7 @@ void setup_view_proj_matrix_from_camera( lv_gltf_view_t * viewer, int32_t _cur_c
     
     // Create Perspective Matrix
     mfloat_t perspective[MAT4_SIZE];
-    auto _bradius = get_model_radius(gltf_data);
+    auto _bradius = lv_gltf_data_get_radius(gltf_data);
     float _mindist = _bradius * 0.05f;
     float _maxdist = _bradius * std::max(2.0, 4.0 * view_desc->distance);
     const auto& asset = GET_ASSET(gltf_data);    
@@ -519,13 +520,13 @@ void setup_view_proj_matrix( lv_gltf_view_t * viewer, gl_viewer_desc_t * view_de
     float cen_z = _cenpos[2];
     if (view_desc->recenter_flag) {
         view_desc->recenter_flag = false;
-        const auto& _autocenpos = get_center(gltf_data);
+        const auto& _autocenpos = lv_gltf_data_get_center(gltf_data);
         view_desc->focal_x = cen_x = _autocenpos[0];
         view_desc->focal_y = cen_y = _autocenpos[1];
         view_desc->focal_z = cen_z = _autocenpos[2];
     }
 
-    auto _bradius = get_model_radius(gltf_data);
+    auto _bradius = lv_gltf_data_get_radius(gltf_data);
 
     float radius = _bradius * 2.5;
 

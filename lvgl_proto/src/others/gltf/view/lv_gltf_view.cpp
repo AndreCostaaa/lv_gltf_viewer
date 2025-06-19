@@ -27,21 +27,26 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wtype-limits"
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#define STB_IMAGE_IMPLEMENTATION
+//#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image/stb_image_write.h"
 #pragma GCC diagnostic pop
 #endif
 
+#include "../data/lv_gltf_data.h"
+#include "../data/lv_gltf_data.hpp"
+#include "../data/lv_gltf_data_internal.h"
+
 #include "lv_gltf_view.h"
 #include "lv_gltf_view_internal.h"
+
 #include "sup/animation.cpp"
-#include "sup/lv_gltf_data_datatypes.cpp"
+//#include "sup/lv_gltf_data_datatypes.cpp"
 #include "sup/lv_gltf_view_datatypes.cpp"
 #include "sup/ibl_sampler.cpp"
-#include "sup/injest.cpp"
-#include "sup/reports.cpp"
+//#include "sup/injest.cpp"
+//#include "sup/reports.cpp"
 #include "sup/setup.cpp"
 //#include "sup/shader_cache.cpp"
 #include "sup/shader_includes.cpp"
@@ -177,9 +182,9 @@ int64_t lv_gltf_view_get_node_handle_by_name(const char * _nodename) {
     return -1;
 }
 
-void lv_gltf_data_destroy(pGltf_data_t _data){
-    __free_data_struct(_data);
-}
+//void lv_gltf_data_destroy(pGltf_data_t _data){
+//    __free_data_struct(_data);
+//}
 
 void lv_gltf_view_destroy(lv_gltf_view_t * _viewer){
     __free_viewer_struct(_viewer);  // Currently does nothing, this could be removed
@@ -414,8 +419,8 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
     view_desc->render_width = view_desc->width * (opt_aa_this_frame ? 2 : 1);
     view_desc->render_height = view_desc->height * (opt_aa_this_frame ? 2 : 1);
     bool size_changed = false;
-    if (view_desc->width != gltf_data->_lastViewDesc.width) size_changed = true;
-    if (view_desc->height != gltf_data->_lastViewDesc.height) size_changed = true;
+    if (view_desc->width != viewer->_lastViewDesc.width) size_changed = true;
+    if (view_desc->height != viewer->_lastViewDesc.height) size_changed = true;
 
     if ((opt_aa_this_frame != gltf_data->_lastFrameWasAntialiased) || size_changed) {
         // Antialiasing state has changed since the last render
@@ -541,7 +546,7 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
     //    _motionDirty = true;
     //    lv_gltf_copy_viewer_desc(view_desc, &(gltf_data->_lastViewDesc));
     //}
-        lv_gltf_copy_viewer_desc(view_desc, &(gltf_data->_lastViewDesc));
+        lv_gltf_copy_viewer_desc(view_desc, &(viewer->_lastViewDesc));
 
     bool ___lastFrameNoMotion = gltf_data->__lastFrameNoMotion;
     gltf_data->__lastFrameNoMotion = gltf_data->_lastFrameNoMotion;

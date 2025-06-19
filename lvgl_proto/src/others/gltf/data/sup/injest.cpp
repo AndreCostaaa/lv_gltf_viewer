@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
+#define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wredundant-move"
 #include "lib/fastgltf/include/fastgltf/core.hpp"
@@ -28,10 +29,10 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
                               WebPBitstreamFeatures* features);
 
 
-#include "include/lv_gltf_view_datatypes.h"
-#include "../lv_gltf_view_internal.h"
+#include "include/lv_gltf_data_datatypes.h"
+#include "../lv_gltf_data_internal.h"
 #include "../../../../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
-#include "include/shader_includes.h"
+#include "../../view/sup/include/shader_includes.h"
 
 #ifndef __MESH_DATA_DEFINED
 #define __MESH_DATA_DEFINED
@@ -273,8 +274,8 @@ void injest_grow_bounds_to_include(pGltf_data_t ret_data, ASSET* asset, FMAT4 ma
     
     { const auto& _t = get_bounds_min(ret_data); _vmin[0] = _t[0]; _vmin[1] = _t[1]; _vmin[2] = _t[2]; }
     { const auto& _t = get_bounds_max(ret_data); _vmax[0] = _t[0]; _vmax[1] = _t[1]; _vmax[2] = _t[2]; }
-    { const auto& _t = get_center(ret_data);     _vcen[0] = _t[0]; _vcen[1] = _t[1]; _vcen[2] = _t[2]; }
-    float _bradius = get_model_radius(ret_data);
+    { const auto& _t = lv_gltf_data_get_center(ret_data);     _vcen[0] = _t[0]; _vcen[1] = _t[1]; _vcen[2] = _t[2]; }
+    float _bradius = lv_gltf_data_get_radius(ret_data);
 
     if (mesh.primitives.size() > 0) {
         auto it = mesh.primitives.begin();

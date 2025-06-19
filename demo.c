@@ -94,7 +94,7 @@ void reload(char * _filename, const char * _hdr_filename) {
         lv_gltf_data_load(SYSTEM_ASSETS_FILENAME, system_gltfdata, shaderCache);
         lv_gltf_data_link_view_to(system_gltfdata, demo_gltfdata);
         lv_gltf_data_copy_bounds_info(system_gltfdata, demo_gltfdata);
-        float newradius = lv_gltf_get_int_radiusX1000(demo_gltfdata) / 1000.f;
+        float newradius = lv_gltf_data_get_int_radiusX1000(demo_gltfdata) / 1000.f;
         ov_ground_scale = lv_gltf_view_add_override_by_id(system_gltfdata, "/grid", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
         float unitscale = newradius * ((1.f / 2.f) * 3.f);
         float tscale = unitscale;
@@ -305,7 +305,7 @@ int main(int argc, char *argv[]) {
             bool mouse_in_window = ((_mousepoint.x >= WINDOW_CONTROL_MARGIN) && (_mousepoint.x <= (WINDOW_WIDTH_MINUS_MARGIN)) && (_mousepoint.y >= WINDOW_CONTROL_MARGIN) && (_mousepoint.y <= (WINDOW_HEIGHT_MINUS_MARGIN)) );
             if (mouse_in_window) {
                 lv_indev_state_t mouse_state = lv_indev_get_state(mouse);
-                double subjectRadius = lv_gltf_get_int_radiusX1000(demo_gltfdata) / 1000.f;
+                double subjectRadius = lv_gltf_data_get_int_radiusX1000(demo_gltfdata) / 1000.f;
                 double movePow = d_min(subjectRadius, pow(subjectRadius, 0.5));
                 if ((mouse_state & 0x0F) == LV_INDEV_STATE_PR) demo_nav_process_drag(movePow, (mouse_state & 0xF0), _mousepoint.x, _mousepoint.y, lastMouseX, lastMouseY);
             }

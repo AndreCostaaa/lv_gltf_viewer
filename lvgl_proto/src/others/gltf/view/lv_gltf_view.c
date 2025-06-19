@@ -1,4 +1,5 @@
 #include "lv_gltf_view.h"
+#include "../data/lv_gltf_data_internal.h"
 #include "lv_gltf_view_internal.h"
 
 gl_viewer_desc_t* lv_gltf_view_get_desc(lv_gltf_view_t * view);
@@ -63,22 +64,6 @@ void lv_gltf_view_set_focal_z (lv_gltf_view_t * view, float focal_z ) {
         desc->dirty = true;
     }
 }
-
-/*
-void lv_gltf_view_set_recenter_flag(lv_gltf_view_t * view, lv_gltf_data_t * gltf_data,  bool should_recenter ) {
-    //gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
-    //if (desc->recenter_flag !=  should_recenter ) {
-    //    desc->recenter_flag = should_recenter;
-    //    desc->dirty = true;
-    //}
-    if (should_recenter){
-        float * _autocenpos = get_center(gltf_data);
-        lv_gltf_view_set_focal_x(view, _autocenpos[0]);
-        lv_gltf_view_set_focal_y(view, _autocenpos[1]);
-        lv_gltf_view_set_focal_z(view, _autocenpos[2]);
-    }
-}
-*/
 
 void lv_gltf_view_inc_pitch (lv_gltf_view_t * view, float pitch_inc_degrees ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);

@@ -279,7 +279,7 @@ FVEC3 lv_gltf_get_centerpoint(pGltf_data_t gltf_data, FMAT4 matrix, uint32_t mes
 }
 
 void lv_gltf_view_recenter_view_on_model( lv_gltf_view_t * viewer, pGltf_data_t gltf_data) {
-    const auto& _autocenpos = get_center(gltf_data);
+    const auto& _autocenpos = lv_gltf_data_get_center(gltf_data);
     lv_gltf_view_set_focal_x(viewer, _autocenpos[0]);
     lv_gltf_view_set_focal_y(viewer, _autocenpos[1]);
     lv_gltf_view_set_focal_z(viewer, _autocenpos[2]);
@@ -292,16 +292,8 @@ void lv_gltf_view_utils_save_pixelbuffer_to_png( lv_gltf_view_t * viewer,  char 
 }
 
 void lv_gltf_view_utils_get_capture_buffer( char * pixels, lv_gltf_view_t * viewer, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
-    //const auto& vstate = get_viewer_state(viewer);
-    //const auto& vdesc = lv_gltf_view_get_desc(viewer);
     GL_CALL(glBindTexture(GL_TEXTURE_2D, tex_id));
-    if (alpha_enabled) {
-        //pixels = (char *)lv_malloc(height * width * 4);
-        glGetTexImage(GL_TEXTURE_2D, mipmapnum, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-    } else {
-        //pixels = (char *)lv_malloc(height * width * 3);
-        glGetTexImage(GL_TEXTURE_2D, mipmapnum, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-    }
+    glGetTexImage(GL_TEXTURE_2D, mipmapnum, alpha_enabled?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE, pixels);
 }
 
 void lv_gltf_view_utils_save_texture_to_png( lv_gltf_view_t * viewer, uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height ) {

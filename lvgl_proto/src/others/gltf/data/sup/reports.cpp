@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 
+#define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wredundant-move"
 #include "lib/fastgltf/include/fastgltf/core.hpp"
@@ -16,7 +17,7 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "../lv_gltf_view_internal.h"
+#include "../../view/lv_gltf_view_internal.h"
 
 static constexpr std::array<std::string_view, 11> componentTypeNames = {
     "BYTE",

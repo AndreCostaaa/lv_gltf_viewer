@@ -1,8 +1,7 @@
+#define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #include "lib/fastgltf/include/fastgltf/types.hpp"
 
 #include "include/lv_gltf_data_datatypes.h"
-#include "include/lv_gltf_view_datatypes.h"
-#include "../lv_gltf_view_internal.h"
 #include <algorithm>
 
 #ifndef __MESH_DATA_DEFINED
@@ -13,7 +12,6 @@ struct MeshData {
 };
 #endif /* __MESH_DATA_DEFINED */
 
-typedef lv_gltf_view_t *    _VIEW;
 typedef pGltf_data_t        _DATA;
 typedef FVEC3               _VEC3;
 typedef FVEC4               _VEC4;
@@ -22,83 +20,6 @@ typedef uint64_t            _UINT;
 typedef MeshData            _MESH;
 typedef NodePtr             _NODE;
 #define _RET return
-
-struct lv_gltf_data_struct {
-    ASSET * asset;
-    bool load_success;
-    gltf_probe_info probe;
-    StringNodeMap* node_by_path;
-    NodeIntMap* index_by_node;
-    NodeVector* node_by_index;
-    NodeTransformMap* node_transform_cache;
-    MaterialIndexMap* opaque_nodes_by_materialIndex;
-    MaterialIndexMap* blended_nodes_by_materialIndex;
-    NodeDistanceVector* distance_sort_nodes;
-    MapofTransformMap* ibmBySkinThenNode;
-    NodeOverrideMap* overrides;
-    LongVector* validated_skins;
-    IntVector* skin_tex;
-    NodePrimCenterMap* local_mesh_to_center_points_by_primitive;
-    
-    //std::vector<_GLUINT> bufferAllocations;
-    std::vector<MeshData>* meshes;
-    std::vector<Texture>* textures;
-    std::vector<FMAT4>* cameras;
-    std::vector<_GLUINT>* materialBuffers;
-    std::vector<UniformLocs>* shaderUniforms;
-    std::vector<gl_renwin_shaderset_t>* shaderSets;
-
-    float vertex_max[3];
-    float vertex_min[3];
-    float vertex_cen[3];
-    float bound_radius;
-    uint32_t vertex_count;
-    uint32_t index_count;
-    uint32_t __prim_type;
-    uint32_t ebo;
-    uint32_t vbo1;
-    uint32_t vbo2;
-    bool has_positions;
-    bool has_normals;
-    bool has_colors;
-    bool has_uv1;
-    bool has_uv2;
-    bool has_joints1;
-    bool has_joints2;
-    bool has_weights1;
-    bool has_weights2;
-    bool has_morphing;
-    bool has_skins;
-    int32_t color_bytes;
-    const char* filename;
-
-
-    // ---
-
-    gl_viewer_desc_t _lastViewDesc;
-    bool has_any_cameras;
-    int32_t current_camera_index;
-    int32_t last_camera_index;
-    fastgltf::Node * selected_camera_node;
-    FMAT4 viewMat;
-    FVEC3 viewPos;
-
-    int32_t last_anim_num;
-    float cur_anim_maxtime;
-    float local_timestamp;
-
-    uint64_t _lastMaterialIndex; 
-    bool _lastPassWasTransmission;
-
-    bool _lastFrameWasAntialiased;
-    bool _lastFrameNoMotion;
-    bool __lastFrameNoMotion;
-    bool nodes_parsed;
-
-    bool view_is_linked = false;
-    lv_gltf_data_t * linked_view_source;
-    //bool render_state_ready;
-};
 
 MeshData* lv_gltf_get_new_meshdata(_DATA _data) {
     MeshData outMesh = {};
@@ -217,9 +138,9 @@ void set_asset(_DATA D, ASSET A) {
 
 _MESH*          get_meshdata_num            (_DATA D,_UINT I) {_RET &((*D->meshes)[I]);}
 void*           get_texdata_set             (_DATA D)         {_RET &(D->textures);}
-double          get_model_radius            (_DATA D)         {_RET (double)D->bound_radius;}
-int64_t         lv_gltf_get_int_radiusX1000 (_DATA D)         {_RET (int64_t)(D->bound_radius * 1000);}
-float*          get_center                  (_DATA D)         {_RET D->vertex_cen;}
+double          lv_gltf_data_get_radius     (_DATA D)         {_RET (double)D->bound_radius;}
+int64_t         lv_gltf_data_get_int_radiusX1000 (_DATA D)         {_RET (int64_t)(D->bound_radius * 1000);}
+float*          lv_gltf_data_get_center     (_DATA D)         {_RET D->vertex_cen;}
 float*          get_bounds_min              (_DATA D)         {_RET D->vertex_min;}
 float*          get_bounds_max              (_DATA D)         {_RET D->vertex_max;}
 void*           get_skintex_set             (_DATA D)         {_RET D->skin_tex;}
@@ -289,7 +210,6 @@ void set_bounds_info(_DATA D, _VEC3 _vmin, _VEC3 _vmax, _VEC3 _vcen, float _radi
     { auto _d = _vcen.data(); D->vertex_cen[0] = _d[0]; D->vertex_cen[1] = _d[1]; D->vertex_cen[2] = _d[2]; }
     D->bound_radius = _radius;
 }
-
 
 void lv_gltf_data_copy_bounds_info(_DATA to, _DATA from) {
     { to->vertex_min[0] = from->vertex_min[0]; to->vertex_min[1] = from->vertex_min[1]; to->vertex_min[2] = from->vertex_min[2]; }
