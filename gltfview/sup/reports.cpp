@@ -16,7 +16,7 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "../lv_gltfview_internal.h"
+#include "../lv_gltf_view_internal.h"
 
 static constexpr std::array<std::string_view, 11> componentTypeNames = {
     "BYTE",
@@ -77,7 +77,7 @@ std::string reports_make_mesh_summary( pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltfdata_make_mesh_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
+void lv_gltf_data_make_mesh_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
     dest_buffer[0] = '\0';
     strncpy(dest_buffer, reports_make_mesh_summary( data ).c_str(), dest_buffer_size);
     dest_buffer[dest_buffer_size-1] = '\0';
@@ -94,7 +94,7 @@ std::string reports_make_material_summary(pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltfdata_make_material_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
+void lv_gltf_data_make_material_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
     dest_buffer[0] = '\0';
     strncpy(dest_buffer, reports_make_material_summary( data ).c_str(), dest_buffer_size);
     dest_buffer[dest_buffer_size-1] = '\0';
@@ -156,7 +156,7 @@ std::string reports_make_images_summary(pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltfdata_make_images_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size){
+void lv_gltf_data_make_images_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size){
     dest_buffer[0] = '\0';
     strncpy(dest_buffer, reports_make_images_summary( data ).c_str(), dest_buffer_size);
     dest_buffer[dest_buffer_size-1] = '\0';
@@ -173,7 +173,7 @@ std::string reports_make_scenes_summary(pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltfdata_make_scenes_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
+void lv_gltf_data_make_scenes_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
     dest_buffer[0] = '\0';
     strncpy(dest_buffer, reports_make_scenes_summary( data ).c_str(), dest_buffer_size);
     dest_buffer[dest_buffer_size-1] = '\0';
@@ -246,7 +246,7 @@ std::string reports_make_animations_summary(pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltfdata_make_animations_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size){
+void lv_gltf_data_make_animations_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size){
     dest_buffer[0] = '\0';
     strncpy(dest_buffer, reports_make_animations_summary( data ).c_str(), dest_buffer_size);
 }

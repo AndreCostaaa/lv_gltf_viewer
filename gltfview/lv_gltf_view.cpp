@@ -34,15 +34,15 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 #pragma GCC diagnostic pop
 #endif
 
-#include "lv_gltfview.h"
-#include "lv_gltfview_internal.h"
+#include "lv_gltf_view.h"
+#include "lv_gltf_view_internal.h"
 #include "sup/animation.cpp"
 #include "sup/datatypes.cpp"
 #include "sup/ibl_sampler.cpp"
 #include "sup/injest.cpp"
 #include "sup/reports.cpp"
 #include "sup/setup.cpp"
-#include "sup/shader_cache.cpp"
+//#include "sup/shader_cache.cpp"
 #include "sup/shader_includes.cpp"
 #include "sup/utils.cpp"
 
@@ -50,7 +50,7 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 
 static MapofTransformMap _ibmBySkinThenNode;
 
-gltf_probe_info*        lv_gltfview_get_probe(pGltf_data_t D){return ((gltf_probe_info*)(&(D->probe)));}
+gltf_probe_info*        lv_gltf_view_get_probe(pGltf_data_t D){return ((gltf_probe_info*)(&(D->probe)));}
 
 namespace fastgltf {
     FASTGLTF_EXPORT template <typename AssetType, typename Callback>
@@ -146,15 +146,15 @@ namespace fastgltf::math {
 
 } // namespace fastgltf::math
 
-lv_gltf_override_t * lv_gltfview_add_override_by_index(pGltf_data_t _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask){
+lv_gltf_override_t * lv_gltf_view_add_override_by_index(pGltf_data_t _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask){
     return NULL;
 }
 
-lv_gltf_override_t * lv_gltfview_add_override_by_ip(pGltf_data_t _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask){
+lv_gltf_override_t * lv_gltf_view_add_override_by_ip(pGltf_data_t _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask){
     return NULL;
 }
 
-lv_gltf_override_t * lv_gltfview_add_override_by_id(pGltf_data_t _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask){
+lv_gltf_override_t * lv_gltf_view_add_override_by_id(pGltf_data_t _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask){
     std::string sNodeId = std::string(nodeId);
     if ((*_data->node_by_path).find(sNodeId) != (*_data->node_by_path).end()) {
         const auto& _node = (*_data->node_by_path)[sNodeId];
@@ -172,26 +172,26 @@ lv_gltf_override_t * lv_gltfview_add_override_by_id(pGltf_data_t _data, const ch
     return NULL;
 }
 
-int64_t lv_gltfview_get_node_handle_by_name(const char * _nodename) {
+int64_t lv_gltf_view_get_node_handle_by_name(const char * _nodename) {
     return -1;
 }
 
-void lv_gltfdata_destroy(pGltf_data_t _data){
+void lv_gltf_data_destroy(pGltf_data_t _data){
     __free_data_struct(_data);
 }
 
-void lv_gltfview_destroy(lv_gltfview_t * _viewer){
+void lv_gltf_view_destroy(lv_gltf_view_t * _viewer){
     __free_viewer_struct(_viewer);  // Currently does nothing, this could be removed
     clearDefines();
 }
 
-void lv_gltfview_shadercache_destroy(pShaderCache _shaders){
-    destroy_ShaderCache(_shaders);
+void lv_gltf_view_shadercache_destroy(lv_opengl_shader_cache_t * _shaders){
+    lv_opengl_shader_cache_destroy(_shaders);
 }
 
 void draw_primitive(  int32_t prim_num,
                 gl_viewer_desc_t * view_desc,
-                lv_gltfview_t * viewer,
+                lv_gltf_view_t * viewer,
                 pGltf_data_t gltf_data,
                 fastgltf::Node& node,
                 std::size_t mesh_index,
@@ -386,7 +386,7 @@ void draw_primitive(  int32_t prim_num,
     }
 }
 
-void lv_gltfview_reset_between_models( lv_gltfview_t * viewer ){
+void lv_gltf_view_reset_between_models( lv_gltf_view_t * viewer ){
     const auto& vstate =    get_viewer_state(viewer);
     if (vstate->render_state_ready) {
         setup_cleanup_opengl_output(&vstate->render_state);
@@ -396,11 +396,11 @@ void lv_gltfview_reset_between_models( lv_gltfview_t * viewer ){
     _ibmBySkinThenNode.clear();
 }
 
-uint32_t lv_gltfview_render( pShaderCache shaders, lv_gltfview_t * viewer, pGltf_data_t gltf_data, bool prepare_bg, uint32_t crop_left,  uint32_t crop_right,  uint32_t crop_top,  uint32_t crop_bottom ) {
+uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t * viewer, pGltf_data_t gltf_data, bool prepare_bg, uint32_t crop_left,  uint32_t crop_right,  uint32_t crop_top,  uint32_t crop_bottom ) {
     const auto& asset =     GET_ASSET(gltf_data);
     const auto& probe =     PROBE(gltf_data);
     const auto& vstate =    get_viewer_state(viewer);
-    const auto view_desc = lv_gltfview_get_desc(viewer);
+    const auto view_desc = lv_gltf_view_get_desc(viewer);
     const auto& vopts =     &(vstate->options);
     const auto& vmetrics =  &(vstate->metrics);
     bool opt_draw_bg = prepare_bg && (view_desc->bg_mode == BG_ENVIRONMENT);

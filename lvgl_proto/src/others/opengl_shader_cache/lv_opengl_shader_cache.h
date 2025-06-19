@@ -1,12 +1,20 @@
 #ifndef SHADER_CACHE_H
 #define SHADER_CACHE_H
-#include "shader_includes.h" /* key_value */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#ifndef LV_SHADER_CACHE_KEYVAL
+#define LV_SHADER_CACHE_KEYVAL
+typedef struct {
+    const char* key;
+    const char* value;
+} lv_shader_key_value_t;
+#endif /* LV_SHADER_CACHE_KEYVAL */
+
 ////////////////////////////////////////////////////////////////////////////////////////
-typedef struct ShaderCache_struct ShaderCache_struct, *pShaderCache;
+typedef struct lv_opengl_shader_cache_t lv_opengl_shader_cache_t, *pShaderCache;
 typedef struct Program_struct Program_struct, *pProgram;
 ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -43,27 +51,27 @@ void destroy_Program(pProgram This);
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct ShaderCache_struct {
+typedef struct lv_opengl_shader_cache_t {
     // Methods:
         // selectShader ( myCache, identifier, defines[key_val] array, defines[key_val] array count ) 
             // --> (possibly compiles a new shader) 
-            long unsigned int (*selectShader)(pShaderCache, const char*, key_value*, unsigned int );
+            long unsigned int (*selectShader)(lv_opengl_shader_cache_t *, const char*, lv_shader_key_value_t*, unsigned int );
             // --> returns the unique shader ID hash
         
             // getShaderProgram ( myCache, unique vertex shader hash, unique fragment shader hash )
-            pProgram (*getShaderProgram)(pShaderCache, unsigned long int, unsigned long int);
+            pProgram (*getShaderProgram)(lv_opengl_shader_cache_t *, unsigned long int, unsigned long int);
             // --> returns a Program struct holding the shader information
             
             // setTextureCacheItem ( myCache, unique texture id hash, opengl texture id )
             // --> (sets internal cache of loaded textures at element hash to texture id ) 
-            void (*setTextureCacheItem)(pShaderCache, long unsigned int, unsigned int);
+            void (*setTextureCacheItem)(lv_opengl_shader_cache_t *, long unsigned int, unsigned int);
             // --> returns nothing
             
             // getCachedTexture ( myCache, unique texture id hash )
-            unsigned int (*getCachedTexture)(pShaderCache, long unsigned int);
+            unsigned int (*getCachedTexture)(lv_opengl_shader_cache_t *, long unsigned int);
             // --> returns the texture id of requested cache resource or GL_NONE if not found
 
-    key_value* kvsources;
+    lv_shader_key_value_t* kvsources;
     unsigned int kvcount;
     unsigned int bg_indexBuf;
     unsigned int bg_vertexBuf;
@@ -74,9 +82,9 @@ typedef struct ShaderCache_struct {
     void* map_shaders;      //  -> (std::map<unsigned long int, GLuint>*)
     void* map_programs;     //  -> (std::map<std::string, Program_struct>*)
     void* map_textures;     //  -> (std::map<unsigned long int, GLuint>*)
-} ShaderCache_struct, *pShaderCache;
-ShaderCache_struct ShaderCache(key_value* _sources, unsigned int _count, char* _vertSrc, char* _fragSrc);
-void destroy_ShaderCache(pShaderCache This);
+} lv_opengl_shader_cache_t, *pShaderCache;
+lv_opengl_shader_cache_t lv_opengl_shader_cache_create(lv_shader_key_value_t* _sources, unsigned int _count, char* _vertSrc, char* _fragSrc);
+void lv_opengl_shader_cache_destroy(lv_opengl_shader_cache_t * This);
 
 ////////////////////////////////////////////////////////////////////////////////////////
 

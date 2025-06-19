@@ -11,7 +11,7 @@
 #include "lib/fastgltf/include/fastgltf/tools.hpp"
 #pragma GCC diagnostic pop
 
-#include "../lv_gltfview_internal.h"
+#include "../lv_gltf_view_internal.h"
 
 #include "lib/mathc/mathc.h"
 #include "lib/mathc/mathc.c"
@@ -204,9 +204,9 @@ FVEC3 __multiplyMatrixByVector(const FMAT4 mat, const FVEC3 vec) {
 }
 
 // Function to compute the ray from the camera through the mouse position
-bool __computeRayToGround( lv_gltfview_t * viewer, float norm_mouseX, float norm_mouseY, double groundHeight, float aspectRatio, FVEC3* collisionPoint) {
+bool __computeRayToGround( lv_gltf_view_t * viewer, float norm_mouseX, float norm_mouseY, double groundHeight, float aspectRatio, FVEC3* collisionPoint) {
     const auto& _viewmat = GET_VIEW_MAT(viewer);
-    //const auto& _desc = lv_gltfview_get_desc(viewer);
+    //const auto& _desc = lv_gltf_view_get_desc(viewer);
     FMAT4 __projmat;
     //float aspectRatio = 256.0f / 192.0f;
     float nearPlane = 0.1f;
@@ -261,7 +261,7 @@ bool __computeRayToGround( lv_gltfview_t * viewer, float norm_mouseX, float norm
     return true; // Collision point found
 }
 
-bool lv_gltfview_raycast_ground_position( lv_gltfview_t * viewer, int32_t _mouseX, int32_t _mouseY, int32_t _winWidth, int32_t _winHeight, double groundHeight, float* outPos) {
+bool lv_gltf_view_raycast_ground_position( lv_gltf_view_t * viewer, int32_t _mouseX, int32_t _mouseY, int32_t _winWidth, int32_t _winHeight, double groundHeight, float* outPos) {
     float norm_mouseX = (float)_mouseX / (float)(_winWidth);
     float norm_mouseY = (float)_mouseY / (float)(_winHeight);
     FVEC3 _rayres;
@@ -278,22 +278,22 @@ FVEC3 lv_gltf_get_centerpoint(pGltf_data_t gltf_data, FMAT4 matrix, uint32_t mes
     return get_cached_centerpoint(gltf_data, meshIndex, elem, matrix);
 }
 
-void lv_gltfview_recenter_view_on_model( lv_gltfview_t * viewer, pGltf_data_t gltf_data) {
+void lv_gltf_view_recenter_view_on_model( lv_gltf_view_t * viewer, pGltf_data_t gltf_data) {
     const auto& _autocenpos = get_center(gltf_data);
-    lv_gltfview_set_focal_x(viewer, _autocenpos[0]);
-    lv_gltfview_set_focal_y(viewer, _autocenpos[1]);
-    lv_gltfview_set_focal_z(viewer, _autocenpos[2]);
+    lv_gltf_view_set_focal_x(viewer, _autocenpos[0]);
+    lv_gltf_view_set_focal_y(viewer, _autocenpos[1]);
+    lv_gltf_view_set_focal_z(viewer, _autocenpos[2]);
 }
 
-void lv_gltfview_utils_save_pixelbuffer_to_png( lv_gltfview_t * viewer,  char * pixels, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t width, uint32_t height ) {
+void lv_gltf_view_utils_save_pixelbuffer_to_png( lv_gltf_view_t * viewer,  char * pixels, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t width, uint32_t height ) {
     stbi_write_png_compression_level = compression_level;
     stbi_flip_vertically_on_write(true);
     stbi_write_png(filename, width, height, (alpha_enabled ? 4 : 3), pixels, width * (alpha_enabled ? 4 : 3));
 }
 
-void lv_gltfview_utils_get_capture_buffer( char * pixels, lv_gltfview_t * viewer, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
+void lv_gltf_view_utils_get_capture_buffer( char * pixels, lv_gltf_view_t * viewer, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
     //const auto& vstate = get_viewer_state(viewer);
-    //const auto& vdesc = lv_gltfview_get_desc(viewer);
+    //const auto& vdesc = lv_gltf_view_get_desc(viewer);
     GL_CALL(glBindTexture(GL_TEXTURE_2D, tex_id));
     if (alpha_enabled) {
         //pixels = (char *)lv_malloc(height * width * 4);
@@ -304,15 +304,15 @@ void lv_gltfview_utils_get_capture_buffer( char * pixels, lv_gltfview_t * viewer
     }
 }
 
-void lv_gltfview_utils_save_texture_to_png( lv_gltfview_t * viewer, uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
+void lv_gltf_view_utils_save_texture_to_png( lv_gltf_view_t * viewer, uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
     char * pixels =(char *)lv_malloc(height * width * 4);
-    lv_gltfview_utils_get_capture_buffer( pixels, viewer, tex_id, alpha_enabled, mipmapnum, width, height );
-    lv_gltfview_utils_save_pixelbuffer_to_png( viewer,  pixels, filename, alpha_enabled, compression_level, width, height );
+    lv_gltf_view_utils_get_capture_buffer( pixels, viewer, tex_id, alpha_enabled, mipmapnum, width, height );
+    lv_gltf_view_utils_save_pixelbuffer_to_png( viewer,  pixels, filename, alpha_enabled, compression_level, width, height );
     lv_free(pixels);
 }
 
-void lv_gltfview_utils_save_png( lv_gltfview_t * viewer, const char * filename, bool alpha_enabled, uint32_t compression_level ) {
+void lv_gltf_view_utils_save_png( lv_gltf_view_t * viewer, const char * filename, bool alpha_enabled, uint32_t compression_level ) {
     const auto& vstate = get_viewer_state(viewer);
-    const auto& vdesc = lv_gltfview_get_desc(viewer);
-    lv_gltfview_utils_save_texture_to_png( viewer, vstate->render_state.texture, filename, alpha_enabled, compression_level, lv_gltfview_check_frame_was_antialiased(viewer) ? 1 : 0, vdesc->width, vdesc->height );
+    const auto& vdesc = lv_gltf_view_get_desc(viewer);
+    lv_gltf_view_utils_save_texture_to_png( viewer, vstate->render_state.texture, filename, alpha_enabled, compression_level, lv_gltf_view_check_frame_was_antialiased(viewer) ? 1 : 0, vdesc->width, vdesc->height );
 }

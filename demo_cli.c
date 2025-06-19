@@ -39,16 +39,16 @@ void cli_print_usage() {
 bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char * hdrFile, int * frame_count, bool * software_only, bool * start_maximized, bool *_stub_mode, float * _anim_rate, int argc, char *argv[] ){
 
     /* First apply the defaults */
-    lv_gltfview_set_env_pow(viewer, 1.8f );
-    lv_gltfview_set_exposure(viewer, 0.8f );
-    lv_gltfview_set_distance(viewer, 1000);
-    lv_gltfview_set_yaw(viewer, 420 );
-    lv_gltfview_set_pitch(viewer, -200 );
-    lv_gltfview_set_blur_bg(viewer, 0.25f );
-    lv_gltfview_set_aa_mode(viewer, ANTIALIAS_NOT_MOVING );
-    lv_gltfview_set_bg_mode(viewer, BG_CLEAR);
-    lv_gltfview_set_width(viewer, BIG_TEXTURE_WIDTH);
-    lv_gltfview_set_height(viewer, BIG_TEXTURE_HEIGHT);
+    lv_gltf_view_set_env_pow(viewer, 1.8f );
+    lv_gltf_view_set_exposure(viewer, 0.8f );
+    lv_gltf_view_set_distance(viewer, 1000);
+    lv_gltf_view_set_yaw(viewer, 420 );
+    lv_gltf_view_set_pitch(viewer, -200 );
+    lv_gltf_view_set_blur_bg(viewer, 0.25f );
+    lv_gltf_view_set_aa_mode(viewer, ANTIALIAS_NOT_MOVING );
+    lv_gltf_view_set_bg_mode(viewer, BG_CLEAR);
+    lv_gltf_view_set_width(viewer, BIG_TEXTURE_WIDTH);
+    lv_gltf_view_set_height(viewer, BIG_TEXTURE_HEIGHT);
 
     bool gotFilenameInput = false;
     bool passedParamChecks = true;
@@ -100,29 +100,29 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                 i++;
             } else if (strcmp(argv[i], "-aa") == 0 && (i + 1) < argc) {
                 if ((strcmp(argv[i + 1], "ANTIALIAS_OFF") == 0) || (strcmp(argv[i + 1], "0") == 0)) {
-                    lv_gltfview_set_aa_mode(viewer, ANTIALIAS_OFF );
+                    lv_gltf_view_set_aa_mode(viewer, ANTIALIAS_OFF );
                 } else if ((strcmp(argv[i + 1], "ANTIALIAS_CONSTANT") == 0) || (strcmp(argv[i + 1], "1") == 0)) {
-                    lv_gltfview_set_aa_mode(viewer, ANTIALIAS_CONSTANT );
+                    lv_gltf_view_set_aa_mode(viewer, ANTIALIAS_CONSTANT );
                 } else if ((strcmp(argv[i + 1], "ANTIALIAS_NOT_MOVING") == 0) || (strcmp(argv[i + 1], "2") == 0)) {
-                    lv_gltfview_set_aa_mode(viewer, ANTIALIAS_NOT_MOVING );
+                    lv_gltf_view_set_aa_mode(viewer, ANTIALIAS_NOT_MOVING );
                 } else {
-                    lv_gltfview_set_aa_mode(viewer, ANTIALIAS_NOT_MOVING );
+                    lv_gltf_view_set_aa_mode(viewer, ANTIALIAS_NOT_MOVING );
                 }
                 i++;
             } else if (strcmp(argv[i], "-bg") == 0 && (i + 1) < argc) {
                 if ((strcmp(argv[i + 1], "BG_CLEAR") == 0) || (strcmp(argv[i + 1], "0") == 0)) {
-                    lv_gltfview_set_bg_mode(viewer, BG_CLEAR);
+                    lv_gltf_view_set_bg_mode(viewer, BG_CLEAR);
                 } else if ((strcmp(argv[i + 1], "BG_SOLID") == 0) || (strcmp(argv[i + 1], "1") == 0)) {
-                    lv_gltfview_set_bg_mode(viewer, BG_SOLID);
+                    lv_gltf_view_set_bg_mode(viewer, BG_SOLID);
                 } else if ((strcmp(argv[i + 1], "BG_ENVIRONMENT") == 0) || (strcmp(argv[i + 1], "2") == 0)) {
-                    lv_gltfview_set_bg_mode(viewer, BG_ENVIRONMENT);
+                    lv_gltf_view_set_bg_mode(viewer, BG_ENVIRONMENT);
                 } else {
-                    lv_gltfview_set_bg_mode(viewer, BG_CLEAR);
+                    lv_gltf_view_set_bg_mode(viewer, BG_CLEAR);
                 }
                 i++;
             } else if (strcmp(argv[i], "-blur_bg") == 0 && (i + 1) < argc) {
                 if (i + 1 < argc) {
-                    lv_gltfview_set_blur_bg(viewer, (float)(atoi(argv[i + 1])) / 1000.f );
+                    lv_gltf_view_set_blur_bg(viewer, (float)(atoi(argv[i + 1])) / 1000.f );
                     i++;
                 } else {
                     printf("Error: -blur_bg option requires an integer value.\n");
@@ -136,14 +136,14 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                 }
             } else if (strcmp(argv[i], "-env_pow") == 0 && (i + 1) < argc) {
                 if (i + 1 < argc) {
-                    lv_gltfview_set_env_pow(viewer, atoi(argv[i + 1]) / 100.0f );
+                    lv_gltf_view_set_env_pow(viewer, atoi(argv[i + 1]) / 100.0f );
                     i++;
                 } else {
                     printf("Error: -env_pow option requires an integer value.\n");
                 }
             } else if (strcmp(argv[i], "-expo") == 0 && (i + 1) < argc) {
                 if (i + 1 < argc) {
-                    lv_gltfview_set_exposure(viewer, atoi(argv[i + 1]) / 100.0f );
+                    lv_gltf_view_set_exposure(viewer, atoi(argv[i + 1]) / 100.0f );
                     i++;
                 } else {
                     printf("Error: -expo option requires an integer value.\n");
@@ -212,14 +212,14 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                 }
             } else if (strcmp(argv[i], "-pitch") == 0 && (i + 1) < argc) {
                 if (i + 1 < argc) {
-                    lv_gltfview_set_pitch(viewer, atoi(argv[i + 1]));
+                    lv_gltf_view_set_pitch(viewer, atoi(argv[i + 1]));
                     i++;
                 } else {
                     printf("Error: -pitch option requires an integer value.\n");
                 }
             } else if (strcmp(argv[i], "-yaw") == 0 && (i + 1) < argc) {
                 if (i + 1 < argc) {
-                    lv_gltfview_set_yaw(viewer, atoi(argv[i + 1]));
+                    lv_gltf_view_set_yaw(viewer, atoi(argv[i + 1]));
                     i++; 
                 } else {
                     printf("Error: -yaw option requires an integer value.\n");
@@ -240,7 +240,7 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                 }
             } else if (strcmp(argv[i], "-distance") == 0 && (i + 1) < argc) {
                 if (i + 1 < argc) {
-                    lv_gltfview_set_distance(viewer, atoi(argv[i + 1]));
+                    lv_gltf_view_set_distance(viewer, atoi(argv[i + 1]));
                     i++;
                 } else {
                     printf("Error: -distance option requires an integer value.\n");
@@ -257,17 +257,17 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
     passedParamChecks &= gotFilenameInput;
 
     if (passedParamChecks) {
-        goal_focal_x = lv_gltfview_get_focal_x(viewer);
-        goal_focal_y = lv_gltfview_get_focal_y(viewer);
-        goal_focal_z = lv_gltfview_get_focal_z(viewer);
-        goal_pitch = lv_gltfview_get_pitch(viewer);
-        goal_yaw = lv_gltfview_get_yaw(viewer);
-        goal_distance = lv_gltfview_get_distance(viewer);
+        goal_focal_x = lv_gltf_view_get_focal_x(viewer);
+        goal_focal_y = lv_gltf_view_get_focal_y(viewer);
+        goal_focal_z = lv_gltf_view_get_focal_z(viewer);
+        goal_pitch = lv_gltf_view_get_pitch(viewer);
+        goal_yaw = lv_gltf_view_get_yaw(viewer);
+        goal_distance = lv_gltf_view_get_distance(viewer);
         if (enable_intro_zoom) {
             int _zoomdist = (int)((goal_distance*1.25f+0.1f)*1000.f);
-            lv_gltfview_set_distance(viewer, _zoomdist);
+            lv_gltf_view_set_distance(viewer, _zoomdist);
             printf ("goal distance before: %0.4f, and as x1000 int after: %d\n", goal_distance, _zoomdist );
-            printf ("goal distance as float after confirm: %0.4f\n", lv_gltfview_get_distance(viewer) );
+            printf ("goal distance as float after confirm: %0.4f\n", lv_gltf_view_get_distance(viewer) );
         }
 
         *_stub_mode = false;
@@ -281,10 +281,10 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
         // Output the parsed parameters
         printf("glTF File Path: %s\n", gltfFile[0] ? gltfFile : "None provided");
         printf("HDR File Path: %s\n", hdrFile[0] ? hdrFile : "None provided");
-        printf("Antialiasing Mode: %d\n", lv_gltfview_get_aa_mode(demo_gltfview));
-        printf("Background Mode: %d\n",  lv_gltfview_get_bg_mode(demo_gltfview));
-        printf("Pitch: %.2f\n", lv_gltfview_get_pitch(demo_gltfview));
-        printf("Yaw: %.2f\n", lv_gltfview_get_yaw(demo_gltfview));
+        printf("Antialiasing Mode: %d\n", lv_gltf_view_get_aa_mode(demo_gltfview));
+        printf("Background Mode: %d\n",  lv_gltf_view_get_bg_mode(demo_gltfview));
+        printf("Pitch: %.2f\n", lv_gltf_view_get_pitch(demo_gltfview));
+        printf("Yaw: %.2f\n", lv_gltf_view_get_yaw(demo_gltfview));
         printf("Frame Count: %d\n", *frame_count);
         printf("Spin Rate (degrees per sec): %.3f\n", spin_rate);
         printf("Software Only: %s\n", *software_only ? "true" : "false");

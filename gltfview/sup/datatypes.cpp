@@ -1,7 +1,7 @@
 #include "lib/fastgltf/include/fastgltf/types.hpp"
 
 #include "include/datatypes.h"
-#include "../lv_gltfview_internal.h"
+#include "../lv_gltf_view_internal.h"
 #include <algorithm>
 
 #ifndef __MESH_DATA_DEFINED
@@ -12,7 +12,7 @@ struct MeshData {
 };
 #endif /* __MESH_DATA_DEFINED */
 
-typedef lv_gltfview_t *     _VIEW;
+typedef lv_gltf_view_t *     _VIEW;
 typedef pGltf_data_t        _DATA;
 typedef FVEC3               _VEC3;
 typedef FVEC4               _VEC4;
@@ -22,7 +22,7 @@ typedef MeshData            _MESH;
 typedef NodePtr             _NODE;
 #define _RET return
 
-struct lv_gltfdata_struct {
+struct lv_gltf_data_struct {
     ASSET * asset;
     bool load_success;
     gltf_probe_info probe;
@@ -96,7 +96,7 @@ struct lv_gltfdata_struct {
     bool nodes_parsed;
 
     bool view_is_linked = false;
-    lv_gltfdata_t * linked_view_source;
+    lv_gltf_data_t * linked_view_source;
     //bool render_state_ready;
 };
 
@@ -106,7 +106,7 @@ struct _MatrixSet {
     FMAT4 viewProjectionMatrix = FMAT4(1.0f);
 };
 
-struct lv_gltfview_struct {
+struct lv_gltf_view_struct {
     _ViewerState state;
     _MatrixSet mats;
 
@@ -128,11 +128,11 @@ MeshData* lv_gltf_get_new_meshdata(_DATA _data) {
 }
 
 uint32_t get_gltf_datastruct_datasize(void) {
-    return sizeof(lv_gltfdata_t);
+    return sizeof(lv_gltf_data_t);
 }
 
 uint32_t get_viewer_datasize(void) {
-    return sizeof(lv_gltfview_t);
+    return sizeof(lv_gltf_view_t);
 }
 
 uint32_t get_primitive_datasize(void) {
@@ -142,7 +142,7 @@ uint32_t get_primitive_datasize(void) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
-    lv_gltfdata_t _newDataStruct;
+    lv_gltf_data_t _newDataStruct;
     _newDataStruct.filename = gltf_path;
     _newDataStruct.load_success = false;  
 
@@ -167,7 +167,7 @@ void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
     _newDataStruct.view_is_linked = false;
     _newDataStruct.linked_view_source = NULL;
 
-    memcpy (_DataStructMem, &_newDataStruct, sizeof (lv_gltfdata_t));
+    memcpy (_DataStructMem, &_newDataStruct, sizeof (lv_gltf_data_t));
     _DataStructMem->asset = new ASSET();
 
     _DataStructMem->overrides = new std::map<fastgltf::Node *, lv_gltf_override_t>();
@@ -193,7 +193,7 @@ void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
 }
 
 void init_viewer_struct(_VIEW _ViewerMem) {
-    lv_gltfview_t _newViewer;
+    lv_gltf_view_t _newViewer;
     auto _newMetrics = &_newViewer.state.metrics;
         _newMetrics->opaqueFramebufferWidth = 256;
         _newMetrics->opaqueFramebufferHeight = 256;
@@ -228,7 +228,7 @@ void init_viewer_struct(_VIEW _ViewerMem) {
     _newViewer.state.renderOpaqueBuffer = false;
     _newViewer.cameraIndex = std::nullopt;
     _newViewer.envRotationAngle = 0.0f;
-    memcpy (_ViewerMem, &_newViewer, sizeof (lv_gltfview_t));
+    memcpy (_ViewerMem, &_newViewer, sizeof (lv_gltf_view_t));
 }
 #pragma GCC diagnostic pop
 
@@ -302,7 +302,7 @@ void*           get_texdata_set             (_DATA D)         {_RET &(D->texture
 _ViewerOpts*    get_viewer_opts             (_VIEW V)         {_RET &(V->state.options);}
 _ViewerMetrics* get_viewer_metrics          (_VIEW V)         {_RET &(V->state.metrics);}
 _ViewerState*   get_viewer_state            (_VIEW V)         {_RET &(V->state);}
-gl_viewer_desc_t* lv_gltfview_get_desc      (_VIEW V)         {_RET &(V->desc);}
+gl_viewer_desc_t* lv_gltf_view_get_desc      (_VIEW V)         {_RET &(V->desc);}
 _MatrixSet*     get_matrix_set              (_VIEW V)         {_RET &(V->mats);}
 double          get_model_radius            (_DATA D)         {_RET (double)D->bound_radius;}
 double          get_view_radius             (_VIEW V)         {_RET (double)V->bound_radius;}
@@ -379,7 +379,7 @@ void set_bounds_info(_DATA D, _VEC3 _vmin, _VEC3 _vmax, _VEC3 _vcen, float _radi
 }
 
 
-void lv_gltfdata_copy_bounds_info(_DATA to, _DATA from) {
+void lv_gltf_data_copy_bounds_info(_DATA to, _DATA from) {
     { to->vertex_min[0] = from->vertex_min[0]; to->vertex_min[1] = from->vertex_min[1]; to->vertex_min[2] = from->vertex_min[2]; }
     { to->vertex_max[0] = from->vertex_max[0]; to->vertex_max[1] = from->vertex_max[1]; to->vertex_max[2] = from->vertex_max[2]; }
     { to->vertex_cen[0] = from->vertex_cen[0]; to->vertex_cen[1] = from->vertex_cen[1]; to->vertex_cen[2] = from->vertex_cen[2]; }

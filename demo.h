@@ -4,7 +4,7 @@
 #include "lvgl/demos/lv_demos.h"
 #include "lvgl/examples/lv_examples.h"
 
-#include "gltfview/lv_gltfview.h"
+#include "gltfview/lv_gltf_view.h"
 
 #include <unistd.h>     /* usleep */
 #include <GL/glew.h>    /* For window size restrictions */
@@ -112,10 +112,10 @@ extern lv_obj_t * progbar1;
 extern lv_obj_t * progbar2;
 extern lv_obj_t * anim_checkbox;
 
-extern lv_gltfdata_t * temp_teapot_gltfdata;
-extern lv_gltfdata_t * system_gltfdata;
-extern lv_gltfdata_t * demo_gltfdata;
-extern lv_gltfview_t * demo_gltfview;
+extern lv_gltf_data_t * temp_teapot_gltfdata;
+extern lv_gltf_data_t * system_gltfdata;
+extern lv_gltf_data_t * demo_gltfdata;
+extern lv_gltf_view_t * demo_gltfview;
 extern lv_obj_t * gltfview_3dtex;
 
 extern lv_gltf_override_t * ov_boom;
@@ -131,7 +131,7 @@ extern lv_style_t style_file_button;
 extern lv_style_t style_folder_button;
 extern bool __styles_ready;
 
-extern pShaderCache shaderCache;
+extern lv_opengl_shader_cache_t * shaderCache;
 
 LV_IMAGE_DECLARE(lvgl_icon_40px);
 LV_IMAGE_DECLARE(sprites1_32x32x7);
@@ -160,7 +160,6 @@ void demo_os_integrate_save_png_from_new_thread(int _frameCount, bool _desktop_m
 void *demo_os_integrate_save_desktop_png_thread(void *arg);
 #endif
 void os_integrate_window_resize_callback(GLFWwindow* window, int width, int height);
-
 uint32_t ui_get_window_width(void);
 uint32_t ui_get_window_height(void);
 uint32_t ui_get_primary_texture_width(void);
@@ -172,15 +171,10 @@ void demo_ui_set_checkbox_value_without_event(lv_obj_t * checkbox, bool value);
 void demo_ui_apply_pitch_value(float visual_pitch );
 bool demo_ui_apply_yaw_value(float visual_yaw );
 void demo_ui_apply_distance_value(float visual_distance );
-
 void demo_ui_reposition_all( void );
-
 void reload(char * _filename, const char * _hdr_filename);
-void demo_refocus(lv_gltfview_t * gltfview, bool first_call);
-
-
+void demo_refocus(lv_gltf_view_t * gltfview, bool first_call);
 void create_file_open_dialog(lv_obj_t * container);
-
 void __make_styles(void);
 void ui_resize_all_file_open_dialog_widgets(lv_obj_t *parent);
 void demo_os_integrate_window_standard_title(const char * file_path);
@@ -189,14 +183,12 @@ uint32_t ui_max(uint32_t a, uint32_t b);
 void demo_ui_apply_spin_rate_value(float visual_spin_rate);
 void demo_ui_apply_spin_enabled_value(bool visual_animate_spin);
 void demo_nav_gradual_to_goals( void );
-
 double d_min(double a, double b);
 uint32_t ui_max(uint32_t a, uint32_t b);
 float lerp(float start, float end, float t);
-
 void setup_shadercache(const char * hdr_filepath, int degrees_x10 );
 void demo_set_overrides(void);
-void demo_refocus(lv_gltfview_t * gltfview, bool first_call);
+void demo_refocus(lv_gltf_view_t * gltfview, bool first_call);
 uint32_t demo_make_small_clear_texture();
 
 #endif // MAINUI_SHARED_H

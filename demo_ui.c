@@ -54,17 +54,17 @@ lv_obj_t * anim_buttons[MAX_ANIM_BUTTONS];
 
 uint32_t ui_get_window_width(){
     
-    return lv_gltfview_get_width(demo_gltfview)+(INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT);
+    return lv_gltf_view_get_width(demo_gltfview)+(INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT);
     //return WINDOW_WIDTH;
 }
 
 
 uint32_t ui_get_window_height(){
-    return lv_gltfview_get_height(demo_gltfview)+(INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM);
+    return lv_gltf_view_get_height(demo_gltfview)+(INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM);
     //return WINDOW_HEIGHT;
 }
-uint32_t ui_get_primary_texture_width(){ return lv_gltfview_get_width(demo_gltfview); }
-uint32_t ui_get_primary_texture_height(){ return lv_gltfview_get_height(demo_gltfview); }
+uint32_t ui_get_primary_texture_width(){ return lv_gltf_view_get_width(demo_gltfview); }
+uint32_t ui_get_primary_texture_height(){ return lv_gltf_view_get_height(demo_gltfview); }
 
 uint32_t ui_get_max_window_width(void) { return 1920; }
 uint32_t ui_get_max_window_height(void) { return 1080; }
@@ -214,7 +214,7 @@ static void pitch_slider_event_cb(lv_event_t * e){
     if (ignore_event) { return; }
     lv_obj_t * slider = lv_event_get_target_obj(e);
     goal_pitch = ((float)lv_slider_get_value(slider) / 100.0f ) * 180.f;
-    //lv_gltfview_set_pitch(demo_gltfview, (int)(((float)lv_slider_get_value(slider) / 100.0f ) * 1800.f));
+    //lv_gltf_view_set_pitch(demo_gltfview, (int)(((float)lv_slider_get_value(slider) / 100.0f ) * 1800.f));
     lv_refr_now(NULL);
 }
 
@@ -255,7 +255,7 @@ static void distance_slider_event_cb(lv_event_t * e){
         _distance = pow(_distance, 2.0);
     }
     goal_distance = _distance;
-    //lv_gltfview_set_distance(demo_gltfview, (int)(_distance * 1000.0f));
+    //lv_gltf_view_set_distance(demo_gltfview, (int)(_distance * 1000.0f));
     lv_refr_now(NULL);
 }
 
@@ -286,7 +286,7 @@ static void tab_clicked_event_cb(lv_event_t * e){
 }
 
 void demo_ui_apply_camera_button_visibility(pGltf_data_t _data){
-    gltf_probe_info * probe = lv_gltfview_get_probe(_data);
+    gltf_probe_info * probe = lv_gltf_view_get_probe(_data);
     for (unsigned int i=0; i<MAX_CAM_BUTTONS; i++)
         if (use_scenecam && (i < probe->cameraCount)) lv_obj_clear_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
             else lv_obj_add_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
@@ -295,7 +295,7 @@ void demo_ui_apply_camera_button_visibility(pGltf_data_t _data){
 }
 
 void demo_ui_apply_anim_button_visibility(pGltf_data_t _data){
-    gltf_probe_info * probe = lv_gltfview_get_probe(_data);
+    gltf_probe_info * probe = lv_gltf_view_get_probe(_data);
     for (unsigned int i=0; i<MAX_ANIM_BUTTONS; i++)
         if (anim_enabled && i < probe->animationCount) lv_obj_clear_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
             else lv_obj_add_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
@@ -452,8 +452,8 @@ void demo_ui_loading_info_objects(void){
     lv_label_set_text(progText1, "Loading...");
 
     /* Set the loading info update callbacks */
-    lv_gltfview_ibl_set_loadphase_callback(demo_ui_load_progress_callback);
-    lv_gltfview_set_loadphase_callback(demo_ui_load_progress_callback);
+    lv_gltf_view_ibl_set_loadphase_callback(demo_ui_load_progress_callback);
+    lv_gltf_view_set_loadphase_callback(demo_ui_load_progress_callback);
 }
 
 #define TBUF_SIZE 32768
@@ -496,13 +496,13 @@ void demo_ui_fill_in_InfoTab( pGltf_data_t _data ) {
     char * _tbuf;
     _tbuf  = (char *)malloc(TBUF_SIZE);
 
-    lv_gltfdata_make_scenes_summary( _data, _tbuf, TBUF_SIZE );
+    lv_gltf_data_make_scenes_summary( _data, _tbuf, TBUF_SIZE );
     strcat(_c, _tbuf);
-    lv_gltfdata_make_mesh_summary( _data, _tbuf, TBUF_SIZE );
+    lv_gltf_data_make_mesh_summary( _data, _tbuf, TBUF_SIZE );
     strcat(_c, _tbuf);
-    lv_gltfdata_make_material_summary( _data, _tbuf, TBUF_SIZE );
+    lv_gltf_data_make_material_summary( _data, _tbuf, TBUF_SIZE );
     strcat(_c, _tbuf);
-    lv_gltfdata_make_images_summary( _data, _tbuf, TBUF_SIZE );
+    lv_gltf_data_make_images_summary( _data, _tbuf, TBUF_SIZE );
     strcat(_c, _tbuf);
     strcat(_c, "Nodes: ");
     strcat(_c, "13");

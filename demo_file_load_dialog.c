@@ -215,7 +215,7 @@ void update_file_list(const char *path) {
 
     // Update the path input
     lv_textarea_set_text(path_input, path);
-    strncpy(base_path, path, MAX_PATH_LENGTH);
+    strncpy(base_path, path, MAX_PATH_LENGTH-1);
 
     struct dirent **fileListTemp;
     int noOfFiles = scandir(path, &fileListTemp, NULL, alphasort);
@@ -236,7 +236,7 @@ void update_file_list(const char *path) {
             lv_obj_add_event_cb(btn, parent_folder_event_handler, LV_EVENT_CLICKED, NULL);
         }
         struct dirent *entry;
-        for(uint32_t de = 0; de < noOfFiles; de++){
+        for(int32_t de = 0; de < noOfFiles; de++){
             entry = fileListTemp[de];
         //while ((entry = readdir(dir)) != NULL) {
             // Skip the current and parent directory entries and any files that start with a '.' (unless show_hidden_files_and_folders  is true)
@@ -275,7 +275,7 @@ void update_file_list(const char *path) {
     }
 
     {
-        for (uint32_t i = 0; i < noOfFiles; i++) lv_free(fileListTemp[i]);
+        for (int32_t i = 0; i < noOfFiles; i++) lv_free(fileListTemp[i]);
         lv_free(fileListTemp);
     }
 
@@ -283,7 +283,7 @@ void update_file_list(const char *path) {
 void folder_button_event_handler(lv_event_t *e) {
     lv_obj_t *btn = lv_event_get_target(e);
     const char *folder_name = lv_list_get_button_text(folder_list, btn);
-    char new_path[MAX_PATH_LENGTH];
+    char new_path[MAX_PATH_LENGTH*2+1];
     if (base_path[1] != '\0') {
         snprintf(new_path, sizeof(new_path), "%s/%s", base_path, folder_name);
     } else {
@@ -320,11 +320,12 @@ void file_button_event_handler(lv_event_t *e) {
 }
 
 void ok_button_event_handler(lv_event_t *e) {
-    lv_gltfdata_destroy(demo_gltfdata);
+    LV_UNUSED(e);
+    lv_gltf_data_destroy(demo_gltfdata);
     lv_free(demo_gltfdata);
     demo_gltfdata = NULL;
     if (needs_system_gltfdata) {
-        lv_gltfdata_destroy(system_gltfdata);
+        lv_gltf_data_destroy(system_gltfdata);
         lv_free(system_gltfdata);
         system_gltfdata = NULL;
     }
@@ -336,10 +337,12 @@ void ok_button_event_handler(lv_event_t *e) {
 }
 
 void path_input_event_handler(lv_event_t *e) {
+    LV_UNUSED(e);
     const char * new_text = lv_textarea_get_text(selected_file_input);
     printf("New path text = '%s'\n", new_text);
 }
 
 void cancel_button_event_handler(lv_event_t *e) {
+    LV_UNUSED(e);
     demo_ui_set_tab(TAB_VIEW);
 }

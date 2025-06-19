@@ -22,8 +22,8 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "../lv_gltfview_internal.h"
-#include "include/shader_cache.h"
+#include "../lv_gltf_view_internal.h"
+#include "../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
 #include "lib/mathc/mathc.h"
 
 void set_matrix_view(_VIEW _viewer, FMAT4 _mat);
@@ -445,7 +445,7 @@ void setup_finish_frame( void ) {
     GL_CALL(glUseProgram(0));
 }
 
-void setup_view_proj_matrix_from_link(lv_gltfview_t * viewer, pGltf_data_t link_data){
+void setup_view_proj_matrix_from_link(lv_gltf_view_t * viewer, pGltf_data_t link_data){
 //    { auto _t = view;         set_matrix_view(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
 //    { auto _t = perspective;  set_matrix_proj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
 //   { auto _t = viewProj; set_matrix_viewproj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
@@ -454,7 +454,7 @@ void setup_view_proj_matrix_from_link(lv_gltfview_t * viewer, pGltf_data_t link_
 
 
 // Function to create a view-projection matrix from the camera
-void setup_view_proj_matrix_from_camera( lv_gltfview_t * viewer, int32_t _cur_cam_num, gl_viewer_desc_t * view_desc, const FMAT4 view_mat,  const FVEC3 view_pos, pGltf_data_t gltf_data, bool transmission_pass) {
+void setup_view_proj_matrix_from_camera( lv_gltf_view_t * viewer, int32_t _cur_cam_num, gl_viewer_desc_t * view_desc, const FMAT4 view_mat,  const FVEC3 view_pos, pGltf_data_t gltf_data, bool transmission_pass) {
 
     mfloat_t view[MAT4_SIZE];
 
@@ -511,7 +511,7 @@ void setup_view_proj_matrix_from_camera( lv_gltfview_t * viewer, int32_t _cur_ca
 * Function to create a view-projection matrix from a given pitch/yaw/distance 
 * described within the view_desc parameter.
 */
-void setup_view_proj_matrix( lv_gltfview_t * viewer, gl_viewer_desc_t * view_desc, pGltf_data_t gltf_data, bool transmission_pass) {
+void setup_view_proj_matrix( lv_gltf_view_t * viewer, gl_viewer_desc_t * view_desc, pGltf_data_t gltf_data, bool transmission_pass) {
     // Create Look-At Matrix
     const auto& _cenpos = FVEC3(view_desc->focal_x, view_desc->focal_y, view_desc->focal_z);
     float cen_x = _cenpos[0];
@@ -575,7 +575,7 @@ void setup_view_proj_matrix( lv_gltfview_t * viewer, gl_viewer_desc_t * view_des
 
 // Function to compile and load shaders
 gl_renwin_shaderset_t setup_compile_and_load_shaders(pShaderCache shaders) {
-    key_value* all_defs = all_defines();
+    lv_shader_key_value_t* all_defs = all_defines();
     auto _program = shaders->getShaderProgram(shaders, 
         shaders->selectShader(shaders, "__MAIN__.frag", all_defs, all_defines_count()), 
         shaders->selectShader(shaders, "__MAIN__.vert", all_defs, all_defines_count()) );
@@ -589,8 +589,8 @@ gl_renwin_shaderset_t setup_compile_and_load_shaders(pShaderCache shaders) {
 
 // Function to compile and load background shader
 void setup_compile_and_load_bg_shader(pShaderCache shaders) {
-    key_value empty_defs[0] = {};
-    key_value frag_defs[1] = {{"TONEMAP_KHR_PBR_NEUTRAL", NULL}};
+    lv_shader_key_value_t empty_defs[0] = {};
+    lv_shader_key_value_t frag_defs[1] = {{"TONEMAP_KHR_PBR_NEUTRAL", NULL}};
     auto bg_program = shaders->getShaderProgram(shaders, 
         shaders->selectShader(shaders, "cubemap.frag", frag_defs, 1), 
         shaders->selectShader(shaders, "cubemap.vert", empty_defs, 0) );
@@ -599,7 +599,7 @@ void setup_compile_and_load_bg_shader(pShaderCache shaders) {
 }
 
 // Function to draw the environment background
-void setup_draw_environment_background(pShaderCache shaders, lv_gltfview_t * viewer, float blur) {
+void setup_draw_environment_background(pShaderCache shaders, lv_gltf_view_t * viewer, float blur) {
     GL_CALL(glBindVertexArray(shaders->bg_vao));
     GL_CALL(glUseProgram(shaders->bg_program));
     GL_CALL(glEnable(GL_CULL_FACE));
@@ -630,7 +630,7 @@ void setup_draw_environment_background(pShaderCache shaders, lv_gltfview_t * vie
 
 }
 
-void lv_gltfdata_link_view_to( lv_gltfdata_t * link_target,  lv_gltfdata_t * link_source) {
+void lv_gltf_data_link_view_to( lv_gltf_data_t * link_target,  lv_gltf_data_t * link_source) {
     link_target->view_is_linked = true;
     link_target->linked_view_source = link_source;
 }

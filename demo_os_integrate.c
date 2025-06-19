@@ -42,7 +42,7 @@ int os_integrate_increase_ramdrive_size( unsigned long increase_byte_count ) {
     return (result == 0) ? 0 : -1;
 }
 
-unsigned long os_integrate_get_available_drive_bytes(const char *path){
+unsigned long os_integrate_get_available_drive_bytes(char *path){
     struct statvfs stat;
     // Get filesystem statistics
     if (statvfs(path, &stat) == 0) {
@@ -61,9 +61,9 @@ int os_integrate_check_drive_space(int32_t current_frame_num) {//const char *pat
     unsigned long newbytes = 10 * limit;
 
     // Construct the path
-    char path[256];
+    char path[MAX_PATH_LENGTH];
     snprintf(path, sizeof(path), "/var/%s", DESKTOP_OUTPUT_RAMTEMP_PATH);
-    if (os_integrate_get_available_drive_bytes(&path) < limit) {
+    if (os_integrate_get_available_drive_bytes(&path[0]) < limit) {
         if (norm_ratio > 0.04f) {
             newbytes = (unsigned long)(bytes_total_estimate);
             printf( "estimated required megabytes to complete job: %.2f\n", (bytes_total_estimate / (float)( 1024 * 1024 ) ));
@@ -80,15 +80,15 @@ void os_integrate_filedrop_callback(GLFWwindow* _window, int count, const char**
         printf("file dropped into window: %s\n", paths[i]);
     }
     if (count > 0) {
-        lv_gltfdata_destroy(demo_gltfdata);
+        lv_gltf_data_destroy(demo_gltfdata);
         lv_free(demo_gltfdata);
         demo_gltfdata = NULL;
         if (needs_system_gltfdata) {
-            lv_gltfdata_destroy(system_gltfdata);
+            lv_gltf_data_destroy(system_gltfdata);
             lv_free(system_gltfdata);
             system_gltfdata = NULL;
         }
-        reload(paths[0], "");
+        reload((char*)paths[0], "");
         demo_refocus(demo_gltfview, false);
     }
 }
@@ -107,8 +107,8 @@ void os_integrate_window_close_callback(GLFWwindow* _window){
 
 void os_integrate_window_resize_callback(GLFWwindow* _glfw_window, int width, int height) {
     printf("Window is resizing: New size: %d,%d\n", width, height);   
-    lv_gltfview_set_width(demo_gltfview, width -  (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT));
-    lv_gltfview_set_height(demo_gltfview, height - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM));
+    lv_gltf_view_set_width(demo_gltfview, width -  (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT));
+    lv_gltf_view_set_height(demo_gltfview, height - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM));
     lv_display_set_resolution(display_texture, width, height);
     glfwSwapBuffers(_glfw_window);
     demo_ui_reposition_all();
@@ -267,7 +267,7 @@ void *demo_os_integrate_save_desktop_png_thread(void *arg) {
                 struct stat file_stat;
                 if (stat(_buffer, &file_stat) != 0) {
                     os_integrate_check_drive_space(task->suffix);
-                    lv_gltfview_utils_save_pixelbuffer_to_png( demo_gltfview,  task->pixels, _buffer, task->file_has_alpha, 0, ui_get_primary_texture_width(), ui_get_primary_texture_height() );
+                    lv_gltf_view_utils_save_pixelbuffer_to_png( demo_gltfview,  task->pixels, _buffer, task->file_has_alpha, 0, ui_get_primary_texture_width(), ui_get_primary_texture_height() );
                 }
                 lv_free(task->pixels);
                 snprintf(_buffer, sizeof(_buffer), DESKTOP_APPLY_COMMAND_TEMPLATE, task->suffix);

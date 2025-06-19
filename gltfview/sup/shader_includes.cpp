@@ -14,14 +14,14 @@
 
 //using namespace std;
 bool _vdefines_initialized = false;
-std::vector<key_value> v_defines;
+std::vector<lv_shader_key_value_t> v_defines;
 
 void __init_vdefines(void) { 
     if (_vdefines_initialized) return;
     _vdefines_initialized = true;
-    v_defines = std::vector<key_value>(); }
+    v_defines = std::vector<lv_shader_key_value_t>(); }
 
-key_value* all_defines(void) {
+lv_shader_key_value_t* all_defines(void) {
     return &v_defines[0];
 }
 uint32_t all_defines_count(void) {
@@ -40,7 +40,7 @@ void addDefine( const char* defsymbol, const char* defvalue_or_null ){
     for (auto &_kv : v_defines){
         if (strcmp(_kv.key, defsymbol) == 0) {
             return; } }
-    key_value _newkv = key_value({defsymbol, defvalue_or_null});
+    lv_shader_key_value_t _newkv = lv_shader_key_value_t({defsymbol, defvalue_or_null});
     v_defines.push_back(_newkv);
 }
 
@@ -114,7 +114,7 @@ char* get_defines_str(void) {
     return _retcstr;
 }
 
-char* process_defines( const key_value* __define_set, size_t _num_items){
+char* process_defines( const lv_shader_key_value_t* __define_set, size_t _num_items){
     uint _reqlength = strlen(GLSL_VERSION_PREFIX) + 1;
     for (size_t i=0; i<_num_items; i++) {
         _reqlength += strlen("#define ");
@@ -145,7 +145,7 @@ char* process_defines( const key_value* __define_set, size_t _num_items){
 char* process_includes( const char* c_src, const char* _defines ) {
     std::string _src = std::string(c_src);
     std::string  rep = replaceWord(_src, GLSL_VERSION_PREFIX, _defines);
-    size_t num_items = sizeof(src_includes) / sizeof(key_value);
+    size_t num_items = sizeof(src_includes) / sizeof(lv_shader_key_value_t);
     char* _srch = (char*)malloc(255);
     for (size_t i=0; i<num_items; i++) {
         _srch[0] = '\0';

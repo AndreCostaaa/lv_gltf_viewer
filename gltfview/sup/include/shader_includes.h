@@ -6,15 +6,18 @@ extern "C" {
 #endif
 #include <stdint.h>
 
+#ifndef LV_SHADER_CACHE_KEYVAL
+#define LV_SHADER_CACHE_KEYVAL
 typedef struct {
     const char* key;
     const char* value;
-} key_value;
+} lv_shader_key_value_t;
+#endif /* LV_SHADER_CACHE_KEYVAL */
 
 char* process_includes(const char* src, const char* _defines);
-char* process_defines(const key_value* __define_set, size_t _num_items);
+char* process_defines(const lv_shader_key_value_t* __define_set, size_t _num_items);
 char* get_defines_str(void);
-key_value* all_defines(void);
+lv_shader_key_value_t* all_defines(void);
 uint32_t all_defines_count(void);
 
 size_t lineCount(const char* str);
@@ -30,9 +33,9 @@ char* PREPROCESS(const char* x);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
-static key_value NO_DEFINES[] = {};
+static lv_shader_key_value_t NO_DEFINES[] = {};
 
-static key_value src_includes[] = {
+static lv_shader_key_value_t src_includes[] = {
     {"tonemapping.glsl", R"( 
 
         uniform float u_Exposure;
@@ -1988,7 +1991,7 @@ static key_value src_includes[] = {
     )"},        
 };
 
-static key_value env_src_includes[] = {
+static lv_shader_key_value_t env_src_includes[] = {
     {"fullscreen.vert", R"(
         precision highp float;
 

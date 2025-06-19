@@ -7,7 +7,7 @@
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
 #include "include/ibl_sampler.h"
-#include "include/shader_cache.h"
+#include "../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
 
 #include <unistd.h> /* usleep */
 #include <vector>
@@ -58,7 +58,7 @@ iblSampler::iblSampler(void) {
     cubemapTextureID = GL_NONE;
     framebuffer = GL_NONE;
 
-    _shaderCache = ShaderCache(env_src_includes, sizeof(env_src_includes)/sizeof(key_value), NULL, NULL );
+    _shaderCache = lv_opengl_shader_cache_create(env_src_includes, sizeof(env_src_includes)/sizeof(lv_shader_key_value_t), NULL, NULL );
     shaderCache = &_shaderCache;
 
     callback = NULL;
@@ -488,14 +488,14 @@ void iblSampler::filterAll( void (*_callback)(const char *, float, float) )
 }
 
 void iblSampler::destroy_iblSampler(void) {
-    destroy_ShaderCache(shaderCache);
+    lv_opengl_shader_cache_destroy(shaderCache);
 }
 
 // ------------------------------------------------------------
 
 void (*ibl_load_progress_callback)(const char*, const char* , float, float, float, float) = NULL;
 
-void lv_gltfview_ibl_set_loadphase_callback(void (*_ibl_load_progress_callback)(const char*, const char* , float, float, float, float)) {
+void lv_gltf_view_ibl_set_loadphase_callback(void (*_ibl_load_progress_callback)(const char*, const char* , float, float, float, float)) {
     ibl_load_progress_callback= _ibl_load_progress_callback;
 }
 
@@ -503,7 +503,7 @@ void ibl_sampler_env_filter_callback(const char* phase_title, float phase_curren
     if (ibl_load_progress_callback != NULL) { ibl_load_progress_callback(phase_title, "SUBTEST1234", 0.f + ((phase_current / phase_max)*2.0f), 5.f, 0.f, 0.f); }
 }
 
-gl_environment_textures lv_gltfview_ibl_sampler_setup(gl_environment_textures* _lastEnv, const char* _env_filename, int32_t _env_rotation_degreesX10 )
+gl_environment_textures lv_gltf_view_ibl_sampler_setup(gl_environment_textures* _lastEnv, const char* _env_filename, int32_t _env_rotation_degreesX10 )
 {
     gl_environment_textures _ret = gl_environment_textures();
     if ((_lastEnv != NULL) && (_lastEnv->loaded == true)) { 

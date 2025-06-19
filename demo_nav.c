@@ -40,7 +40,7 @@ void nav_drag_xz(float unit_distance, int mouse_x, int mouse_y, int last_mouse_x
     // Sensitivity factor for movement
     float sensitivity = 0.005f * unit_distance;
     // Calculate strafing and forward/backward motion
-    float offset_yaw = lv_gltfview_get_yaw(demo_gltfview) + lv_gltfview_get_spin_degree_offset(demo_gltfview); //spin_counter_degrees;  // The yaw in the view description will not represent the actual visible yaw if the platter has spun the orientation off base 0
+    float offset_yaw = lv_gltf_view_get_yaw(demo_gltfview) + lv_gltf_view_get_spin_degree_offset(demo_gltfview); //spin_counter_degrees;  // The yaw in the view description will not represent the actual visible yaw if the platter has spun the orientation off base 0
     //bool viewChanged = false;
     if (fabs(deltaY) > 0.001f) {
         //viewChanged = true;
@@ -58,7 +58,7 @@ void nav_drag_xz(float unit_distance, int mouse_x, int mouse_y, int last_mouse_x
         goal_focal_x += (-sinf(strafeRadians) * strafeAmount);
         goal_focal_z += ( -cosf(strafeRadians) * strafeAmount);
     }
-    // if ( viewChanged ) printf("Camera Position: (%.2f, %.2f, %.2f)\n",  lv_gltfview_get_focal_x(demo_gltfview), lv_gltfview_get_focal_y(demo_gltfview),  lv_gltfview_get_focal_z(demo_gltfview));
+    // if ( viewChanged ) printf("Camera Position: (%.2f, %.2f, %.2f)\n",  lv_gltf_view_get_focal_x(demo_gltfview), lv_gltf_view_get_focal_y(demo_gltfview),  lv_gltf_view_get_focal_z(demo_gltfview));
 }
 void nav_drag_y(float unit_distance, int mouse_y, int last_mouse_y) {
     // Calculate the change in mouse position
@@ -96,19 +96,19 @@ void demo_nav_gradual_to_goals( void ) {
     float EASE_POWER = 0.5f;
     float EASE_CLOSE_ENOUGH = 0.001f;
 
-    float tfx = lerp(lv_gltfview_get_focal_x(demo_gltfview), goal_focal_x, EASE_POWER / 8.f);
+    float tfx = lerp(lv_gltf_view_get_focal_x(demo_gltfview), goal_focal_x, EASE_POWER / 8.f);
     if (fabsf(tfx - goal_focal_x) < (EASE_CLOSE_ENOUGH/100.f)) {tfx = goal_focal_x;}
-    lv_gltfview_set_focal_x(demo_gltfview, tfx); 
+    lv_gltf_view_set_focal_x(demo_gltfview, tfx); 
 
-    float tfy = lerp(lv_gltfview_get_focal_y(demo_gltfview), goal_focal_y, EASE_POWER / 8.f);
+    float tfy = lerp(lv_gltf_view_get_focal_y(demo_gltfview), goal_focal_y, EASE_POWER / 8.f);
     if (fabsf(tfy - goal_focal_y) < (EASE_CLOSE_ENOUGH/100.f)) {tfy = goal_focal_y;}
-    lv_gltfview_set_focal_y(demo_gltfview, tfy); 
+    lv_gltf_view_set_focal_y(demo_gltfview, tfy); 
 
-    float tfz = lerp(lv_gltfview_get_focal_z(demo_gltfview), goal_focal_z, EASE_POWER / 8.f);
+    float tfz = lerp(lv_gltf_view_get_focal_z(demo_gltfview), goal_focal_z, EASE_POWER / 8.f);
     if (fabsf(tfz - goal_focal_z) < (EASE_CLOSE_ENOUGH/100.f)) {tfz = goal_focal_z;}
-    lv_gltfview_set_focal_z(demo_gltfview, tfz); 
+    lv_gltf_view_set_focal_z(demo_gltfview, tfz); 
 
-    float tyaw = lerp(lv_gltfview_get_yaw(demo_gltfview), goal_yaw, EASE_POWER / 28.f);
+    float tyaw = lerp(lv_gltf_view_get_yaw(demo_gltfview), goal_yaw, EASE_POWER / 28.f);
     if (fabsf(tyaw - goal_yaw) < EASE_CLOSE_ENOUGH/100.f) {tyaw = goal_yaw;}
     bool looped = demo_ui_apply_yaw_value(tyaw );
     if (looped) {
@@ -118,13 +118,13 @@ void demo_nav_gradual_to_goals( void ) {
         while (tyaw < -180.f) tyaw += 360.f;
         while (tyaw > 180.f) tyaw -= 360.f;
     }
-    lv_gltfview_set_yaw(demo_gltfview, (int)(tyaw * 10.f)); 
+    lv_gltf_view_set_yaw(demo_gltfview, (int)(tyaw * 10.f)); 
 
-    float tpitch = lerp(lv_gltfview_get_pitch(demo_gltfview), goal_pitch, EASE_POWER / 28.f);
+    float tpitch = lerp(lv_gltf_view_get_pitch(demo_gltfview), goal_pitch, EASE_POWER / 28.f);
     if (fabsf(tpitch - goal_pitch) < EASE_CLOSE_ENOUGH/100.f) {tpitch = goal_pitch;}
-    lv_gltfview_set_pitch(demo_gltfview, (int)(tpitch * 10.f)); demo_ui_apply_pitch_value(tpitch );
+    lv_gltf_view_set_pitch(demo_gltfview, (int)(tpitch * 10.f)); demo_ui_apply_pitch_value(tpitch );
 
-    float tdistance = lerp(lv_gltfview_get_distance(demo_gltfview), goal_distance, EASE_POWER / 8.f);
+    float tdistance = lerp(lv_gltf_view_get_distance(demo_gltfview), goal_distance, EASE_POWER / 8.f);
     if (fabsf(tdistance - goal_distance) < (EASE_CLOSE_ENOUGH/100.f)) {tdistance = goal_distance;}
-    lv_gltfview_set_distance(demo_gltfview, (int)(tdistance * 1000.f)); demo_ui_apply_distance_value(tdistance );
+    lv_gltf_view_set_distance(demo_gltfview, (int)(tdistance * 1000.f)); demo_ui_apply_distance_value(tdistance );
 }

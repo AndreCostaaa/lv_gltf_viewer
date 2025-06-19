@@ -271,7 +271,7 @@ typedef struct {
     _GLUINT texture;
 } Texture;
 
-typedef lv_gltfview_t * _VIEW;
+typedef lv_gltf_view_t * _VIEW;
 typedef pGltf_data_t    _DATA;
 typedef uint64_t        _UINT;
 void*                   get_asset (_DATA D);
@@ -282,7 +282,7 @@ void*                   get_texdata_set(_DATA D);
 Texture *               get_texdata(_DATA D, _UINT I);
 uint64_t                get_texdata_glid(_DATA D, _UINT I);
 _ViewerState*           get_viewer_state(_VIEW V);
-gl_viewer_desc_t*       lv_gltfview_get_desc(_VIEW V);
+gl_viewer_desc_t*       lv_gltf_view_get_desc(_VIEW V);
 _ViewerOpts*            get_viewer_opts(_VIEW V);
 UniformLocs*            get_uniform_ids(_DATA D, _UINT I);
 uint64_t                get_shader_program(_DATA D, _UINT I);
@@ -293,11 +293,11 @@ float*                  get_bounds_max (_DATA D);
 float*                  setup_get_center(_DATA D);
 double                  get_radius(_DATA D);
 const char*             lv_gltf_get_filename(_DATA D);
-gltf_probe_info *       lv_gltfview_get_probe(_DATA _data);
+gltf_probe_info *       lv_gltf_view_get_probe(_DATA _data);
 bool centerpoint_cache_contains (_DATA D,_UINT I,int32_t P);
 
 #define GET_ASSET(d)                    ((ASSET*)get_asset(d))
-#define PROBE(d)              ((gltf_probe_info*)lv_gltfview_get_probe(d))
+#define PROBE(d)              ((gltf_probe_info*)lv_gltf_view_get_probe(d))
 #define TEXDSET(x)       ((std::vector<Texture>*)get_texdata_set(x))
 #define TEXD(x,y)                     ((Texture*)get_texdata(x, y))
 #define TEXDGLID(x,y)                    ((_UINT)get_texdata_glid(x, y))

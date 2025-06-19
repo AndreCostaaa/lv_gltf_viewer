@@ -51,14 +51,14 @@ typedef enum {
     BG_UNKNOWN=999
 } BackgroundMode;
 
-struct lv_gltfdata_struct;
-struct lv_gltfview_struct;
+struct lv_gltf_data_struct;
+struct lv_gltf_view_struct;
 
-typedef struct lv_gltfdata_struct lv_gltfdata_t;
-typedef struct lv_gltfview_struct lv_gltfview_t;
+typedef struct lv_gltf_data_struct lv_gltf_data_t;
+typedef struct lv_gltf_view_struct lv_gltf_view_t;
 
-typedef lv_gltfdata_t * pGltf_data_t;
-typedef lv_gltfview_t * pViewer;
+typedef lv_gltf_data_t * pGltf_data_t;
+typedef lv_gltf_view_t * pViewer;
 
 typedef struct {
     uint32_t imageCount;

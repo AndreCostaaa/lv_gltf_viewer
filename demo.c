@@ -34,10 +34,10 @@ lv_display_t * display_texture;
 lv_glfw_texture_t * window_texture;
 
 lv_obj_t * gltfview_3dtex;
-lv_gltfdata_t * system_gltfdata = NULL;
-lv_gltfdata_t * demo_gltfdata = NULL;
-lv_gltfview_t * demo_gltfview;
-pShaderCache shaderCache = NULL;
+lv_gltf_view_t * demo_gltfview;
+lv_opengl_shader_cache_t * shaderCache = NULL;
+lv_gltf_data_t * system_gltfdata = NULL;
+lv_gltf_data_t * demo_gltfdata = NULL;
 lv_gltf_override_t * ov_boom;
 lv_gltf_override_t * ov_stick;
 lv_gltf_override_t * ov_bucket;
@@ -68,16 +68,16 @@ void reload(char * _filename, const char * _hdr_filename) {
     demo_gltfdata = lv_malloc(get_gltf_datastruct_datasize() );
 
     if (shaderCache == NULL) setup_shadercache(_hdr_filename, 1800);
-    lv_gltfview_load(_filename, demo_gltfdata, shaderCache);
+    lv_gltf_data_load(_filename, demo_gltfdata, shaderCache);
 
-    if (lv_gltfview_get_probe(demo_gltfdata)->cameraCount == 0) {
+    if (lv_gltf_view_get_probe(demo_gltfdata)->cameraCount == 0) {
         use_scenecam = false;
         camera = -1;            
     } else {
         use_scenecam = true;
         camera = 0;
     }
-    if (lv_gltfview_get_probe(demo_gltfdata)->animationCount == 0) {
+    if (lv_gltf_view_get_probe(demo_gltfdata)->animationCount == 0) {
         anim_enabled = false;
         //anim = 0;
     } else {
@@ -91,11 +91,11 @@ void reload(char * _filename, const char * _hdr_filename) {
     
     if (needs_system_gltfdata) {
         system_gltfdata = lv_malloc(get_gltf_datastruct_datasize() );
-        lv_gltfview_load(SYSTEM_ASSETS_FILENAME, system_gltfdata, shaderCache);
-        lv_gltfdata_link_view_to(system_gltfdata, demo_gltfdata);
-        lv_gltfdata_copy_bounds_info(system_gltfdata, demo_gltfdata);
+        lv_gltf_data_load(SYSTEM_ASSETS_FILENAME, system_gltfdata, shaderCache);
+        lv_gltf_data_link_view_to(system_gltfdata, demo_gltfdata);
+        lv_gltf_data_copy_bounds_info(system_gltfdata, demo_gltfdata);
         float newradius = lv_gltf_get_int_radiusX1000(demo_gltfdata) / 1000.f;
-        ov_ground_scale = lv_gltfview_add_override_by_id(system_gltfdata, "/grid", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
+        ov_ground_scale = lv_gltf_view_add_override_by_id(system_gltfdata, "/grid", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
         float unitscale = newradius * ((1.f / 2.f) * 3.f);
         float tscale = unitscale;
         if (!show_grid) {
@@ -106,7 +106,7 @@ void reload(char * _filename, const char * _hdr_filename) {
         ov_ground_scale->data3 = tscale;
 
         tscale = unitscale / 8.f;
-        ov_cursor_scale = lv_gltfview_add_override_by_id(system_gltfdata, "/cursor/visible", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
+        ov_cursor_scale = lv_gltf_view_add_override_by_id(system_gltfdata, "/cursor/visible", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
         #ifndef EXPERIMENTAL_GROUNDCAST
         tscale = 0.f;
         #endif
@@ -152,17 +152,17 @@ int main(int argc, char *argv[]) {
         if (desktop_mode){
             for (int i = 0; i < MAX_THREADS; i++) pthread_create(&desktop_mode_worker_threads[i], NULL, demo_os_integrate_save_desktop_png_thread, NULL); // Start the thread pool
             startMaximized = false;
-            lv_gltfview_set_width(demo_gltfview, ui_max( (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT) + 128, (int)((float)max_window_width * desktop_ratio) - (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT)));
-            lv_gltfview_set_height(demo_gltfview, ui_max( (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM) + 128, (int)((float)max_window_height * desktop_ratio) - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM)));
+            lv_gltf_view_set_width(demo_gltfview, ui_max( (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT) + 128, (int)((float)max_window_width * desktop_ratio) - (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT)));
+            lv_gltf_view_set_height(demo_gltfview, ui_max( (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM) + 128, (int)((float)max_window_height * desktop_ratio) - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM)));
         } else 
         #endif
         {
             if (startMaximized) {
-                lv_gltfview_set_width(demo_gltfview, max_window_width - (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT));
-                lv_gltfview_set_height(demo_gltfview, max_window_height - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM));
+                lv_gltf_view_set_width(demo_gltfview, max_window_width - (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT));
+                lv_gltf_view_set_height(demo_gltfview, max_window_height - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM));
             } else {
-                lv_gltfview_set_width(demo_gltfview, (int)(max_window_width * 0.6f) - (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT));
-                lv_gltfview_set_height(demo_gltfview, (int)(max_window_height * 0.8f) - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM));
+                lv_gltf_view_set_width(demo_gltfview, (int)(max_window_width * 0.6f) - (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT));
+                lv_gltf_view_set_height(demo_gltfview, (int)(max_window_height * 0.8f) - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM));
             }
         }
 
@@ -200,8 +200,8 @@ int main(int argc, char *argv[]) {
         reload(gltfFilePath, hdrFilePath);
         demo_set_overrides();
 
-        if (lv_gltfview_get_probe(demo_gltfdata)->animationCount > 0) anim = 0;
-        if (lv_gltfview_get_probe(demo_gltfdata)->cameraCount == 0) {
+        if (lv_gltf_view_get_probe(demo_gltfdata)->animationCount > 0) anim = 0;
+        if (lv_gltf_view_get_probe(demo_gltfdata)->cameraCount == 0) {
             use_scenecam = false;
             camera = -1;            
         }
@@ -226,7 +226,6 @@ int main(int argc, char *argv[]) {
         float goal_fps = 15.0f;
         float goal_fps_span = 1.0f / goal_fps;
         time_t last_poll = time(0);
-        clock_t last_clock = clock();
         #ifdef EXPERIMENTAL_GROUNDCAST 
         float _groundpos[3] = {0.f, 0.f, 0.f};
         #endif /* EXPERIMENTAL_GROUNDCAST */
@@ -297,7 +296,7 @@ int main(int argc, char *argv[]) {
                 #else
                     spin_counter_degrees += (spin_rate * sec_span);
                 #endif
-                lv_gltfview_set_spin_degree_offset(demo_gltfview, spin_counter_degrees);
+                lv_gltf_view_set_spin_degree_offset(demo_gltfview, spin_counter_degrees);
             }
 
             lv_indev_get_point(mouse, &_mousepoint);
@@ -311,9 +310,9 @@ int main(int argc, char *argv[]) {
                 if ((mouse_state & 0x0F) == LV_INDEV_STATE_PR) demo_nav_process_drag(movePow, (mouse_state & 0xF0), _mousepoint.x, _mousepoint.y, lastMouseX, lastMouseY);
             }
             #ifdef EXPERIMENTAL_GROUNDCAST
-            if ((lastMouseX != _mousepoint.x) || (lastMouseY != _mousepoint.y)) lv_gltfview_mark_dirty(demo_gltfview);
+            if ((lastMouseX != _mousepoint.x) || (lastMouseY != _mousepoint.y)) lv_gltf_view_mark_dirty(demo_gltfview);
             if (mouse_in_window) {
-                bool _res = lv_gltfview_raycast_ground_position(demo_gltfview, _mousepoint.x - INNER_BG_CROP_LEFT, _mousepoint.y - INNER_BG_CROP_TOP, ui_get_window_width() - (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT), ui_get_window_height() - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM),  0.0, _groundpos);
+                bool _res = lv_gltf_view_raycast_ground_position(demo_gltfview, _mousepoint.x - INNER_BG_CROP_LEFT, _mousepoint.y - INNER_BG_CROP_TOP, ui_get_window_width() - (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT), ui_get_window_height() - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM),  0.0, _groundpos);
                 if (_res && (ov_cursor != NULL)) {
                     ov_cursor->data1 = _groundpos[0];
                     ov_cursor->data2 = _groundpos[1];
@@ -324,12 +323,10 @@ int main(int argc, char *argv[]) {
             lastMouseX = _mousepoint.x;
             lastMouseY = _mousepoint.y;
 
-            lv_gltfview_set_camera(demo_gltfview, use_scenecam ? camera : -1);
-            lv_gltfview_set_anim(demo_gltfview, anim_enabled ? anim : -1);
+            lv_gltf_view_set_camera(demo_gltfview, use_scenecam ? camera : -1);
+            lv_gltf_view_set_anim(demo_gltfview, anim_enabled ? anim : -1);
 
             time_t this_poll = time(0);
-            clock_t this_clock = clock();
-            last_clock = this_clock;
             frames_this_second += 1;
             bool seconds_changed = difftime(this_poll, last_poll) > 0;
             last_poll = this_poll;
@@ -347,20 +344,20 @@ int main(int argc, char *argv[]) {
                 frames_rendered_this_second = 0;
                 usec_per_frame_optimal = (int)(1000000.f / ROLLING_FPS);
             }
-            lv_gltfview_set_timestep(demo_gltfview, anim_enabled ? sec_span * anim_rate : 0.f );
+            lv_gltf_view_set_timestep(demo_gltfview, anim_enabled ? sec_span * anim_rate : 0.f );
             
             lv_3dtexture_id_t gltf_texture = 0;
             #ifdef ENABLE_DESKTOP_MODE
             if (desktop_mode && (totalframenum != framenum)) { /* Do nothing, frame is cached */ } else
             #endif
             { 
-                gltf_texture = lv_gltfview_render( shaderCache, demo_gltfview, demo_gltfdata, true, 0, 0, 0, 0 );
+                gltf_texture = lv_gltf_view_render( shaderCache, demo_gltfview, demo_gltfdata, true, 0, 0, 0, 0 );
                 if (needs_system_gltfdata && (use_scenecam == false))
-                    if (!lv_gltfview_check_frame_was_cached(demo_gltfview)) 
-                        gltf_texture = lv_gltfview_render( shaderCache, demo_gltfview, system_gltfdata, false, 0,0,0,0);
+                    if (!lv_gltf_view_check_frame_was_cached(demo_gltfview)) 
+                        gltf_texture = lv_gltf_view_render( shaderCache, demo_gltfview, system_gltfdata, false, 0,0,0,0);
             }
             if (reapply_layout_flag) demo_ui_reposition_all();
-            if (!lv_gltfview_check_frame_was_cached(demo_gltfview)) {
+            if (!lv_gltf_view_check_frame_was_cached(demo_gltfview)) {
                 frames_rendered_this_second += 1;
                 if (!stub_mode) {
                     lv_3dtexture_set_src(gltfview_3dtex, gltf_texture);
@@ -368,14 +365,14 @@ int main(int argc, char *argv[]) {
                     lv_refr_now(NULL);
                 }
                 glfwPollEvents();
-                bool file_alpha = lv_gltfview_get_bg_mode(demo_gltfview) != BG_ENVIRONMENT;
+                bool file_alpha = lv_gltf_view_get_bg_mode(demo_gltfview) != BG_ENVIRONMENT;
                 #ifdef ENABLE_DESKTOP_MODE
                 if (desktop_mode ){
                     if (totalframenum != framenum) {
                         demo_os_integrate_save_png_from_new_thread(framenum, desktop_mode, maxFrames, file_alpha, NULL);
                     } else {
                         char * pixels =(char *)lv_malloc(ui_get_primary_texture_height() * ui_get_primary_texture_width() * 4);
-                        lv_gltfview_utils_get_capture_buffer( pixels, demo_gltfview, gltf_texture, file_alpha, lv_gltfview_check_frame_was_antialiased(demo_gltfview) ? 1 : 0, ui_get_primary_texture_width(), ui_get_primary_texture_height() );
+                        lv_gltf_view_utils_get_capture_buffer( pixels, demo_gltfview, gltf_texture, file_alpha, lv_gltf_view_check_frame_was_antialiased(demo_gltfview) ? 1 : 0, ui_get_primary_texture_width(), ui_get_primary_texture_height() );
                         demo_os_integrate_save_png_from_new_thread(framenum, desktop_mode, maxFrames, file_alpha, pixels);
                     }
                 } else 
@@ -385,9 +382,9 @@ int main(int argc, char *argv[]) {
                         char _buffer[100];
                         snprintf(_buffer, sizeof(_buffer), "/home/pi/Desktop/lv_gltf_viewer/render_frames/frame%03d.png", (maxFrames - frameCount));
                         if (frame_grab_ui) {
-                            lv_gltfview_utils_save_texture_to_png( demo_gltfview, lv_opengles_texture_get_texture_id(display_texture), _buffer, false, 10, 0, ui_get_window_width(),  ui_get_window_height() );
+                            lv_gltf_view_utils_save_texture_to_png( demo_gltfview, lv_opengles_texture_get_texture_id(display_texture), _buffer, false, 10, 0, ui_get_window_width(),  ui_get_window_height() );
                         } else {
-                            lv_gltfview_utils_save_png(demo_gltfview, _buffer, file_alpha, 10);
+                            lv_gltf_view_utils_save_png(demo_gltfview, _buffer, file_alpha, 10);
                         }
                     }
                 } 
@@ -401,10 +398,10 @@ int main(int argc, char *argv[]) {
                 if (frameCount == 0) demo_os_integrate_signal_window_close();
             }
         }
-        if (needs_system_gltfdata) lv_gltfdata_destroy(system_gltfdata);
-        lv_gltfdata_destroy(demo_gltfdata);
-        lv_gltfview_destroy(demo_gltfview);
-        lv_gltfview_shadercache_destroy(shaderCache);
+        if (needs_system_gltfdata) lv_gltf_data_destroy(system_gltfdata);
+        lv_gltf_data_destroy(demo_gltfdata);
+        lv_gltf_view_destroy(demo_gltfview);
+        lv_gltf_view_shadercache_destroy(shaderCache);
         #ifdef ENABLE_DESKTOP_MODE
         if (desktop_mode) {
             running = false;

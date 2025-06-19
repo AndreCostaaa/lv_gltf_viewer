@@ -22,9 +22,13 @@ include_directories(
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
+add_library(lvgl_opengl_shader_cache 
+    lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.cpp
+)
+
 add_library(lvgl_gltfview 
-    gltfview/lv_gltfview.c
-    gltfview/lv_gltfview.cpp
+    gltfview/lv_gltf_view.c
+    gltfview/lv_gltf_view.cpp
 )
 
 add_executable(lvgl_workspace
@@ -79,9 +83,11 @@ set(CMAKE_LINKER_FLAGS_MINSIZEREL "-Wl,--gc-sections")  # Remove unused sections
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/fastgltf)
 
+target_link_libraries(lvgl_gltfview lvgl_opengl_shader_cache)
 target_link_libraries(lvgl_gltfview fastgltf)
 target_link_libraries(lvgl_gltfview webp)
 
+target_link_libraries(lvgl_workspace lvgl_opengl_shader_cache)
 target_link_libraries(lvgl_workspace lvgl_gltfview)
 target_link_libraries(lvgl_workspace lvgl)
 target_link_libraries(lvgl_workspace pthread)

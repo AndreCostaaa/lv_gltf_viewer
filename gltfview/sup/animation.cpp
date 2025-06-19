@@ -14,7 +14,7 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "../lv_gltfview_internal.h"
+#include "../lv_gltf_view_internal.h"
 
 
 #define TIME_LOC_PREPASS_COUNT 16

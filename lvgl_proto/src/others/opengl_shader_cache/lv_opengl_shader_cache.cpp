@@ -3,8 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
-#include "include/shader_includes.h"
-#include "include/shader_cache.h"
+#include "lv_opengl_shader_cache.h"
 
 #include <map>
 #include <string>
@@ -14,7 +13,7 @@
 #define HASH_SEED 0
 // [ Utilities ] ///////////////////////////////////////////////////////////////////////
 
-std::map<std::string, std::string>* _getSetAsMap(key_value* _set, unsigned int _count) {
+std::map<std::string, std::string>* _getSetAsMap(lv_shader_key_value_t* _set, unsigned int _count) {
     std::map<std::string, std::string>* _ret = new std::map<std::string, std::string>();
     for (unsigned int i = 0; i < _count; i++) {
         auto _kv = *( _set + i );
@@ -69,30 +68,26 @@ Program_struct Program(GLuint _program, char* _hash) {
 }
 
 void destroy_Program(pProgram This) {
-    // << "GL Program #" << This->program << " freeing resources...\n";
     GLsizei _shaderCount;
     GLuint shaderNames[2];
     glGetAttachedShaders( This->program, 2, &_shaderCount, &shaderNames[0]);
-    //std::cout << "Detaching shaders #" << shaderNames[0] << " and #" << shaderNames[1] << " \n";
     glDetachShader(This->program, shaderNames[0]);
     glDetachShader(This->program, shaderNames[1]);
 
     GL_CALL(glDeleteProgram (This->program));
     delete (std::map<std::string, GLuint>*)This->map_uniforms;
     delete (std::map<std::string, GLuint>*)This->map_attributes;
-    //free(This->hash);
 }
 
-// [ ShaderCache Class ] ///////////////////////////////////////////////////////////////
+// [ lv_opengl_shader_cache Class ] ///////////////////////////////////////////////////////////////
 
 
-long unsigned int __selectShader(pShaderCache This, const char* shaderIdentifier_cstr, key_value* permutationDefines_kvs, unsigned int permutationDefinesCount ) {
+long unsigned int __selectShader(lv_opengl_shader_cache_t * This, const char* shaderIdentifier_cstr, lv_shader_key_value_t* permutationDefines_kvs, unsigned int permutationDefinesCount ) {
     // first check shaders for the exact permutation
     // if not present, check sources and compile it
     // if not present, return null object
 
     std::vector<std::string> permutationDefines = std::vector<std::string>();
-    //std::string _suffix = "";
     for (unsigned int i=0; i< permutationDefinesCount; i++) {
         std::string tstr = std::string("");
         tstr += &(*(permutationDefines_kvs + i)->key);
@@ -100,7 +95,6 @@ long unsigned int __selectShader(pShaderCache This, const char* shaderIdentifier
             tstr += " ";
             tstr += &(*(permutationDefines_kvs + i)->value);
         }
-        //_suffix += "|"+tstr;
         permutationDefines.push_back(tstr);
     }
     std::string shaderIdentifier = shaderIdentifier_cstr;
@@ -154,7 +148,7 @@ long unsigned int __selectShader(pShaderCache This, const char* shaderIdentifier
     return hash;
 }
 
-pProgram __getShaderProgram(pShaderCache This, unsigned long int vertexShaderHash, unsigned long int fragmentShaderHash) {
+pProgram __getShaderProgram(lv_opengl_shader_cache_t * This, unsigned long int vertexShaderHash, unsigned long int fragmentShaderHash) {
     auto programs = (std::map<std::string, Program_struct>*)(This->map_programs);
     auto shaders = (std::map<unsigned long int, GLuint>*)(This->map_shaders);
     std::string hash = std::string(std::to_string(vertexShaderHash)) + "," + std::string(std::to_string(fragmentShaderHash));
@@ -169,19 +163,19 @@ pProgram __getShaderProgram(pShaderCache This, unsigned long int vertexShaderHas
     return &((*programs)[hash]);
 }
 
-void __setTextureCacheItem( pShaderCache This, long unsigned int _tex_id_hash, unsigned int _texture_gl_id ) {
+void __setTextureCacheItem( lv_opengl_shader_cache_t * This, long unsigned int _tex_id_hash, unsigned int _texture_gl_id ) {
     auto textures = (std::map<unsigned long int, GLuint>*)This->map_textures;
     (*textures)[_tex_id_hash] = _texture_gl_id;
 }
 
-unsigned int __getCachedTexture( pShaderCache This, long unsigned int _tex_id_hash ) {
+unsigned int __getCachedTexture( lv_opengl_shader_cache_t * This, long unsigned int _tex_id_hash ) {
     auto textures = (std::map<unsigned long int, GLuint>*)This->map_textures;
     for (const auto& [hash, texture_id] : (*textures)){
         if (hash == _tex_id_hash) {
             return texture_id; } }
     return GL_NONE; }
     
-void __ShaderCache_initCommon( pShaderCache This ) {
+void __ShaderCache_initCommon( lv_opengl_shader_cache_t * This ) {
     This->map_textures = new std::map<unsigned long int, GLuint>();              // texture_id hashed -> loaded texture id
     This->map_shaders = new std::map<unsigned long int, GLuint>();              // name & permutations hashed -> compiled shader
     This->map_programs = new std::map<std::string, Program_struct>();           // (vertex shader, fragment shader) -> program
@@ -194,7 +188,6 @@ void __ShaderCache_initCommon( pShaderCache This ) {
             if (includeName.empty() || includeSource.empty()) {
                 continue; // Skip empty names or sources
             }
-            //std::string pattern = std::string("#include <" + includeName + ">");
             std::string pattern = "#include <" + includeName + ">";
             std::regex regexPattern(pattern); // Create regex once
             
@@ -211,8 +204,8 @@ void __ShaderCache_initCommon( pShaderCache This ) {
     This->bg_program = 0;
 }
 
-ShaderCache_struct ShaderCache(key_value* _sources, unsigned int _count, char* _vertSrc, char* _fragSrc) {
-    struct ShaderCache_struct aShaderCache;
+lv_opengl_shader_cache_t lv_opengl_shader_cache_create(lv_shader_key_value_t* _sources, unsigned int _count, char* _vertSrc, char* _fragSrc) {
+    struct lv_opengl_shader_cache_t aShaderCache;
     aShaderCache.selectShader = &__selectShader;
     aShaderCache.getShaderProgram = &__getShaderProgram;
     aShaderCache.setTextureCacheItem = &__setTextureCacheItem;
@@ -235,17 +228,20 @@ void destroy_environment(gl_environment_textures* _env) {
     GL_CALL(glDeleteTextures(3, d));
 }
 
-void destroy_ShaderCache(pShaderCache This) {
-    std::cout << "ShaderCache freeing resources...\n";
+void lv_opengl_shader_cache_destroy(lv_opengl_shader_cache_t * This) {
+    std::cout << "Shader cache freeing resources...\n";
 
     delete (std::map<unsigned long int, GLuint>*)This->map_textures;
+    This->map_textures = nullptr;
 
     auto shaders = (std::map<unsigned long int, GLuint>*)This->map_shaders;
     for (const auto& [hash, shader_id] : (*shaders)){
         glDeleteShader(shader_id);   // Note this only flags the shader for deletion, it won't actually delete until there are no references to it anymore
     } 
     delete (std::map<unsigned long int, GLuint>*)This->map_shaders;
+    This->map_shaders = nullptr;
     delete (std::map<std::string, std::string>*)This->map_sources;
+    This->map_sources = nullptr;
 
     auto programs = (std::map<std::string, Program_struct>*)This->map_programs;
     for (const auto& [hashstr, program] : (*programs)) {
@@ -253,9 +249,11 @@ void destroy_ShaderCache(pShaderCache This) {
     }
     programs->clear();
     delete (std::map<std::string, Program_struct>*)This->map_programs;
+    This->map_programs = nullptr;
     programs = nullptr;
     if (This->lastEnv && (This->lastEnv->loaded)) {
         destroy_environment(This->lastEnv);
     }
+    This->lastEnv = nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////////////
