@@ -21,6 +21,8 @@ void nav_turn( int mouse_x, int mouse_y,int last_mouse_x, int last_mouse_y) {
     // Update camera rotation
     if (fabs(pitchChange) > 0.001f) {
         goal_pitch += pitchChange;
+        if (goal_pitch > 89.9f) { goal_pitch = 89.9f; }
+        else if (goal_pitch < -89.9f) { goal_pitch = -89.9f; }
         //viewChanged = true;
     }
     if (fabs(yawChange) > 0.001f) {

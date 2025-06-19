@@ -1,6 +1,6 @@
 #include "demo.h"
 
-#define EXPERIMENTAL_GROUNDCAST
+//#define EXPERIMENTAL_GROUNDCAST
 #define SYSTEM_ASSETS_FILENAME  "./gltfs/support_assets.glb"
 
 float TIME_SCALE = 1.0f;
@@ -191,8 +191,8 @@ int main(int argc, char *argv[]) {
         lv_obj_align(gltfview_3dtex, LV_ALIGN_TOP_LEFT, INNER_BG_CROP_LEFT, INNER_BG_CROP_TOP);
         lv_obj_clear_flag(gltfview_3dtex, LV_OBJ_FLAG_CLICKABLE  );
         lv_3dtexture_set_src_flip(gltfview_3dtex, false, false);
-
         demo_ui_make_overlayer();
+        lv_refr_now(NULL);
 
         glfwShowWindow(glfw_window);
         if (startMaximized) glfwMaximizeWindow(glfw_window);
@@ -333,7 +333,7 @@ int main(int argc, char *argv[]) {
             frames_this_second += 1;
             bool seconds_changed = difftime(this_poll, last_poll) > 0;
             last_poll = this_poll;
-            
+
             if (seconds_changed) {
                 ROLLING_FPS = (ROLLING_FPS > 0) ? ((ROLLING_FPS * 3.0f) + ((float)frames_this_second / (float)seconds_this_second) ) / 4.0f : ((float)frames_this_second / (float)seconds_this_second);
                 seconds_this_second = 0.f;
