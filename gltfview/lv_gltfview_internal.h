@@ -53,7 +53,7 @@ using NodeIntMap = std::map<NodePtr, uint32_t>;                 // Map of Nodes 
 using NodeVector = std::vector<NodePtr>;                        // Map of Nodes by string (name)
 using NodePrimCenterMap = std::map<uint32_t, std::map<uint32_t, fastgltf::math::fvec4>>; // Map of Node Index to Map of Prim Index to CenterXYZ+RadiusW Vec4
 #include "sup/include/datatypes.h"
-using NodeOverrideMap = std::map<NodePtr, _Override>;           // Map of Overrides by Node
+using NodeOverrideMap = std::map<NodePtr, lv_gltf_override_t>;           // Map of Overrides by Node
 
 struct MeshData;
 #endif

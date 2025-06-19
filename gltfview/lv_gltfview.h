@@ -151,9 +151,9 @@ gltf_probe_info *   lv_gltfview_get_probe(lv_gltfdata_t * _data);
 void lv_gltfdata_copy_bounds_info(lv_gltfdata_t * to, lv_gltfdata_t * from);
 void lv_gltfdata_link_view_to( lv_gltfdata_t * link_target,  lv_gltfdata_t * link_source);
 
-pOverride lv_gltfview_add_override_by_index(lv_gltfdata_t * _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask);
-pOverride lv_gltfview_add_override_by_ip(lv_gltfdata_t * _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask);
-pOverride lv_gltfview_add_override_by_id(lv_gltfdata_t * _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask);
+lv_gltf_override_t * lv_gltfview_add_override_by_index(lv_gltfdata_t * _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask);
+lv_gltf_override_t * lv_gltfview_add_override_by_ip(lv_gltfdata_t * _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask);
+lv_gltf_override_t * lv_gltfview_add_override_by_id(lv_gltfdata_t * _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask);
 
 void lv_gltf_get_isolated_filename(const char* filename, char* out_buffer, uint32_t max_out_length);
 bool lv_gltfview_set_loadphase_callback(void (*load_progress_callback)(const char*, const char* , float, float, float, float));

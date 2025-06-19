@@ -107,9 +107,9 @@ typedef struct {
     float data2;
     float data3;
     float data4;
-} _Override;
+} lv_gltf_override_t;
 
-typedef _Override * pOverride;
+typedef lv_gltf_override_t * pOverride;
 
 #ifdef __cplusplus
 } /*extern "C"*/

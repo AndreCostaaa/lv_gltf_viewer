@@ -170,7 +170,7 @@ void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
     memcpy (_DataStructMem, &_newDataStruct, sizeof (lv_gltfdata_t));
     _DataStructMem->asset = new ASSET();
 
-    _DataStructMem->overrides = new std::map<fastgltf::Node *, _Override>();
+    _DataStructMem->overrides = new std::map<fastgltf::Node *, lv_gltf_override_t>();
     _DataStructMem->node_by_path = new StringNodeMap();
     _DataStructMem->index_by_node = new NodeIntMap();
     _DataStructMem->node_by_index = new NodeVector();

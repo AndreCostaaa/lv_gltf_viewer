@@ -146,20 +146,20 @@ namespace fastgltf::math {
 
 } // namespace fastgltf::math
 
-pOverride lv_gltfview_add_override_by_index(pGltf_data_t _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask){
+lv_gltf_override_t * lv_gltfview_add_override_by_index(pGltf_data_t _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask){
     return NULL;
 }
 
-pOverride lv_gltfview_add_override_by_ip(pGltf_data_t _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask){
+lv_gltf_override_t * lv_gltfview_add_override_by_ip(pGltf_data_t _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask){
     return NULL;
 }
 
-pOverride lv_gltfview_add_override_by_id(pGltf_data_t _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask){
+lv_gltf_override_t * lv_gltfview_add_override_by_id(pGltf_data_t _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask){
     std::string sNodeId = std::string(nodeId);
     if ((*_data->node_by_path).find(sNodeId) != (*_data->node_by_path).end()) {
         const auto& _node = (*_data->node_by_path)[sNodeId];
         std::cout << "Found Node within the __node_by_path collection under path:\n" << sNodeId << "\nNode Name is:\n" << _node->name << "\n";
-        _Override _newOverride = _Override();
+        lv_gltf_override_t _newOverride = lv_gltf_override_t();
         _newOverride.prop = whichProp;
         _newOverride.dataMask = dataMask;
         _newOverride.data1 = 0.f;

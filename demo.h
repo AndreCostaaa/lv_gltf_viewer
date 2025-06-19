@@ -118,12 +118,12 @@ extern lv_gltfdata_t * demo_gltfdata;
 extern lv_gltfview_t * demo_gltfview;
 extern lv_obj_t * gltfview_3dtex;
 
-extern pOverride ov_boom;
-extern pOverride ov_stick;
-extern pOverride ov_bucket;
-extern pOverride ov_swing;
-extern pOverride ov_cursor;
-extern pOverride ov_ground_scale;
+extern lv_gltf_override_t * ov_boom;
+extern lv_gltf_override_t * ov_stick;
+extern lv_gltf_override_t * ov_bucket;
+extern lv_gltf_override_t * ov_swing;
+extern lv_gltf_override_t * ov_cursor;
+extern lv_gltf_override_t * ov_ground_scale;
 
 extern GLFWwindow * glfw_window;
 

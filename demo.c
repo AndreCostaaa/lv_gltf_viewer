@@ -28,23 +28,23 @@ float desktop_ratio = 0.5f;
 bool desktop_mode = false;
 #endif
 
-pShaderCache shaderCache = NULL;
-lv_gltfdata_t * system_gltfdata = NULL;
-lv_gltfdata_t * demo_gltfdata = NULL;
-lv_gltfview_t * demo_gltfview;
-lv_obj_t * gltfview_3dtex;
 lv_indev_t * mouse;
 lv_glfw_window_t * window;
 lv_display_t * display_texture;
 lv_glfw_texture_t * window_texture;
 
-pOverride ov_boom;
-pOverride ov_stick;
-pOverride ov_bucket;
-pOverride ov_swing;
-pOverride ov_cursor;
-pOverride ov_cursor_scale;
-pOverride ov_ground_scale;
+lv_obj_t * gltfview_3dtex;
+lv_gltfdata_t * system_gltfdata = NULL;
+lv_gltfdata_t * demo_gltfdata = NULL;
+lv_gltfview_t * demo_gltfview;
+pShaderCache shaderCache = NULL;
+lv_gltf_override_t * ov_boom;
+lv_gltf_override_t * ov_stick;
+lv_gltf_override_t * ov_bucket;
+lv_gltf_override_t * ov_swing;
+lv_gltf_override_t * ov_cursor;
+lv_gltf_override_t * ov_cursor_scale;
+lv_gltf_override_t * ov_ground_scale;
 
 void reload(char * _filename, const char * _hdr_filename) {
     printf("Loading %s...\n", _filename);
