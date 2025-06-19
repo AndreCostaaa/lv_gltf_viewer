@@ -29,26 +29,22 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 //#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
-//#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image/stb_image_write.h"
 #pragma GCC diagnostic pop
 #endif
 
 #include "../data/lv_gltf_data.h"
-#include "../data/lv_gltf_data.hpp"
+#include "../data/lv_gltf_data_internal.hpp"
 #include "../data/lv_gltf_data_internal.h"
 
 #include "lv_gltf_view.h"
 #include "lv_gltf_view_internal.h"
 
 #include "sup/animation.cpp"
-//#include "sup/lv_gltf_data_datatypes.cpp"
-#include "sup/lv_gltf_view_datatypes.cpp"
+#include "sup/datatypes.cpp"
 #include "sup/ibl_sampler.cpp"
-//#include "sup/injest.cpp"
-//#include "sup/reports.cpp"
 #include "sup/setup.cpp"
-//#include "sup/shader_cache.cpp"
 #include "sup/shader_includes.cpp"
 #include "sup/utils.cpp"
 
@@ -152,47 +148,13 @@ namespace fastgltf::math {
 
 } // namespace fastgltf::math
 
-lv_gltf_override_t * lv_gltf_view_add_override_by_index(pGltf_data_t _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask){
-    return NULL;
-}
-
-lv_gltf_override_t * lv_gltf_view_add_override_by_ip(pGltf_data_t _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask){
-    return NULL;
-}
-
-lv_gltf_override_t * lv_gltf_view_add_override_by_id(pGltf_data_t _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask){
-    std::string sNodeId = std::string(nodeId);
-    if ((*_data->node_by_path).find(sNodeId) != (*_data->node_by_path).end()) {
-        const auto& _node = (*_data->node_by_path)[sNodeId];
-        std::cout << "Found Node within the __node_by_path collection under path:\n" << sNodeId << "\nNode Name is:\n" << _node->name << "\n";
-        lv_gltf_override_t _newOverride = lv_gltf_override_t();
-        _newOverride.prop = whichProp;
-        _newOverride.dataMask = dataMask;
-        _newOverride.data1 = 0.f;
-        _newOverride.data2 = 0.f;
-        _newOverride.data3 = 0.f;
-        _newOverride.data4 = 0.f;
-        (*_data->overrides)[_node] = _newOverride;
-        return &((*_data->overrides)[_node]);
-    }
-    return NULL;
-}
-
 int64_t lv_gltf_view_get_node_handle_by_name(const char * _nodename) {
     return -1;
 }
 
-//void lv_gltf_data_destroy(pGltf_data_t _data){
-//    __free_data_struct(_data);
-//}
-
 void lv_gltf_view_destroy(lv_gltf_view_t * _viewer){
     __free_viewer_struct(_viewer);  // Currently does nothing, this could be removed
     clearDefines();
-}
-
-void lv_gltf_view_shadercache_destroy(lv_opengl_shader_cache_t * _shaders){
-    lv_opengl_shader_cache_destroy(_shaders);
 }
 
 void draw_primitive(  int32_t prim_num,
@@ -376,10 +338,6 @@ void draw_primitive(  int32_t prim_num,
         GL_CALL(glBindTextureUnit(_texnum, env_tex.ggxLut));        GL_CALL(glUniform1i(uniforms->envGgxLutSampler, _texnum++));
         GL_CALL(glBindTextureUnit(_texnum, env_tex.charlieLut));    GL_CALL(glUniform1i(uniforms->envCharlieLutSampler, _texnum++));
 
-        //while (_texnum < 16) {
-        //    GL_CALL(glBindTextureUnit(_texnum, 0));
-        //    _texnum++;
-        //}
     }
 
     std::size_t index_count = 0;
@@ -546,7 +504,7 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
     //    _motionDirty = true;
     //    lv_gltf_copy_viewer_desc(view_desc, &(gltf_data->_lastViewDesc));
     //}
-        lv_gltf_copy_viewer_desc(view_desc, &(viewer->_lastViewDesc));
+    lv_gltf_copy_viewer_desc(view_desc, &(viewer->_lastViewDesc));
 
     bool ___lastFrameNoMotion = gltf_data->__lastFrameNoMotion;
     gltf_data->__lastFrameNoMotion = gltf_data->_lastFrameNoMotion;
@@ -617,9 +575,12 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
         glDeleteTextures(SKINTEXS(gltf_data)->size(), (const GLuint *)SKINTEXS(gltf_data)->data());
         SKINTEXS(gltf_data)->clear();
         uint64_t i = 0u;
+        uint32_t SIZEOF_16FLOATS = sizeof(float) * 16;
         while (i < _ss) {
             auto skinIndex = get_skin(gltf_data, i);
             auto skin = asset->skins[skinIndex];
+            auto _ibm = _ibmBySkinThenNode[skinIndex];
+
             std::size_t num_joints = skin.joints.size();
             std::size_t _tex_width = std::ceil(std::sqrt((float)num_joints * 8.0f));
 
@@ -635,15 +596,9 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
             std::size_t _dpos = 0;
             for (uint64_t j =0; j< num_joints; j++) {
                 auto& _jointNode = asset->nodes[skin.joints[j]];
-                
-                FMAT4 _finalJointMat = get_cached_transform( gltf_data, &_jointNode ) * _ibmBySkinThenNode[skinIndex][&_jointNode];
-                FMAT4 _normMat =  fastgltf::math::transpose(fastgltf::math::invert(_finalJointMat));
-                auto _mData1 = _finalJointMat.data();
-                auto _mData2 = _normMat.data();
-                for (int32_t md =0; md < 16; md++) {
-                    _data[_dpos + md] = _mData1[md];
-                    _data[_dpos + md + 16] = _mData2[md];
-                }
+                FMAT4 _finalJointMat = get_cached_transform( gltf_data, &_jointNode ) * _ibm[&_jointNode];// _ibmBySkinThenNode[skinIndex][&_jointNode];
+                std::memcpy(&_data[_dpos], _finalJointMat.data(), SIZEOF_16FLOATS); // Copy final joint matrix
+                std::memcpy(&_data[_dpos + 16], fastgltf::math::transpose(fastgltf::math::invert(_finalJointMat)).data(), SIZEOF_16FLOATS);   // Copy normal matrix
                 _dpos += 32;
             }
             GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _tex_width, _tex_width, 0, GL_RGBA, GL_FLOAT, _data));

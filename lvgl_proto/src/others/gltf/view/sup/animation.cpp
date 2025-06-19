@@ -114,9 +114,7 @@ UintVector * animation_get_channel_set(std::size_t anim_num, pGltf_data_t gltf_d
                 }
             }
         }
-        //std::cout << "New animation channel cache created for " << node.name << " with " << std::to_string(new_cache.size()) << " elements.\n";
         __channel_set_cache[&node] = new_cache;
-        //std::cout << "Animation channel cache now has " << std::to_string(__channel_set_cache.size()) << " entries.\n";
     }
     return &__channel_set_cache[&node];
 }

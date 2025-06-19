@@ -13,7 +13,7 @@ extern "C" {
 
 ////////////////////////////////////////////////////////////////////////////////////////
 typedef struct lv_opengl_shader_cache_t lv_opengl_shader_cache_t;
-typedef struct Program_struct Program_struct, *pProgram;
+typedef struct lv_shader_program_struct_t lv_shader_program_struct_t, *pProgram;
 ////////////////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -55,45 +55,6 @@ void lv_gltf_copy_viewer_desc(gl_viewer_desc_t* from_state, gl_viewer_desc_t* to
  * @return true if the descriptors are equal, false otherwise.
  */
 bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t* from_state, gl_viewer_desc_t* to_state);
-
-void lv_gltf_view_utils_save_texture_to_png( lv_gltf_view_t * viewer, uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height );
-
-void lv_gltf_view_utils_save_png( lv_gltf_view_t * viewer, const char * filename, bool alpha_enabled, uint32_t compression_level );
-void lv_gltf_view_utils_save_pixelbuffer_to_png( lv_gltf_view_t * viewer,  char * pixels, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t width, uint32_t height );
-void lv_gltf_view_utils_get_capture_buffer( char * pixels, lv_gltf_view_t * viewer, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height );
-
-gl_viewer_desc_t* lv_gltf_view_get_desc           (lv_gltf_view_t * V);
-
-unsigned int get_gltf_datastruct_datasize(void);
-unsigned int get_viewer_datasize(void);
-unsigned int get_primitive_datasize(void);
-
-gl_environment_textures lv_gltf_view_ibl_sampler_setup(gl_environment_textures* _lastEnv, const char* _env_filename, int _env_rotation_degreesX10 );
-void lv_gltf_view_ibl_set_loadphase_callback(void (*_load_progress_callback)(const char*, const char* , float, float, float, float));
-
-uint32_t            lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t * view, lv_gltf_data_t * gltf_data, bool prepare_bg, uint32_t crop_left,  uint32_t crop_right,  uint32_t crop_top,  uint32_t crop_bottom );
-//uint32_t            lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t * view, lv_gltf_data_t * gltf_data, bool prepare_bg );
-void                lv_gltf_view_destroy(lv_gltf_view_t * _viewer);
-void                lv_gltf_view_shadercache_destroy(lv_opengl_shader_cache_t * _shaders);
-//gltf_probe_info *   lv_gltf_view_get_probe(lv_gltf_data_t * _data);
-void lv_gltf_data_copy_bounds_info(lv_gltf_data_t * to, lv_gltf_data_t * from);
-void lv_gltf_data_link_view_to( lv_gltf_data_t * link_target,  lv_gltf_data_t * link_source);
-
-lv_gltf_override_t * lv_gltf_view_add_override_by_index(lv_gltf_data_t * _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask);
-lv_gltf_override_t * lv_gltf_view_add_override_by_ip(lv_gltf_data_t * _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask);
-lv_gltf_override_t * lv_gltf_view_add_override_by_id(lv_gltf_data_t * _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask);
-
-void lv_gltf_get_isolated_filename(const char* filename, char* out_buffer, uint32_t max_out_length);
-bool lv_gltf_view_set_loadphase_callback(void (*load_progress_callback)(const char*, const char* , float, float, float, float));
-//int64_t lv_gltf_get_int_radiusX1000 (lv_gltf_data_t * _data);
-bool lv_gltf_view_raycast_ground_position(lv_gltf_view_t * view, int32_t mouse_x, int32_t mouse_y, int32_t win_width, int32_t win_height, double ground_height, float* out_pos);
-
-void init_viewer_struct(lv_gltf_view_t * _ViewerMem);
-
-void lv_gltf_view_set_width (lv_gltf_view_t * view, uint32_t new_width );
-void lv_gltf_view_set_height (lv_gltf_view_t * view, uint32_t new_height );
-
-void lv_gltf_view_mark_dirty(lv_gltf_view_t * view);
 
 /**
  * @brief Get the viewing pitch angle (up/down). This is only valid when a scene camera is not enabled.
@@ -167,14 +128,6 @@ uint32_t lv_gltf_view_get_aa_mode(lv_gltf_view_t * view);
  */
 uint32_t lv_gltf_view_get_bg_mode(lv_gltf_view_t * view);
 
-
-
-uint32_t lv_gltf_view_get_width (lv_gltf_view_t * view );
-uint32_t lv_gltf_view_get_height (lv_gltf_view_t * view );
-
-
-
-
 /**
  * @brief Set the viewing angle pitch in degrees x 10 (3600 per full turn)
  *
@@ -222,9 +175,31 @@ void lv_gltf_view_set_focal_y (lv_gltf_view_t * view, float focal_y);
  * @param focal_z The viewing position z component as float 
  */
 void lv_gltf_view_set_focal_z (lv_gltf_view_t * view, float focal_z);
+
+/**
+ * @brief Increment the viewing angle pitch by a floating point number of degrees
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @param pitch_degrees The amount to change pitch in degrees, as a float.
+ */
 void lv_gltf_view_inc_pitch (lv_gltf_view_t * view, float pitch_inc_degrees );
+
+/**
+ * @brief Increment the viewing angle yaw by a floating point number of degrees
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @param yaw_degrees The amount to change yaw in degrees, as a float.
+ */
 void lv_gltf_view_inc_yaw (lv_gltf_view_t * view, float yaw_inc_degrees );
+
+/**
+ * @brief Increment the viewing distance by a floating point number of standard distance units (each is 250% the bounding volume radius)
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @param distance The amount to change viewing distance in model bounding volume units as a floating point number.
+ */
 void lv_gltf_view_inc_distance (lv_gltf_view_t * view, float distance_inc_units );
+
 void lv_gltf_view_inc_focal_x (lv_gltf_view_t * view, float focal_x_inc );
 void lv_gltf_view_inc_focal_y (lv_gltf_view_t * view, float focal_y_inc );
 void lv_gltf_view_inc_focal_z (lv_gltf_view_t * view, float focal_z_inc );
@@ -247,6 +222,34 @@ void lv_gltf_view_set_timestep (lv_gltf_view_t * view, float timestep );
 void lv_gltf_view_recenter_view_on_model( lv_gltf_view_t * viewer, pGltf_data_t gltf_data);
 void lv_gltf_view_reset_between_models( lv_gltf_view_t * viewer );
 
+gl_viewer_desc_t* lv_gltf_view_get_desc (lv_gltf_view_t * V);
+
+gl_environment_textures lv_gltf_view_ibl_sampler_setup(gl_environment_textures* _lastEnv, const char* _env_filename, int _env_rotation_degreesX10 );
+void lv_gltf_view_ibl_set_loadphase_callback(void (*_load_progress_callback)(const char*, const char* , float, float, float, float));
+
+void lv_gltf_get_isolated_filename(const char* filename, char* out_buffer, uint32_t max_out_length);
+bool lv_gltf_view_set_loadphase_callback(void (*load_progress_callback)(const char*, const char* , float, float, float, float));
+
+uint32_t lv_gltf_view_get_width (lv_gltf_view_t * view );
+uint32_t lv_gltf_view_get_height (lv_gltf_view_t * view );
+
+void lv_gltf_view_set_width (lv_gltf_view_t * view, uint32_t new_width );
+void lv_gltf_view_set_height (lv_gltf_view_t * view, uint32_t new_height );
+
+void lv_gltf_view_mark_dirty(lv_gltf_view_t * view);
+
+unsigned int get_viewer_datasize(void);
+void init_viewer_struct(lv_gltf_view_t * _ViewerMem);
+void lv_gltf_view_destroy(lv_gltf_view_t * _viewer);
+
+bool lv_gltf_view_raycast_ground_position(lv_gltf_view_t * view, int32_t mouse_x, int32_t mouse_y, int32_t win_width, int32_t win_height, double ground_height, float* out_pos);
+
+uint32_t    lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t * view, lv_gltf_data_t * gltf_data, bool prepare_bg, uint32_t crop_left,  uint32_t crop_right,  uint32_t crop_top,  uint32_t crop_bottom );
+
+void lv_gltf_view_utils_save_png( lv_gltf_view_t * viewer, const char * filename, bool alpha_enabled, uint32_t compression_level );
+void lv_gltf_view_utils_get_capture_buffer( char * pixels, lv_gltf_view_t * viewer, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height );
+void lv_gltf_view_utils_save_pixelbuffer_to_png( lv_gltf_view_t * viewer,  char * pixels, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t width, uint32_t height );
+void lv_gltf_view_utils_save_texture_to_png( lv_gltf_view_t * viewer, uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height );
 
 #ifdef __cplusplus
 } /*extern "C"*/

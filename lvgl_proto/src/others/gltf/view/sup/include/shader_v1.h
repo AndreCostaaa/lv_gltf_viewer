@@ -791,8 +791,6 @@ static const char *src_fragmentShader = R"(
 
 static char* src_vertex(void) { return PREPROCESS(src_vertexShader); }
 static char* src_frag(void) { return PREPROCESS(src_fragmentShader); }
-//static void addDefine( const char* defsymbol, const char* defvalue_or_null ) { _addDefine(defsymbol, defvalue_or_null); }
-//static void clearDefines(void) { _clearDefines(); }
 
 #pragma GCC diagnostic pop
 

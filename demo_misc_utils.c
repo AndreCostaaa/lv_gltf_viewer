@@ -1,6 +1,6 @@
 #include "demo.h"
 
-lv_opengl_shader_cache_t _shaderCache;
+lv_opengl_shader_cache_t _shader_cache;
 gl_environment_textures _environment;
 static uint32_t cached_clear_tex = 0;
 
@@ -9,13 +9,13 @@ uint32_t ui_max(uint32_t a, uint32_t b) { return (a > b) ? a : b; }
 float lerp(float start, float end, float t) { return start + (end - start) * t; }
 
 void setup_shadercache(const char * hdr_filepath, int degrees_x10 ) {
-    _shaderCache = lv_opengl_shader_cache_create(src_includes, sizeof(src_includes)/sizeof(lv_shader_key_value_t), src_vertex(), src_frag() );
-    shaderCache = &_shaderCache;
+    _shader_cache = lv_opengl_shader_cache_create(src_includes, sizeof(src_includes)/sizeof(lv_shader_key_value_t), src_vertex(), src_frag() );
+    shader_cache = &_shader_cache;
     lv_timer_handler();
     lv_task_handler();
     lv_refr_now(NULL);
     _environment = lv_gltf_view_ibl_sampler_setup(NULL, hdr_filepath, degrees_x10  );
-    _shaderCache.lastEnv = &_environment;
+    _shader_cache.lastEnv = &_environment;
 }
 
 void demo_set_overrides(void) {

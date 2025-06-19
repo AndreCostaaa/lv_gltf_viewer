@@ -575,11 +575,11 @@ void setup_view_proj_matrix( lv_gltf_view_t * viewer, gl_viewer_desc_t * view_de
 }
 
 // Function to compile and load shaders
-gl_renwin_shaderset_t setup_compile_and_load_shaders(pShaderCache shaders) {
+gl_renwin_shaderset_t setup_compile_and_load_shaders(lv_opengl_shader_cache_t * shaders) {
     lv_shader_key_value_t* all_defs = all_defines();
-    auto _program = shaders->getShaderProgram(shaders, 
-        shaders->selectShader(shaders, "__MAIN__.frag", all_defs, all_defines_count()), 
-        shaders->selectShader(shaders, "__MAIN__.vert", all_defs, all_defines_count()) );
+    auto _program = shaders->get_shader_program(shaders, 
+        shaders->select_shader(shaders, "__MAIN__.frag", all_defs, all_defines_count()), 
+        shaders->select_shader(shaders, "__MAIN__.vert", all_defs, all_defines_count()) );
     GL_CALL(glUseProgram(_program->program));
     gl_renwin_shaderset_t _shader_prog;
     _shader_prog.program = _program->program;
@@ -589,18 +589,18 @@ gl_renwin_shaderset_t setup_compile_and_load_shaders(pShaderCache shaders) {
 }
 
 // Function to compile and load background shader
-void setup_compile_and_load_bg_shader(pShaderCache shaders) {
+void setup_compile_and_load_bg_shader(lv_opengl_shader_cache_t * shaders) {
     lv_shader_key_value_t empty_defs[0] = {};
     lv_shader_key_value_t frag_defs[1] = {{"TONEMAP_KHR_PBR_NEUTRAL", NULL}};
-    auto bg_program = shaders->getShaderProgram(shaders, 
-        shaders->selectShader(shaders, "cubemap.frag", frag_defs, 1), 
-        shaders->selectShader(shaders, "cubemap.vert", empty_defs, 0) );
+    auto bg_program = shaders->get_shader_program(shaders, 
+        shaders->select_shader(shaders, "cubemap.frag", frag_defs, 1), 
+        shaders->select_shader(shaders, "cubemap.vert", empty_defs, 0) );
     shaders->bg_program = bg_program->program;
     setup_background_environment(shaders->bg_program, &shaders->bg_vao, &shaders->bg_indexBuf, &shaders->bg_vertexBuf);
 }
 
 // Function to draw the environment background
-void setup_draw_environment_background(pShaderCache shaders, lv_gltf_view_t * viewer, float blur) {
+void setup_draw_environment_background(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t * viewer, float blur) {
     GL_CALL(glBindVertexArray(shaders->bg_vao));
     GL_CALL(glUseProgram(shaders->bg_program));
     GL_CALL(glEnable(GL_CULL_FACE));

@@ -14,8 +14,8 @@ typedef struct {
 #endif /* LV_SHADER_CACHE_KEYVAL */
 
 ////////////////////////////////////////////////////////////////////////////////////////
-typedef struct lv_opengl_shader_cache_t lv_opengl_shader_cache_t, *pShaderCache;
-typedef struct Program_struct Program_struct, *pProgram;
+typedef struct lv_opengl_shader_cache_t lv_opengl_shader_cache_t;//, *pShaderCache;
+typedef struct lv_shader_program_struct_t lv_shader_program_struct_t, *pProgram;
 ////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct {
@@ -33,38 +33,38 @@ typedef struct {
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct Program_struct {
+typedef struct lv_shader_program_struct_t {
     // Methods:
-        // updateUniform1f ( myProgram, "u_MyShaderFloatProp", 1.23 )
-            void (*updateUniform1f)(pProgram, const char*, float);
+        // update_uniform_1f ( myProgram, "u_MyShaderFloatProp", 1.23 )
+            void (*update_uniform_1f)(pProgram, const char*, float);
             // --> returns nothing
-        // updateUniform1i ( myProgram, "u_MyShaderIntProp", 123 )
-            void (*updateUniform1i)(pProgram, const char*, int);
+        // update_uniform_1i ( myProgram, "u_MyShaderIntProp", 123 )
+            void (*update_uniform_1i)(pProgram, const char*, int);
             // --> returns nothing
     unsigned int program;
     char hash[128];
     void* map_uniforms;     //  -> (std::map<std::string, GLuint>*)
     void* map_attributes;   //  -> (std::map<std::string, GLuint>*)
-} Program_struct, *pProgram;
-Program_struct Program(unsigned int _program, const char* _hash);
+} lv_shader_program_struct_t, *pProgram;
+lv_shader_program_struct_t Program(unsigned int _program, const char* _hash);
 void destroy_Program(pProgram This);
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct lv_opengl_shader_cache_t {
     // Methods:
-        // selectShader ( myCache, identifier, defines[key_val] array, defines[key_val] array count ) 
+        // select_shader ( myCache, identifier, defines[key_val] array, defines[key_val] array count ) 
             // --> (possibly compiles a new shader) 
-            long unsigned int (*selectShader)(lv_opengl_shader_cache_t *, const char*, lv_shader_key_value_t*, unsigned int );
+            long unsigned int (*select_shader)(lv_opengl_shader_cache_t *, const char*, lv_shader_key_value_t*, unsigned int );
             // --> returns the unique shader ID hash
         
-            // getShaderProgram ( myCache, unique vertex shader hash, unique fragment shader hash )
-            pProgram (*getShaderProgram)(lv_opengl_shader_cache_t *, unsigned long int, unsigned long int);
+            // get_shader_program ( myCache, unique vertex shader hash, unique fragment shader hash )
+            pProgram (*get_shader_program)(lv_opengl_shader_cache_t *, unsigned long int, unsigned long int);
             // --> returns a Program struct holding the shader information
             
-            // setTextureCacheItem ( myCache, unique texture id hash, opengl texture id )
+            // set_texture_cache_item ( myCache, unique texture id hash, opengl texture id )
             // --> (sets internal cache of loaded textures at element hash to texture id ) 
-            void (*setTextureCacheItem)(lv_opengl_shader_cache_t *, long unsigned int, unsigned int);
+            void (*set_texture_cache_item)(lv_opengl_shader_cache_t *, long unsigned int, unsigned int);
             // --> returns nothing
             
             // getCachedTexture ( myCache, unique texture id hash )
@@ -80,9 +80,9 @@ typedef struct lv_opengl_shader_cache_t {
     gl_environment_textures* lastEnv;  // The last displayed environment, it gets reused if not null and loaded.
     void* map_sources;      //  -> (std::map<std::string, std::string>*)
     void* map_shaders;      //  -> (std::map<unsigned long int, GLuint>*)
-    void* map_programs;     //  -> (std::map<std::string, Program_struct>*)
+    void* map_programs;     //  -> (std::map<std::string, lv_shader_program_struct_t>*)
     void* map_textures;     //  -> (std::map<unsigned long int, GLuint>*)
-} lv_opengl_shader_cache_t, *pShaderCache;
+} lv_opengl_shader_cache_t;//, *pShaderCache;
 lv_opengl_shader_cache_t lv_opengl_shader_cache_create(lv_shader_key_value_t* _sources, unsigned int _count, char* _vertSrc, char* _fragSrc);
 void lv_opengl_shader_cache_destroy(lv_opengl_shader_cache_t * This);
 

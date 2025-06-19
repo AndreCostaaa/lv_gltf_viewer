@@ -87,7 +87,6 @@ void __free_viewer_struct(_VIEW V) {
     // Nothing to do here
 }
 
-
 void            set_matrix_view             (_VIEW V,_MAT4 M) {V->mats.viewMatrix = M;}
 void            set_matrix_proj             (_VIEW V,_MAT4 M) {V->mats.projectionMatrix = M;}
 void            set_matrix_viewproj         (_VIEW V,_MAT4 M) {V->mats.viewProjectionMatrix = M;}
@@ -99,7 +98,7 @@ void*           get_matrix_viewproj         (_VIEW V)         {_RET &(V->mats.vi
 _ViewerOpts*    get_viewer_opts             (_VIEW V)         {_RET &(V->state.options);}
 _ViewerMetrics* get_viewer_metrics          (_VIEW V)         {_RET &(V->state.metrics);}
 _ViewerState*   get_viewer_state            (_VIEW V)         {_RET &(V->state);}
-gl_viewer_desc_t* lv_gltf_view_get_desc      (_VIEW V)         {_RET &(V->desc);}
+gl_viewer_desc_t* lv_gltf_view_get_desc     (_VIEW V)         {_RET &(V->desc);}
 _MatrixSet*     get_matrix_set              (_VIEW V)         {_RET &(V->mats);}
 double          get_view_radius             (_VIEW V)         {_RET (double)V->bound_radius;}
 

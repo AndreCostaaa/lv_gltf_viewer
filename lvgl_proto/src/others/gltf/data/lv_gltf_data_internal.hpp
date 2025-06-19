@@ -6,6 +6,60 @@
 
 #ifdef __cplusplus
 
+#ifndef FASTGLTF_MATH_HPP
+    namespace fastgltf { class Asset;
+    #if defined(FASTGLTF_USE_64BIT_FLOAT) && FASTGLTF_USE_64BIT_FLOAT
+        using num = double;
+    #else
+        using num = float;
+    #endif
+        namespace math {
+            template <typename T>
+            class mat; 
+            template <size_t Rows, size_t Cols>
+            using fmat = mat<float>; 
+            using fmat4x4 = fmat<4, 4>;
+            using fmat3x3 = fmat<3, 3>;
+
+            template <typename T>
+            class vec; 
+            template <size_t Cols>
+            using fvec = vec<float>; 
+            using fvec2 = fvec<2>;
+            using fvec3 = fvec<3>;
+            using fvec4 = fvec<4>;
+            using nvec2 = vec<num, 2>;
+            using nvec3 = vec<num, 3>;
+            using nvec4 = vec<num, 4>;
+        }
+        struct Node;
+    }
+#endif
+
+#include <vector>
+#include <map>
+
+using UintVector = std::vector<uint32_t>;                         // Vector of int32_t's
+using IntVector = std::vector<int32_t>;                         // Vector of int32_t's
+using LongVector = std::vector<int64_t>;                        // Vector of int64_t's
+using NodePtr = fastgltf::Node*;                                // Pointer to fastgltf::Node
+using Transform = fastgltf::math::fmat4x4;                      // A standard 4x4 transform matrix
+using NodeIndexPair = std::pair<NodePtr, int32_t>;              // Pair of Node pointer and int32_t
+using NodeIndexDistancePair = std::pair<float, NodeIndexPair>;  // Pair of float and Node/Index pair
+using NodePairVector = std::vector<NodeIndexPair>;              // Vector of NodeIndexPair
+using NodeDistanceVector = std::vector<NodeIndexDistancePair>;  // Vector of NodeIndexDistancePair
+using MaterialIndexMap = std::map<uint32_t, NodePairVector>;    // Map of uint32_t to NodePairVector
+using NodeTransformMap = std::map<NodePtr, Transform>;          // Map of Node Pointers to Transforms
+using MapofTransformMap = std::map<int32_t, NodeTransformMap>;  // Map of 4x4 Transform Maps by int32_t index (skin)
+using StringNodeMap = std::map<std::string, NodePtr>;           // Map of Nodes by string (name)
+using NodeIntMap = std::map<NodePtr, uint32_t>;                 // Map of Nodes by string (name)
+using NodeVector = std::vector<NodePtr>;                        // Map of Nodes by string (name)
+using NodePrimCenterMap = std::map<uint32_t, std::map<uint32_t, fastgltf::math::fvec4>>; // Map of Node Index to Map of Prim Index to CenterXYZ+RadiusW Vec4
+#include "sup/include/lv_gltf_data_datatypes.h"
+using NodeOverrideMap = std::map<NodePtr, lv_gltf_override_t>;           // Map of Overrides by Node
+
+struct MeshData;
+
 struct lv_gltf_data_struct {
     ASSET * asset;
     bool load_success;
@@ -80,14 +134,10 @@ struct lv_gltf_data_struct {
 
     bool view_is_linked = false;
     lv_gltf_data_t * linked_view_source;
-    //bool render_state_ready;
 };
 
-
-
-
-typedef lv_gltf_data_t * _DATA;
-typedef uint64_t        _UINT;
+typedef lv_gltf_data_t *    _DATA;
+typedef uint64_t            _UINT;
 typedef NodePtr             _NODE;
 typedef FMAT4               _MAT4;
 void*                   get_texdata_set(_DATA D);
@@ -115,15 +165,15 @@ void*                   get_asset (_DATA D);
 #define SKINTEXS(d)     ((IntVector*)get_skintex_set(d))
 #define GET_PRIM_FROM_MESH(m, i)    ((Primitive*)get_prim_from_mesh(m,i))
 
-void set_probe          (_DATA D,gltf_probe_info _probe);
-void allocate_index     (_DATA D,_UINT I);
-void recache_centerpoint(_DATA D,_UINT I,int32_t P);
-MeshData*  get_meshdata_num (_DATA D,_UINT I);
-int32_t         get_skintex_at              (_DATA D,_UINT I);
-void*           get_skintex_set             (_DATA D);
+void set_probe              (_DATA D,gltf_probe_info _probe);
+void allocate_index         (_DATA D,_UINT I);
+void recache_centerpoint    (_DATA D,_UINT I,int32_t P);
+MeshData* get_meshdata_num  (_DATA D,_UINT I);
+int32_t get_skintex_at      (_DATA D,_UINT I);
+void* get_skintex_set       (_DATA D);
 
-bool            validated_skins_contains    (_DATA D,int64_t I);
-void            validate_skin               (_DATA D,int64_t I);
+bool validated_skins_contains   (_DATA D,int64_t I);
+void validate_skin              (_DATA D,int64_t I);
 
 void add_opaque_node_prim(_DATA D, _UINT I, _NODE N, int32_t P );
 MaterialIndexMap::iterator get_opaque_begin(_DATA D);
@@ -138,17 +188,17 @@ void add_distance_sort_prim(_DATA D, NodeIndexDistancePair P );
 NodeDistanceVector::iterator get_distance_sort_begin(_DATA D);
 NodeDistanceVector::iterator get_distance_sort_end(_DATA D);
 
-void            set_cached_transform        (_DATA D,_NODE N,_MAT4 M);
-void            clear_transform_cache       (_DATA D);
-_MAT4           get_cached_transform        (_DATA D,_NODE N);
-bool            transform_cache_is_empty    (_DATA D);
-_UINT           get_skins_size              (_DATA D);
-int32_t         get_skin                    (_DATA D, uint64_t I);
-void injest_discover_defines(_DATA data_obj, void *node, void *prim);
+void        set_cached_transform        (_DATA D,_NODE N,_MAT4 M);
+void        clear_transform_cache       (_DATA D);
+_MAT4       get_cached_transform        (_DATA D,_NODE N);
+bool        transform_cache_is_empty    (_DATA D);
+_UINT       get_skins_size              (_DATA D);
+int32_t     get_skin                    (_DATA D, uint64_t I);
+void        injest_discover_defines     (_DATA data_obj, void *node, void *prim);
 
-void set_shader(_DATA D, uint64_t _index, UniformLocs _uniforms, gl_renwin_shaderset_t _shaderset);
-void init_shaders(_DATA D, uint64_t _max_index);
-uint32_t get_gltf_datastruct_datasize(void);
+void        set_shader(_DATA D, uint64_t _index, UniformLocs _uniforms, gl_renwin_shaderset_t _shaderset);
+void        init_shaders(_DATA D, uint64_t _max_index);
+uint32_t    get_gltf_datastruct_datasize(void);
 
 
 #endif

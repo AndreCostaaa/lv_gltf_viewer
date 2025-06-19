@@ -131,7 +131,7 @@ extern lv_style_t style_file_button;
 extern lv_style_t style_folder_button;
 extern bool __styles_ready;
 
-extern lv_opengl_shader_cache_t * shaderCache;
+extern lv_opengl_shader_cache_t * shader_cache;
 
 LV_IMAGE_DECLARE(lvgl_icon_40px);
 LV_IMAGE_DECLARE(sprites1_32x32x7);

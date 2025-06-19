@@ -72,8 +72,6 @@ class iblSampler
     void doinit(t_image* panoramaImage, const char* env_filename);
     void filterAll( void (*callback)(const char *, float, float));
     void destroy_iblSampler( void );
-
-    //friend gl_environment_textures setup_environment(gl_environment_textures* _lastEnv, const char* _env_filename, int _env_rotation_degreesX10 );
 };
 
 extern "C" {

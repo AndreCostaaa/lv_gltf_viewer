@@ -547,7 +547,7 @@ bool injest_mesh(pGltf_data_t data_obj, fastgltf::Mesh& mesh) {
  * @param index The index of the image to load.
  * @return true if the image was loaded successfully, false otherwise.
  */
-bool injest_image(pShaderCache shaders, pGltf_data_t data_obj, fastgltf::Image& image, uint32_t index) {
+bool injest_image(lv_opengl_shader_cache_t * shaders, pGltf_data_t data_obj, fastgltf::Image& image, uint32_t index) {
     const auto& asset = GET_ASSET(data_obj);
     auto getLevelCount = [](int32_t width, int32_t height) -> GLsizei {
         return static_cast<GLsizei>(1 + floor(log2(width > height ? width : height)));
@@ -640,7 +640,7 @@ bool injest_image(pShaderCache shaders, pGltf_data_t data_obj, fastgltf::Image& 
         }, image.data);
 
         glGenerateTextureMipmap(texture);
-        shaders->setTextureCacheItem(shaders, hash, texture);
+        shaders->set_texture_cache_item(shaders, hash, texture);
     }
     // ----
     data_obj->textures->emplace_back(Texture { texture });
@@ -718,7 +718,7 @@ bool lv_gltf_view_set_loadphase_callback(void (*_load_progress_callback)(const c
     return true;
 }
 
-void lv_gltf_data_load(const char * gltf_path, pGltf_data_t _retdata, pShaderCache shaders) {
+void lv_gltf_data_load(const char * gltf_path, pGltf_data_t _retdata, lv_opengl_shader_cache_t * shaders) {
     __init_gltf_datastruct(_retdata, gltf_path);
 
     std::filesystem::path gltfFilePath = std::string_view { gltf_path };

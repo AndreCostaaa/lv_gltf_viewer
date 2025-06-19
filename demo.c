@@ -35,7 +35,7 @@ lv_glfw_texture_t * window_texture;
 
 lv_obj_t * gltfview_3dtex;
 lv_gltf_view_t * demo_gltfview;
-lv_opengl_shader_cache_t * shaderCache = NULL;
+lv_opengl_shader_cache_t * shader_cache = NULL;
 lv_gltf_data_t * system_gltfdata = NULL;
 lv_gltf_data_t * demo_gltfdata = NULL;
 lv_gltf_override_t * ov_boom;
@@ -67,8 +67,8 @@ void reload(char * _filename, const char * _hdr_filename) {
 
     demo_gltfdata = lv_malloc(get_gltf_datastruct_datasize() );
 
-    if (shaderCache == NULL) setup_shadercache(_hdr_filename, 1800);
-    lv_gltf_data_load(_filename, demo_gltfdata, shaderCache);
+    if (shader_cache == NULL) setup_shadercache(_hdr_filename, 1800);
+    lv_gltf_data_load(_filename, demo_gltfdata, shader_cache);
 
     if (lv_gltf_view_get_probe(demo_gltfdata)->cameraCount == 0) {
         use_scenecam = false;
@@ -91,7 +91,7 @@ void reload(char * _filename, const char * _hdr_filename) {
     
     if (needs_system_gltfdata) {
         system_gltfdata = lv_malloc(get_gltf_datastruct_datasize() );
-        lv_gltf_data_load(SYSTEM_ASSETS_FILENAME, system_gltfdata, shaderCache);
+        lv_gltf_data_load(SYSTEM_ASSETS_FILENAME, system_gltfdata, shader_cache);
         lv_gltf_data_link_view_to(system_gltfdata, demo_gltfdata);
         lv_gltf_data_copy_bounds_info(system_gltfdata, demo_gltfdata);
         float newradius = lv_gltf_data_get_int_radiusX1000(demo_gltfdata) / 1000.f;
@@ -351,10 +351,10 @@ int main(int argc, char *argv[]) {
             if (desktop_mode && (totalframenum != framenum)) { /* Do nothing, frame is cached */ } else
             #endif
             { 
-                gltf_texture = lv_gltf_view_render( shaderCache, demo_gltfview, demo_gltfdata, true, 0, 0, 0, 0 );
+                gltf_texture = lv_gltf_view_render( shader_cache, demo_gltfview, demo_gltfdata, true, 0, 0, 0, 0 );
                 if (needs_system_gltfdata && (use_scenecam == false))
                     if (!lv_gltf_view_check_frame_was_cached(demo_gltfview)) 
-                        gltf_texture = lv_gltf_view_render( shaderCache, demo_gltfview, system_gltfdata, false, 0,0,0,0);
+                        gltf_texture = lv_gltf_view_render( shader_cache, demo_gltfview, system_gltfdata, false, 0,0,0,0);
             }
             if (reapply_layout_flag) demo_ui_reposition_all();
             if (!lv_gltf_view_check_frame_was_cached(demo_gltfview)) {
@@ -401,7 +401,7 @@ int main(int argc, char *argv[]) {
         if (needs_system_gltfdata) lv_gltf_data_destroy(system_gltfdata);
         lv_gltf_data_destroy(demo_gltfdata);
         lv_gltf_view_destroy(demo_gltfview);
-        lv_gltf_view_shadercache_destroy(shaderCache);
+        lv_opengl_shader_cache_destroy(shader_cache);
         #ifdef ENABLE_DESKTOP_MODE
         if (desktop_mode) {
             running = false;

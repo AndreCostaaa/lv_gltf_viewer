@@ -30,14 +30,14 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image/stb_image_write.h"
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#include "stb_image/stb_image_write.h"
 #pragma GCC diagnostic pop
 #endif
 
 #include "lv_gltf_data.h"
 #include "lv_gltf_data_internal.h"
-#include "sup/lv_gltf_data_datatypes.cpp"
+#include "sup/datatypes.cpp"
 #include "sup/injest.cpp"
 #include "sup/reports.cpp"
 
@@ -45,4 +45,31 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 
 void lv_gltf_data_destroy(pGltf_data_t _data){
     __free_data_struct(_data);
+}
+
+
+lv_gltf_override_t * lv_gltf_view_add_override_by_index(pGltf_data_t _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask){
+    return NULL;
+}
+
+lv_gltf_override_t * lv_gltf_view_add_override_by_ip(pGltf_data_t _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask){
+    return NULL;
+}
+
+lv_gltf_override_t * lv_gltf_view_add_override_by_id(pGltf_data_t _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask){
+    std::string sNodeId = std::string(nodeId);
+    if ((*_data->node_by_path).find(sNodeId) != (*_data->node_by_path).end()) {
+        const auto& _node = (*_data->node_by_path)[sNodeId];
+        std::cout << "Found Node within the __node_by_path collection under path:\n" << sNodeId << "\nNode Name is:\n" << _node->name << "\n";
+        lv_gltf_override_t _newOverride = lv_gltf_override_t();
+        _newOverride.prop = whichProp;
+        _newOverride.dataMask = dataMask;
+        _newOverride.data1 = 0.f;
+        _newOverride.data2 = 0.f;
+        _newOverride.data3 = 0.f;
+        _newOverride.data4 = 0.f;
+        (*_data->overrides)[_node] = _newOverride;
+        return &((*_data->overrides)[_node]);
+    }
+    return NULL;
 }

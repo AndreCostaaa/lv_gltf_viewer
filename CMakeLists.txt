@@ -72,31 +72,29 @@ if(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
 endif()
 
 # Set flags for Debug build
-set(CMAKE_C_FLAGS_DEBUG "-g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
-set(CMAKE_LINKER_FLAGS_DEBUG "-fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas")
+#set(CMAKE_C_FLAGS_DEBUG "-g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
+set(CMAKE_C_FLAGS_DEBUG "-g -Wall -Wextra -fsanitize=address -Wshadow")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -fsanitize=address -std=c++17")
+set(CMAKE_LINKER_FLAGS_DEBUG "-fsanitize=address")
 
 # Set flags for Release build
-set(CMAKE_C_FLAGS_RELEASE "-O3 -Wall -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
-set(CMAKE_LINKER_FLAGS_RELEASE "-O3 -Wno-unused-parameter -Wno-unknown-pragmas")
+set(CMAKE_C_FLAGS_RELEASE "-O3 -Wall -Wshadow")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -std=c++17")
+set(CMAKE_LINKER_FLAGS_RELEASE "-O3")
 
 #  Set flags for MinSizeRel build
-set(CMAKE_C_FLAGS_MINSIZEREL "-Os -Wall -Wno-unused-parameter -Wno-unknown-pragmas -Wshadow")
-set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -Wall -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
+set(CMAKE_C_FLAGS_MINSIZEREL "-Os -Wall -Wshadow")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -Wall -std=c++17")
 set(CMAKE_LINKER_FLAGS_MINSIZEREL "-Wl,--gc-sections")  # Remove unused sections
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/fastgltf)
 
 target_link_libraries(lvgl_gltfdata lvgl_opengl_shader_cache)
+target_link_libraries(lvgl_gltfdata fastgltf)
+target_link_libraries(lvgl_gltfdata webp)
 
 target_link_libraries(lvgl_gltfview lvgl_gltfdata)
-target_link_libraries(lvgl_gltfview lvgl_opengl_shader_cache)
-target_link_libraries(lvgl_gltfview fastgltf)
-target_link_libraries(lvgl_gltfview webp)
 
-target_link_libraries(lvgl_workspace lvgl_opengl_shader_cache)
-target_link_libraries(lvgl_workspace lvgl_gltfdata)
 target_link_libraries(lvgl_workspace lvgl_gltfview)
 target_link_libraries(lvgl_workspace lvgl)
 target_link_libraries(lvgl_workspace pthread)
@@ -111,6 +109,9 @@ target_link_libraries(lvgl_workspace glfw)
 
 target_compile_options(fastgltf PRIVATE -Wno-maybe-uninitialized)
 target_compile_options(fastgltf PRIVATE -Wno-redundant-move)
+target_compile_options(fastgltf PRIVATE -Wno-unknown-pragmas)
+target_compile_options(lvgl_gltfdata PRIVATE -Wno-unknown-pragmas)
+target_compile_options(lvgl_gltfview PRIVATE -Wno-unknown-pragmas)
 target_compile_options(lvgl_gltfview PRIVATE -Wno-maybe-uninitialized)
 target_compile_options(lvgl_gltfview PRIVATE -Wno-array-bounds)
 target_compile_options(lvgl_workspace PRIVATE -Wno-array-bounds)

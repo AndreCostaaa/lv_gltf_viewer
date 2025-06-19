@@ -260,9 +260,9 @@ void iblSampler::panoramaToCubeMap(void)
         GL_CALL(glViewport(0, 0, textureSize, textureSize));
         GL_CALL(glClearColor(1.0, 0.0, 0.0, 0.0));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT));
-        pProgram shader = shaderCache->getShaderProgram( shaderCache, 
-            shaderCache->selectShader ( shaderCache, "panorama_to_cubemap.frag", NO_DEFINES, 0 ), 
-            shaderCache->selectShader ( shaderCache, "fullscreen.vert", NO_DEFINES, 0 ) );
+        pProgram shader = shaderCache->get_shader_program( shaderCache, 
+            shaderCache->select_shader ( shaderCache, "panorama_to_cubemap.frag", NO_DEFINES, 0 ), 
+            shaderCache->select_shader ( shaderCache, "fullscreen.vert", NO_DEFINES, 0 ) );
         GLint success;
         //GL_CALL(glGetShaderiv(shader->program, GL_COMPILE_STATUS, &success));
         GL_CALL(glGetProgramiv(shader->program, GL_LINK_STATUS, &success));
@@ -279,7 +279,7 @@ void iblSampler::panoramaToCubeMap(void)
         GLuint location;
         GL_CALL(location = glGetUniformLocation(shader->program,"u_panorama"));
         GL_CALL(glUniform1i(location, 0)); // texture unit 0 (TEXTURE0)
-        shader->updateUniform1i(shader, "u_currentFace", i);
+        shader->update_uniform_1i(shader, "u_currentFace", i);
         //fullscreen triangle
 
         GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 3)); 
@@ -308,9 +308,9 @@ void iblSampler::applyFilter(
         GL_CALL(glViewport(0, 0, currentTextureSize, currentTextureSize));
         GL_CALL(glClearColor(0.0, 1.0, 0.0, 0.0));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT));
-        pProgram shader = shaderCache->getShaderProgram( shaderCache, 
-            shaderCache->selectShader ( shaderCache, "ibl_filtering.frag", NO_DEFINES, 0 ), 
-            shaderCache->selectShader ( shaderCache, "fullscreen.vert", NO_DEFINES, 0 ) );                
+        pProgram shader = shaderCache->get_shader_program( shaderCache, 
+            shaderCache->select_shader ( shaderCache, "ibl_filtering.frag", NO_DEFINES, 0 ), 
+            shaderCache->select_shader ( shaderCache, "fullscreen.vert", NO_DEFINES, 0 ) );                
         GL_CALL(glUseProgram(shader->program));
         //  TEXTURE0 = active.
         GL_CALL(glActiveTexture(GL_TEXTURE0));
@@ -319,16 +319,16 @@ void iblSampler::applyFilter(
         // map shader uniform to texture unit (TEXTURE0)
         uint32_t location = glGetUniformLocation(shader->program,"u_cubemapTexture");
         GL_CALL(glUniform1i(location, 0)); // texture unit 0
-        shader->updateUniform1f(shader, "u_roughness", roughness);
-        shader->updateUniform1i(shader, "u_sampleCount", sampleCount);
-        shader->updateUniform1i(shader, "u_width", currentTextureSize);
-        //shader->updateUniform1i(shader, "u_width", textureSize);
-        shader->updateUniform1f(shader, "u_lodBias", _lodBias);
-        shader->updateUniform1i(shader, "u_distribution", distribution);
-        shader->updateUniform1i(shader, "u_currentFace", i);
-        shader->updateUniform1i(shader, "u_isGeneratingLUT", 0);
-        shader->updateUniform1i(shader, "u_floatTexture", 0);
-        shader->updateUniform1f(shader, "u_intensityScale", scaleValue);
+        shader->update_uniform_1f(shader, "u_roughness", roughness);
+        shader->update_uniform_1i(shader, "u_sampleCount", sampleCount);
+        shader->update_uniform_1i(shader, "u_width", currentTextureSize);
+        //shader->update_uniform_1i(shader, "u_width", textureSize);
+        shader->update_uniform_1f(shader, "u_lodBias", _lodBias);
+        shader->update_uniform_1i(shader, "u_distribution", distribution);
+        shader->update_uniform_1i(shader, "u_currentFace", i);
+        shader->update_uniform_1i(shader, "u_isGeneratingLUT", 0);
+        shader->update_uniform_1i(shader, "u_floatTexture", 0);
+        shader->update_uniform_1f(shader, "u_intensityScale", scaleValue);
         //fullscreen triangle
         GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 3));
         //    usleep(199000);
@@ -394,9 +394,9 @@ void iblSampler::sampleLut(uint32_t distribution, uint32_t targetTexture, uint32
     GL_CALL(glViewport(0, 0, currentTextureSize, currentTextureSize));
     GL_CALL(glClearColor(0.0, 1.0, 1.0, 0.0));
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT));
-    pProgram shader = shaderCache->getShaderProgram( shaderCache, 
-        shaderCache->selectShader ( shaderCache, "ibl_filtering.frag", NO_DEFINES, 0 ), 
-        shaderCache->selectShader ( shaderCache, "fullscreen.vert", NO_DEFINES, 0 ) );   
+    pProgram shader = shaderCache->get_shader_program( shaderCache, 
+        shaderCache->select_shader ( shaderCache, "ibl_filtering.frag", NO_DEFINES, 0 ), 
+        shaderCache->select_shader ( shaderCache, "fullscreen.vert", NO_DEFINES, 0 ) );   
         
     GL_CALL(glUseProgram(shader->program));
     //  TEXTURE0 = active.
@@ -406,14 +406,14 @@ void iblSampler::sampleLut(uint32_t distribution, uint32_t targetTexture, uint32
     // map shader uniform to texture unit (TEXTURE0)
     uint32_t location = glGetUniformLocation(shader->program,"u_cubemapTexture");
     GL_CALL(glUniform1i(location, 0)); // texture unit 0
-    shader->updateUniform1f( shader, "u_roughness", 0.0);
-    shader->updateUniform1i( shader, "u_sampleCount", lutSampleCount);
-    //shader->updateUniform1i( shader, "u_sampleCount", 512);
-    shader->updateUniform1i( shader, "u_width", 0.0);
-    shader->updateUniform1f( shader, "u_lodBias", 0.0);
-    shader->updateUniform1i( shader, "u_distribution", distribution);
-    shader->updateUniform1i( shader, "u_currentFace", 0);
-    shader->updateUniform1i( shader, "u_isGeneratingLUT", 1);
+    shader->update_uniform_1f( shader, "u_roughness", 0.0);
+    shader->update_uniform_1i( shader, "u_sampleCount", lutSampleCount);
+    //shader->update_uniform_1i( shader, "u_sampleCount", 512);
+    shader->update_uniform_1i( shader, "u_width", 0.0);
+    shader->update_uniform_1f( shader, "u_lodBias", 0.0);
+    shader->update_uniform_1i( shader, "u_distribution", distribution);
+    shader->update_uniform_1i( shader, "u_currentFace", 0);
+    shader->update_uniform_1i( shader, "u_isGeneratingLUT", 1);
     //fullscreen triangle
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 3)); 
 
