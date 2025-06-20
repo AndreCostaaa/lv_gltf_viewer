@@ -9,7 +9,7 @@
 #define IBL_SAMPLER_VERBOSITY VERBOSITY_MAX
 
 
-#include "../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
+#include "../../../../../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
 
 #ifdef __cplusplus
 class iblSampler
@@ -69,7 +69,7 @@ class iblSampler
     float scaleValue;
     uint32_t mipmapLevels;
     iblSampler(void);
-    void doinit(t_image* panoramaImage, const char* env_filename);
+    void doinit(const char* env_filename);
     void filterAll( void (*callback)(const char *, float, float));
     void destroy_iblSampler( void );
 };

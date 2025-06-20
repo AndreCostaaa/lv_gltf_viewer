@@ -18,9 +18,9 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 #undef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT    // Talking withe fastgltf devs about getting this in there, should be merged in soon.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wredundant-move"
-#include "lib/fastgltf/include/fastgltf/core.hpp"
-#include "lib/fastgltf/include/fastgltf/types.hpp"
-#include "lib/fastgltf/include/fastgltf/tools.hpp"
+#include "deps/fastgltf/include/fastgltf/core.hpp"
+#include "deps/fastgltf/include/fastgltf/types.hpp"
+#include "deps/fastgltf/include/fastgltf/tools.hpp"
 #pragma GCC diagnostic pop
 
 //#include "lv_gltf_override.h"

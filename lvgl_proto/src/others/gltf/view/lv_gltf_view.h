@@ -468,7 +468,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
 void lv_gltf_view_utils_save_png(lv_gltf_view_t * viewer, const char * filename, bool alpha_enabled, uint32_t compression_level);
 
 /**
- * @brief Get the capture buffer for the current viewer output.
+ * @brief Get the pixels of any valid OpenGL texture id.
  *
  * @param pixels Buffer to store the pixel data.
  * @param viewer Pointer to the lv_gltf_view.
@@ -478,12 +478,11 @@ void lv_gltf_view_utils_save_png(lv_gltf_view_t * viewer, const char * filename,
  * @param width The width of the capture.
  * @param height The height of the capture.
  */
-void lv_gltf_view_utils_get_capture_buffer(char * pixels, lv_gltf_view_t * viewer, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height);
+void lv_gltf_view_utils_get_texture_pixels(char * pixels, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height);
 
 /**
  * @brief Save a pixel buffer to a PNG file.
  *
- * @param viewer Pointer to the lv_gltf_view.
  * @param pixels The pixel data to save.
  * @param filename The name of the file to save the PNG as.
  * @param alpha_enabled Flag indicating whether to include alpha channel.
@@ -491,12 +490,11 @@ void lv_gltf_view_utils_get_capture_buffer(char * pixels, lv_gltf_view_t * viewe
  * @param width The width of the pixel buffer.
  * @param height The height of the pixel buffer.
  */
-void lv_gltf_view_utils_save_pixelbuffer_to_png(lv_gltf_view_t * viewer, char * pixels, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t width, uint32_t height);
+void lv_gltf_view_utils_save_pixelbuffer_to_png( char * pixels, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t width, uint32_t height);
 
 /**
  * @brief Save a texture to a PNG file.
  *
- * @param viewer Pointer to the lv_gltf_view.
  * @param tex_id The texture ID to save.
  * @param filename The name of the file to save the PNG as.
  * @param alpha_enabled Flag indicating whether to include alpha channel.
@@ -505,7 +503,7 @@ void lv_gltf_view_utils_save_pixelbuffer_to_png(lv_gltf_view_t * viewer, char * 
  * @param width The width of the pixel buffer.
  * @param height The height of the pixel buffer.
  */
-void lv_gltf_view_utils_save_texture_to_png( lv_gltf_view_t * viewer, uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height );
+void lv_gltf_view_utils_save_texture_to_png( uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height );
 
 
 // TO-DO: This should be in gltf_data, not view

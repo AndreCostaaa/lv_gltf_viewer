@@ -93,35 +93,36 @@ void demo_nav_process_drag(float movement_power, uint32_t mouse_state_ex, int mo
 }
 
 void demo_nav_gradual_to_goals( void ) {
-    float EASE_POWER = 0.5f;
-    float EASE_CLOSE_ENOUGH = 0.001f;
+    float EASE_POWER_1 = 1.f / 16.f;
+    float EASE_POWER_2 = 1.f / 56.f;
+    //float EASE_CLOSE_ENOUGH = 0.001f;
     float MIN_ANGLE_CHANGE = 0.02f;
     float MIN_DISTANCE_CHANGE = 0.001f;
     float MIN_POSITION_CHANGE = 0.001f;
     float tfx = lv_gltf_view_get_focal_x(demo_gltfview);
     if (tfx != goal_focal_x) {
-        tfx = lerp_towards(tfx, goal_focal_x, EASE_POWER / 8.f, MIN_POSITION_CHANGE);
+        tfx = lerp_towards(tfx, goal_focal_x, EASE_POWER_1, MIN_POSITION_CHANGE);
         if (tfx == goal_focal_x) {goal_focal_x = lv_gltf_view_get_focal_x(demo_gltfview);}
         lv_gltf_view_set_focal_x(demo_gltfview, tfx); 
     }
 
     float tfy = lv_gltf_view_get_focal_y(demo_gltfview);
     if (tfy != goal_focal_y) {
-        tfy = lerp_towards(tfy, goal_focal_y, EASE_POWER / 8.f, MIN_POSITION_CHANGE);
+        tfy = lerp_towards(tfy, goal_focal_y, EASE_POWER_1, MIN_POSITION_CHANGE);
         if (tfy == goal_focal_y) {goal_focal_y = lv_gltf_view_get_focal_y(demo_gltfview);}
         lv_gltf_view_set_focal_y(demo_gltfview, tfy); 
     }
 
     float tfz = lv_gltf_view_get_focal_z(demo_gltfview);
     if (tfz != goal_focal_z) {
-        tfz = lerp_towards(tfz, goal_focal_z, EASE_POWER / 8.f, MIN_POSITION_CHANGE);
+        tfz = lerp_towards(tfz, goal_focal_z, EASE_POWER_1, MIN_POSITION_CHANGE);
         if (tfz == goal_focal_z) {goal_focal_z = lv_gltf_view_get_focal_z(demo_gltfview);}
         lv_gltf_view_set_focal_z(demo_gltfview, tfz); 
     }
-    
+
     float tyaw = lv_gltf_view_get_yaw(demo_gltfview);
     if (tyaw != goal_yaw) {
-        tyaw = lerp_towards(tyaw, goal_yaw, EASE_POWER / 28.f, MIN_ANGLE_CHANGE);
+        tyaw = lerp_towards(tyaw, goal_yaw, EASE_POWER_2, MIN_ANGLE_CHANGE);
         bool looped = demo_ui_apply_yaw_value(tyaw );
         if (looped) {
             // Move the goal and lerp_towardsed yaw back into the -180 <-> +180 degree range
@@ -137,7 +138,7 @@ void demo_nav_gradual_to_goals( void ) {
 
     float tpitch = lv_gltf_view_get_pitch(demo_gltfview);
     if (tpitch != goal_pitch) {
-        tpitch = lerp_towards(tpitch, goal_pitch, EASE_POWER / 28.f, MIN_ANGLE_CHANGE);
+        tpitch = lerp_towards(tpitch, goal_pitch, EASE_POWER_2, MIN_ANGLE_CHANGE);
         lv_gltf_view_set_pitch(demo_gltfview, (int)(tpitch * 100.f)); 
         demo_ui_apply_pitch_value(tpitch );
         if (tpitch == goal_pitch) {goal_pitch = lv_gltf_view_get_pitch(demo_gltfview);}
@@ -146,7 +147,7 @@ void demo_nav_gradual_to_goals( void ) {
 
     float tdistance = lv_gltf_view_get_distance(demo_gltfview);
     if (tdistance != goal_distance) {
-        tdistance = lerp_towards(tdistance, goal_distance, EASE_POWER / 8.f, MIN_DISTANCE_CHANGE);
+        tdistance = lerp_towards(tdistance, goal_distance, EASE_POWER_1, MIN_DISTANCE_CHANGE);
         lv_gltf_view_set_distance(demo_gltfview, (int)(tdistance * 1000.f));
         demo_ui_apply_distance_value(tdistance );
         if (tdistance == goal_distance) {goal_distance = lv_gltf_view_get_distance(demo_gltfview);}

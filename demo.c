@@ -385,7 +385,7 @@ int main(int argc, char *argv[]) {
                         demo_os_integrate_save_png_from_new_thread(framenum, desktop_mode, maxFrames, file_alpha, NULL);
                     } else {
                         char * pixels =(char *)lv_malloc(ui_get_primary_texture_height() * ui_get_primary_texture_width() * 4);
-                        lv_gltf_view_utils_get_capture_buffer( pixels, demo_gltfview, gltf_texture, file_alpha, lv_gltf_view_check_frame_was_antialiased(demo_gltfview) ? 1 : 0, ui_get_primary_texture_width(), ui_get_primary_texture_height() );
+                        lv_gltf_view_utils_get_texture_pixels( pixels, gltf_texture, file_alpha, lv_gltf_view_check_frame_was_antialiased(demo_gltfview) ? 1 : 0, ui_get_primary_texture_width(), ui_get_primary_texture_height() );
                         demo_os_integrate_save_png_from_new_thread(framenum, desktop_mode, maxFrames, file_alpha, pixels);
                     }
                 } else 
@@ -395,7 +395,7 @@ int main(int argc, char *argv[]) {
                         char _buffer[100];
                         snprintf(_buffer, sizeof(_buffer), "/home/pi/Desktop/lv_gltf_viewer/render_frames/frame%03d.png", (maxFrames - frameCount));
                         if (frame_grab_ui) {
-                            lv_gltf_view_utils_save_texture_to_png( demo_gltfview, lv_opengles_texture_get_texture_id(display_texture), _buffer, false, 10, 0, ui_get_window_width(),  ui_get_window_height() );
+                            lv_gltf_view_utils_save_texture_to_png( lv_opengles_texture_get_texture_id(display_texture), _buffer, false, 10, 0, ui_get_window_width(),  ui_get_window_height() );
                         } else {
                             lv_gltf_view_utils_save_png(demo_gltfview, _buffer, file_alpha, 10);
                         }

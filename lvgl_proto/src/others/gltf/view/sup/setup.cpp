@@ -8,9 +8,9 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wredundant-move"
-#include "lib/fastgltf/include/fastgltf/core.hpp"
-#include "lib/fastgltf/include/fastgltf/types.hpp"
-#include "lib/fastgltf/include/fastgltf/tools.hpp"
+#include "../../data/deps/fastgltf/include/fastgltf/core.hpp"
+#include "../../data/deps/fastgltf/include/fastgltf/types.hpp"
+#include "../../data/deps/fastgltf/include/fastgltf/tools.hpp"
 #pragma GCC diagnostic pop
 
 #ifndef STB_HAS_BEEN_INCLUDED
@@ -25,7 +25,7 @@
 #include "../lv_gltf_view_internal.h"
 #include "../../data/lv_gltf_data_internal.h"
 #include "../../../../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
-#include "lib/mathc/mathc.h"
+#include "../../data/deps/mathc/mathc.h"
 
 void set_matrix_view(_VIEW _viewer, FMAT4 _mat);
 void set_matrix_proj(_VIEW _viewer, FMAT4 _mat);
@@ -358,6 +358,11 @@ uint32_t setup_texture(uint32_t tex_num, uint32_t tex_unit, int32_t tex_coord_in
  * @param userParam User-defined parameter passed to the callback.
  */
 void glMessageCallback(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam) {
+    LV_UNUSED(source);
+    LV_UNUSED(type);
+    LV_UNUSED(id);
+    LV_UNUSED(length);
+    LV_UNUSED(userParam);
     if (severity == GL_DEBUG_SEVERITY_HIGH) {
         std::cerr << message << '\n';
     } else {
@@ -603,12 +608,12 @@ void setup_finish_frame(void) {
     GL_CALL(glUseProgram(0));
 }
 
-void setup_view_proj_matrix_from_link(lv_gltf_view_t * viewer, pGltf_data_t link_data){
+//void setup_view_proj_matrix_from_link(lv_gltf_view_t * viewer, pGltf_data_t link_data){
 //    { auto _t = view;         set_matrix_view(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
 //    { auto _t = perspective;  set_matrix_proj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
 //   { auto _t = viewProj; set_matrix_viewproj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
 //    set_cam_pos(viewer, view_pos[0], view_pos[1], view_pos[2]);
-}
+//}
 
 
 /**

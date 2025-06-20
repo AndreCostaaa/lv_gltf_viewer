@@ -26,10 +26,6 @@ add_library(lvgl_opengl_shader_cache
     lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.cpp
 )
 
-#add_library(lvgl_gltf_override 
-#    lvgl_proto/src/others/gltf/override/lv_gltf_override.cpp
-#)
-
 add_library(lvgl_gltfdata 
     lvgl_proto/src/others/gltf/data/lv_gltf_data.c
     lvgl_proto/src/others/gltf/data/lv_gltf_data.cpp
@@ -54,30 +50,19 @@ add_executable(lvgl_workspace
     resources/sprites1_32x32x7.c
 )
 
-#set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
-#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
-#set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address -Wno-unused-parameter -Wno-unknown-pragmas")
-
-#set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
-#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-parameter -Wno-unknown-pragmas -std=c++17")
-#set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -Wno-unused-parameter -Wno-unknown-pragmas")
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17 -flax-vector-conversions")
 set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS}")
-
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_definitions(-DNDEBUG)
 endif()
-
 
 if(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
     add_definitions(-DNDEBUG)
 endif()
 
 # Set flags for Debug build
-#set(CMAKE_C_FLAGS_DEBUG "-g -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wunused-parameter -Wno-unknown-pragmas -Wshadow")
 set(CMAKE_C_FLAGS_DEBUG "-g -Wall -Wextra -fsanitize=address -Wshadow")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -fsanitize=address -std=c++17")
 set(CMAKE_LINKER_FLAGS_DEBUG "-fsanitize=address")
@@ -92,11 +77,7 @@ set(CMAKE_C_FLAGS_MINSIZEREL "-Os -Wall -Wshadow")
 set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -Wall -std=c++17")
 set(CMAKE_LINKER_FLAGS_MINSIZEREL "-Wl,--gc-sections")  # Remove unused sections
 
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/fastgltf)
-
 target_link_libraries(lvgl_gltfdata lvgl_opengl_shader_cache)
-#target_link_libraries(lvgl_gltfdata lvgl_gltf_override)
-target_link_libraries(lvgl_gltfdata fastgltf)
 target_link_libraries(lvgl_gltfdata webp)
 
 target_link_libraries(lvgl_gltfview lvgl_gltfdata)
@@ -113,9 +94,7 @@ target_link_libraries(lvgl_workspace glfw)
 # flood of warnings within the standard library without them.  Eventually we'll get them isolated to 
 # just one target so we can still catch helpful warnings elsewhere.
 
-target_compile_options(fastgltf PRIVATE -Wno-maybe-uninitialized)
-target_compile_options(fastgltf PRIVATE -Wno-redundant-move)
-target_compile_options(fastgltf PRIVATE -Wno-unknown-pragmas)
+target_compile_options(lvgl_gltfdata PRIVATE -Wno-redundant-move)
 target_compile_options(lvgl_gltfdata PRIVATE -Wno-unknown-pragmas)
 target_compile_options(lvgl_gltfdata PRIVATE -Wno-unused-parameter)
 target_compile_options(lvgl_gltfview PRIVATE -Wno-unknown-pragmas)

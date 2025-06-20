@@ -1,7 +1,7 @@
 
 
 #include "demo.h"
-#include "stb_image/stb_image.h"
+#include "lvgl_proto/src/others/gltf/data/deps/stb_image/stb_image.h"
 #include <signal.h>     /* to trap ctrl-break */
 #include <sys/statvfs.h>  /* to check drive space */
 
@@ -267,7 +267,7 @@ void *demo_os_integrate_save_desktop_png_thread(void *arg) {
                 struct stat file_stat;
                 if (stat(_buffer, &file_stat) != 0) {
                     os_integrate_check_drive_space(task->suffix);
-                    lv_gltf_view_utils_save_pixelbuffer_to_png( demo_gltfview,  task->pixels, _buffer, task->file_has_alpha, 0, ui_get_primary_texture_width(), ui_get_primary_texture_height() );
+                    lv_gltf_view_utils_save_pixelbuffer_to_png( task->pixels, _buffer, task->file_has_alpha, 0, ui_get_primary_texture_width(), ui_get_primary_texture_height() );
                 }
                 lv_free(task->pixels);
                 snprintf(_buffer, sizeof(_buffer), DESKTOP_APPLY_COMMAND_TEMPLATE, task->suffix);

@@ -7,9 +7,9 @@
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wredundant-move"
-#include "lib/fastgltf/include/fastgltf/core.hpp"
-#include "lib/fastgltf/include/fastgltf/types.hpp"
-#include "lib/fastgltf/include/fastgltf/tools.hpp"
+#include "../deps/fastgltf/include/fastgltf/core.hpp"
+#include "../deps/fastgltf/include/fastgltf/types.hpp"
+#include "../deps/fastgltf/include/fastgltf/tools.hpp"
 #pragma GCC diagnostic pop
 
 #ifndef STB_HAS_BEEN_INCLUDED

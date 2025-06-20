@@ -1,4 +1,4 @@
-#include "lib/fastgltf/include/fastgltf/types.hpp"
+#include "../../data/deps/fastgltf/include/fastgltf/types.hpp"
 
 #include "../../data/sup/include/lv_gltf_data_datatypes.h"
 #include "include/lv_gltf_view_datatypes.h"
@@ -85,6 +85,7 @@ void init_viewer_struct(_VIEW _ViewerMem) {
 
 void __free_viewer_struct(_VIEW V) {
     // Nothing to do here
+    LV_UNUSED(V);
 }
 
 /**

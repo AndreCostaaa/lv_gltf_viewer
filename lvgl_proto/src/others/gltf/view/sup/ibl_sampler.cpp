@@ -200,7 +200,7 @@ bool getExtension(const char* _ext_name)
     return false;
 }    
 
-void iblSampler::doinit(t_image* xpanoramaImage, const char* env_filename)
+void iblSampler::doinit( const char* env_filename)
 {
     // vv -- WebGL Naming
     if (getExtension("GL_NV_float") && getExtension("GL_ARB_color_buffer_float")) { //&& getExtension("OES_texture_float_linear")) {
@@ -299,6 +299,9 @@ void iblSampler::applyFilter(
     const char* _strProgress,
     float _baseProgress )
 {
+    LV_UNUSED(_strProgress);
+    LV_UNUSED(_baseProgress);
+
     uint32_t currentTextureSize = textureSize >> targetMipLevel;
     for(uint32_t i = 0; i < 6; ++i) {
         //if (callback != NULL && (_baseProgress > 0.f)) { callback(_strProgress, i + _baseProgress, 36); }
@@ -519,7 +522,7 @@ gl_environment_textures lv_gltf_view_ibl_sampler_setup(gl_environment_textures* 
         return _ret;
     }
     auto environmentFiltering = iblSampler();
-    environmentFiltering.doinit(NULL, _env_filename);
+    environmentFiltering.doinit(_env_filename);
     environmentFiltering.filterAll(ibl_sampler_env_filter_callback);
 
     _ret.loaded             = true;

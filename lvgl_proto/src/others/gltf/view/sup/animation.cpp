@@ -4,7 +4,7 @@
 
 #include <GL/glew.h>
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
-#include "lib/fastgltf/include/fastgltf/types.hpp"
+#include "../../data/deps/fastgltf/include/fastgltf/types.hpp"
 
 #ifndef STB_HAS_BEEN_INCLUDED
 #define STB_HAS_BEEN_INCLUDED
@@ -24,12 +24,11 @@ std::map<fastgltf::Node *, std::vector<uint32_t>> __channel_set_cache;
  * @brief Get a Vec3 value from the animation at a specific timestamp.
  *
  * @param _data Pointer to the GLTF data structure containing animation information.
- * @param _animNum The index of the animation to query.
  * @param sampler Pointer to the animation sampler used for interpolation.
  * @param _seconds The timestamp in seconds at which to retrieve the Vec3 value.
  * @return The Vec3 value at the specified timestamp.
  */
-FVEC3 animation_get_vec3_at_timestamp(pGltf_data_t _data, uint32_t _animNum, fastgltf::AnimationSampler * sampler, float _seconds) {
+FVEC3 animation_get_vec3_at_timestamp(pGltf_data_t _data, fastgltf::AnimationSampler * sampler, float _seconds) {
     const auto& asset = GET_ASSET(_data);
     auto& _inAcc = asset->accessors[sampler->inputAccessor];
     auto& _outAcc = asset->accessors[sampler->outputAccessor];
@@ -67,12 +66,11 @@ FVEC3 animation_get_vec3_at_timestamp(pGltf_data_t _data, uint32_t _animNum, fas
  * @brief Get a Quaternion value from the animation at a specific timestamp.
  *
  * @param _data Pointer to the GLTF data structure containing animation information.
- * @param _animNum The index of the animation to query.
  * @param sampler Pointer to the animation sampler used for interpolation.
  * @param _seconds The timestamp in seconds at which to retrieve the Quaternion value.
  * @return The Quaternion value at the specified timestamp.
  */
-fastgltf::math::fquat animation_get_quat_at_timestamp(pGltf_data_t _data, uint32_t _animNum, fastgltf::AnimationSampler * sampler, float _seconds) {
+fastgltf::math::fquat animation_get_quat_at_timestamp(pGltf_data_t _data, fastgltf::AnimationSampler * sampler, float _seconds) {
     const auto& asset = GET_ASSET(_data);
     auto& _inAcc = asset->accessors[sampler->inputAccessor];
     auto& _outAcc = asset->accessors[sampler->outputAccessor];
@@ -173,13 +171,13 @@ void animation_matrix_apply(float timestamp, std::size_t anim_num, pGltf_data_t 
         for (const auto& c : (*_channel_set)) {
             switch (anim.channels[c].path) {
                 case fastgltf::AnimationPath::Translation:
-                    newPos = animation_get_vec3_at_timestamp(gltf_data, anim_num, &anim.samplers[c], timestamp);
+                    newPos = animation_get_vec3_at_timestamp(gltf_data, &anim.samplers[c], timestamp);
                     matrix[3][0] = newPos[0];
                     matrix[3][1] = newPos[1];
                     matrix[3][2] = newPos[2]; 
                     break;
                 case fastgltf::AnimationPath::Rotation:
-                    rotmat = fastgltf::math::asMatrix(animation_get_quat_at_timestamp(gltf_data, anim_num, &anim.samplers[c], timestamp));
+                    rotmat = fastgltf::math::asMatrix(animation_get_quat_at_timestamp(gltf_data, &anim.samplers[c], timestamp));
                     matrix[0][0] = rotmat[0][0];
                     matrix[0][1] = rotmat[0][1];
                     matrix[0][2] = rotmat[0][2];
@@ -193,7 +191,7 @@ void animation_matrix_apply(float timestamp, std::size_t anim_num, pGltf_data_t 
                     matrix[2][2] = rotmat[2][2];
                     break;
                 case fastgltf::AnimationPath::Scale:
-                    newScale = animation_get_vec3_at_timestamp(gltf_data, anim_num,  &anim.samplers[c], timestamp);
+                    newScale = animation_get_vec3_at_timestamp(gltf_data, &anim.samplers[c], timestamp);
                     for (int32_t rs = 0; rs < 3; ++rs)
                     {
                         matrix[0][rs] *= newScale[0];

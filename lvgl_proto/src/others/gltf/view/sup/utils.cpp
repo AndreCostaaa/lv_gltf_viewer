@@ -4,17 +4,16 @@
 #include <GL/glew.h>
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
+#define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wredundant-move"
-#include "lib/fastgltf/include/fastgltf/core.hpp"
-#include "lib/fastgltf/include/fastgltf/types.hpp"
-#include "lib/fastgltf/include/fastgltf/tools.hpp"
+#include "../../data/deps/fastgltf/include/fastgltf/core.hpp"
+#include "../../data/deps/fastgltf/include/fastgltf/types.hpp"
+#include "../../data/deps/fastgltf/include/fastgltf/tools.hpp"
 #pragma GCC diagnostic pop
-
 #include "../lv_gltf_view_internal.h"
-
-#include "lib/mathc/mathc.h"
-#include "lib/mathc/mathc.c"
+#include "../../data/deps/mathc/mathc.h"
+#include "../../data/deps/mathc/mathc.c"
 
 GLboolean blendEnabled;
 GLint blendSrc;
@@ -307,26 +306,26 @@ void lv_gltf_view_recenter_view_on_model( lv_gltf_view_t * viewer, pGltf_data_t 
     lv_gltf_view_set_focal_z(viewer, _autocenpos[2]);
 }
 
-void lv_gltf_view_utils_save_pixelbuffer_to_png( lv_gltf_view_t * viewer,  char * pixels, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t width, uint32_t height ) {
+void lv_gltf_view_utils_save_pixelbuffer_to_png( char * pixels, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t width, uint32_t height ) {
     stbi_write_png_compression_level = compression_level;
     stbi_flip_vertically_on_write(true);
     stbi_write_png(filename, width, height, (alpha_enabled ? 4 : 3), pixels, width * (alpha_enabled ? 4 : 3));
 }
 
-void lv_gltf_view_utils_get_capture_buffer( char * pixels, lv_gltf_view_t * viewer, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
+void lv_gltf_view_utils_get_texture_pixels( char * pixels, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
     GL_CALL(glBindTexture(GL_TEXTURE_2D, tex_id));
     glGetTexImage(GL_TEXTURE_2D, mipmapnum, alpha_enabled?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE, pixels);
 }
 
-void lv_gltf_view_utils_save_texture_to_png( lv_gltf_view_t * viewer, uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
+void lv_gltf_view_utils_save_texture_to_png( uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
     char * pixels =(char *)lv_malloc(height * width * 4);
-    lv_gltf_view_utils_get_capture_buffer( pixels, viewer, tex_id, alpha_enabled, mipmapnum, width, height );
-    lv_gltf_view_utils_save_pixelbuffer_to_png( viewer,  pixels, filename, alpha_enabled, compression_level, width, height );
+    lv_gltf_view_utils_get_texture_pixels( pixels, tex_id, alpha_enabled, mipmapnum, width, height );
+    lv_gltf_view_utils_save_pixelbuffer_to_png(  pixels, filename, alpha_enabled, compression_level, width, height );
     lv_free(pixels);
 }
 
 void lv_gltf_view_utils_save_png( lv_gltf_view_t * viewer, const char * filename, bool alpha_enabled, uint32_t compression_level ) {
     const auto& vstate = get_viewer_state(viewer);
     const auto& vdesc = lv_gltf_view_get_desc(viewer);
-    lv_gltf_view_utils_save_texture_to_png( viewer, vstate->render_state.texture, filename, alpha_enabled, compression_level, lv_gltf_view_check_frame_was_antialiased(viewer) ? 1 : 0, vdesc->width, vdesc->height );
+    lv_gltf_view_utils_save_texture_to_png( vstate->render_state.texture, filename, alpha_enabled, compression_level, lv_gltf_view_check_frame_was_antialiased(viewer) ? 1 : 0, vdesc->width, vdesc->height );
 }

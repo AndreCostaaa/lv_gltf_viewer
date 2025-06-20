@@ -1,5 +1,5 @@
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1
-#include "lib/fastgltf/include/fastgltf/types.hpp"
+#include "../deps/fastgltf/include/fastgltf/types.hpp"
 
 #include "include/lv_gltf_data_datatypes.h"
 #include <algorithm>

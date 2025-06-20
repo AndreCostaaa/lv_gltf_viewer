@@ -8,6 +8,3 @@
 	path = lvgl
 	url = https://github.com/FishOfTheNorthStar/lvgl_pr_patch_func.git
 	branch = pr_3_mouse_ex
-[submodule "lib/nfd"]
-	path = lib/nfd
-	url = https://github.com/mlabbe/nativefiledialog.git
