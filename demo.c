@@ -300,26 +300,39 @@ int main(int argc, char *argv[]) {
             }
 
             lv_indev_get_point(mouse, &_mousepoint);
-            int WINDOW_WIDTH_MINUS_MARGIN = ui_get_window_width()-WINDOW_CONTROL_MARGIN;
-            int WINDOW_HEIGHT_MINUS_MARGIN = ui_get_window_height()-WINDOW_CONTROL_MARGIN;
-            bool mouse_in_window = ((_mousepoint.x >= WINDOW_CONTROL_MARGIN) && (_mousepoint.x <= (WINDOW_WIDTH_MINUS_MARGIN)) && (_mousepoint.y >= WINDOW_CONTROL_MARGIN) && (_mousepoint.y <= (WINDOW_HEIGHT_MINUS_MARGIN)) );
-            if (mouse_in_window) {
-                lv_indev_state_t mouse_state = lv_indev_get_state(mouse);
-                double subjectRadius = lv_gltf_data_get_int_radiusX1000(demo_gltfdata) / 1000.f;
-                double movePow = d_min(subjectRadius, pow(subjectRadius, 0.5));
-                if ((mouse_state & 0x0F) == LV_INDEV_STATE_PR) demo_nav_process_drag(movePow, (mouse_state & 0xF0), _mousepoint.x, _mousepoint.y, lastMouseX, lastMouseY);
-            }
-            #ifdef EXPERIMENTAL_GROUNDCAST
-            if ((lastMouseX != _mousepoint.x) || (lastMouseY != _mousepoint.y)) lv_gltf_view_mark_dirty(demo_gltfview);
-            if (mouse_in_window) {
-                bool _res = lv_gltf_view_raycast_ground_position(demo_gltfview, _mousepoint.x - INNER_BG_CROP_LEFT, _mousepoint.y - INNER_BG_CROP_TOP, ui_get_window_width() - (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT), ui_get_window_height() - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM),  0.0, _groundpos);
-                if (_res && (ov_cursor != NULL)) {
-                    ov_cursor->data1 = _groundpos[0];
-                    ov_cursor->data2 = _groundpos[1];
-                    ov_cursor->data3 = _groundpos[2];
+            int mouse_delta_x = (_mousepoint.x - lastMouseX); mouse_delta_x *= mouse_delta_x;
+            int mouse_delta_y = (_mousepoint.y - lastMouseY); mouse_delta_y *= mouse_delta_y;
+            const int TOUCH_MOUSEJUMP_THRESH = 50*50;
+
+            if (mouse_delta_x + mouse_delta_y > TOUCH_MOUSEJUMP_THRESH ) {
+                // Mouse point jumped drastically indicating a touch screen mouse driver 
+                // just updated the last touch position, so this update should be skipped 
+                // to avoid big weird jumps in movement
+
+                /* Do nothing here, let lastMouseX/Y update below and next time through it will be valid */
+            } else {
+                int WINDOW_WIDTH_MINUS_MARGIN = ui_get_window_width()-WINDOW_CONTROL_MARGIN;
+                int WINDOW_HEIGHT_MINUS_MARGIN = ui_get_window_height()-WINDOW_CONTROL_MARGIN;
+                bool mouse_in_window = ((_mousepoint.x >= WINDOW_CONTROL_MARGIN) && (_mousepoint.x <= (WINDOW_WIDTH_MINUS_MARGIN)) && (_mousepoint.y >= WINDOW_CONTROL_MARGIN) && (_mousepoint.y <= (WINDOW_HEIGHT_MINUS_MARGIN)) );
+                if (mouse_in_window) {
+                    lv_indev_state_t mouse_state = lv_indev_get_state(mouse);
+                    double subjectRadius = lv_gltf_data_get_int_radiusX1000(demo_gltfdata) / 1000.f;
+                    double movePow = d_min(subjectRadius, pow(subjectRadius, 0.5));
+                    if ((mouse_state & 0x0F) == LV_INDEV_STATE_PR) demo_nav_process_drag(movePow, (mouse_state & 0xF0), _mousepoint.x, _mousepoint.y, lastMouseX, lastMouseY);
                 }
+                #ifdef EXPERIMENTAL_GROUNDCAST
+                if ((lastMouseX != _mousepoint.x) || (lastMouseY != _mousepoint.y)) lv_gltf_view_mark_dirty(demo_gltfview);
+                if (mouse_in_window) {
+                    bool _res = lv_gltf_view_raycast_ground_position(demo_gltfview, _mousepoint.x - INNER_BG_CROP_LEFT, _mousepoint.y - INNER_BG_CROP_TOP, ui_get_window_width() - (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT), ui_get_window_height() - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM),  0.0, _groundpos);
+                    if (_res && (ov_cursor != NULL)) {
+                        ov_cursor->data1 = _groundpos[0];
+                        ov_cursor->data2 = _groundpos[1];
+                        ov_cursor->data3 = _groundpos[2];
+                    }
+                }
+
+                #endif /* EXPERIMENTAL_GROUNDCAST */
             }
-            #endif /* EXPERIMENTAL_GROUNDCAST */
             lastMouseX = _mousepoint.x;
             lastMouseY = _mousepoint.y;
 

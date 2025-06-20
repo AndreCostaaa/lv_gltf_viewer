@@ -28,9 +28,11 @@
             using fvec2 = fvec<2>;
             using fvec3 = fvec<3>;
             using fvec4 = fvec<4>;
-            using nvec2 = vec<num, 2>;
-            using nvec3 = vec<num, 3>;
-            using nvec4 = vec<num, 4>;
+            template <size_t Cols>
+            using nvec = vec<num>; 
+            using nvec2 = nvec<2>;
+            using nvec3 = nvec<3>;
+            using nvec4 = nvec<4>;
         }
         struct Node;
     }
@@ -56,7 +58,10 @@ using NodeIntMap = std::map<NodePtr, uint32_t>;                 // Map of Nodes 
 using NodeVector = std::vector<NodePtr>;                        // Map of Nodes by string (name)
 using NodePrimCenterMap = std::map<uint32_t, std::map<uint32_t, fastgltf::math::fvec4>>; // Map of Node Index to Map of Prim Index to CenterXYZ+RadiusW Vec4
 #include "sup/include/lv_gltf_data_datatypes.h"
+
+//#include "../../../../../lvgl_proto/src/others/gltf/override/lv_gltf_override.h"
 using NodeOverrideMap = std::map<NodePtr, lv_gltf_override_t>;           // Map of Overrides by Node
+
 
 struct MeshData;
 

@@ -3,6 +3,7 @@
 #include "lvgl/lvgl.h"
 #include "lvgl/demos/lv_demos.h"
 #include "lvgl/examples/lv_examples.h"
+//#include "lvgl_proto/src/others/gltf/override/lv_gltf_override.h"
 #include "lvgl_proto/src/others/gltf/data/lv_gltf_data.h"
 #include "lvgl_proto/src/others/gltf/view/lv_gltf_view.h"
 

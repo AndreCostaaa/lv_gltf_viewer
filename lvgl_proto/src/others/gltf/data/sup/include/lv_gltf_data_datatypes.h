@@ -19,28 +19,12 @@ typedef int32_t  _GLINT;
 extern "C" {
 #endif
 
-typedef enum  {
-    OP_VISIBILITY,
-    OP_POSITION,
-    OP_ROTATION,
-    OP_SCALE,
-    OP_BASE_COLOR,
-    OP_ALPHA_FACTOR,
-    OP_EMIS_COLOR
-} OverrideProp;
-
-typedef enum  {
-    OMC_CHAN1 = 0x01,
-    OMC_CHAN2 = 0x02,
-    OMC_CHAN3 = 0x04,
-    OMC_CHAN4 = 0x08
-} OverrideMaskChannels;
-
 struct lv_gltf_data_struct;
-
 typedef struct lv_gltf_data_struct lv_gltf_data_t;
-
 typedef lv_gltf_data_t * pGltf_data_t;
+
+struct lv_gltf_override_struct;
+typedef struct lv_gltf_override_struct lv_gltf_override_t;
 
 typedef struct {
     uint32_t imageCount;
@@ -53,16 +37,6 @@ typedef struct {
     uint32_t animationCount;
 } gltf_probe_info;
 
-typedef struct {
-    OverrideProp prop;
-    uint32_t dataMask;
-    float data1;
-    float data2;
-    float data3;
-    float data4;
-} lv_gltf_override_t;
-
-typedef lv_gltf_override_t * pOverride;
 
 #ifdef __cplusplus
 } /*extern "C"*/

@@ -2,10 +2,11 @@
 #define LV_GLTFDATA_H
 
 #ifdef __cplusplus
+
 extern "C" {
 #endif
-
 #include "lv_gltf_data_internal.hpp"
+#include "lv_gltf_override.h"
 #include "sup/include/lv_gltf_data_datatypes.h"
 #include "../../../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
 

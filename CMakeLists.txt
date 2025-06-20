@@ -26,9 +26,14 @@ add_library(lvgl_opengl_shader_cache
     lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.cpp
 )
 
+#add_library(lvgl_gltf_override 
+#    lvgl_proto/src/others/gltf/override/lv_gltf_override.cpp
+#)
+
 add_library(lvgl_gltfdata 
     lvgl_proto/src/others/gltf/data/lv_gltf_data.c
     lvgl_proto/src/others/gltf/data/lv_gltf_data.cpp
+    lvgl_proto/src/others/gltf/data/lv_gltf_override.cpp
 )
 
 add_library(lvgl_gltfview 
@@ -90,6 +95,7 @@ set(CMAKE_LINKER_FLAGS_MINSIZEREL "-Wl,--gc-sections")  # Remove unused sections
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/fastgltf)
 
 target_link_libraries(lvgl_gltfdata lvgl_opengl_shader_cache)
+#target_link_libraries(lvgl_gltfdata lvgl_gltf_override)
 target_link_libraries(lvgl_gltfdata fastgltf)
 target_link_libraries(lvgl_gltfdata webp)
 
@@ -111,6 +117,7 @@ target_compile_options(fastgltf PRIVATE -Wno-maybe-uninitialized)
 target_compile_options(fastgltf PRIVATE -Wno-redundant-move)
 target_compile_options(fastgltf PRIVATE -Wno-unknown-pragmas)
 target_compile_options(lvgl_gltfdata PRIVATE -Wno-unknown-pragmas)
+target_compile_options(lvgl_gltfdata PRIVATE -Wno-unused-parameter)
 target_compile_options(lvgl_gltfview PRIVATE -Wno-unknown-pragmas)
 target_compile_options(lvgl_gltfview PRIVATE -Wno-maybe-uninitialized)
 target_compile_options(lvgl_gltfview PRIVATE -Wno-array-bounds)
