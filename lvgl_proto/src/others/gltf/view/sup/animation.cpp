@@ -20,6 +20,15 @@
 #define TIME_LOC_PREPASS_COUNT 16
 std::map<fastgltf::Node *, std::vector<uint32_t>> __channel_set_cache;
 
+/**
+ * @brief Get a Vec3 value from the animation at a specific timestamp.
+ *
+ * @param _data Pointer to the GLTF data structure containing animation information.
+ * @param _animNum The index of the animation to query.
+ * @param sampler Pointer to the animation sampler used for interpolation.
+ * @param _seconds The timestamp in seconds at which to retrieve the Vec3 value.
+ * @return The Vec3 value at the specified timestamp.
+ */
 FVEC3 animation_get_vec3_at_timestamp(pGltf_data_t _data, uint32_t _animNum, fastgltf::AnimationSampler * sampler, float _seconds) {
     const auto& asset = GET_ASSET(_data);
     auto& _inAcc = asset->accessors[sampler->inputAccessor];
@@ -54,6 +63,15 @@ FVEC3 animation_get_vec3_at_timestamp(pGltf_data_t _data, uint32_t _animNum, fas
     return fastgltf::math::lerp(_lowerValue, _upperValue, ( _seconds - _lowerTimestamp ) / ( _upperTimestamp - _lowerTimestamp ));
 }
 
+/**
+ * @brief Get a Quaternion value from the animation at a specific timestamp.
+ *
+ * @param _data Pointer to the GLTF data structure containing animation information.
+ * @param _animNum The index of the animation to query.
+ * @param sampler Pointer to the animation sampler used for interpolation.
+ * @param _seconds The timestamp in seconds at which to retrieve the Quaternion value.
+ * @return The Quaternion value at the specified timestamp.
+ */
 fastgltf::math::fquat animation_get_quat_at_timestamp(pGltf_data_t _data, uint32_t _animNum, fastgltf::AnimationSampler * sampler, float _seconds) {
     const auto& asset = GET_ASSET(_data);
     auto& _inAcc = asset->accessors[sampler->inputAccessor];
@@ -87,6 +105,13 @@ fastgltf::math::fquat animation_get_quat_at_timestamp(pGltf_data_t _data, uint32
     return fastgltf::math::slerp( _lowerValue, fastgltf::getAccessorElement<fastgltf::math::fquat>(*asset, _outAcc, _upperIndex), ( _seconds - _lowerTimestamp ) / _linDist );
 }
 
+/**
+ * @brief Get the total duration of the specified animation.
+ *
+ * @param _data Pointer to the GLTF data structure containing animation information.
+ * @param _animNum The index of the animation to query.
+ * @return The total duration of the animation in seconds.
+ */
 float animation_get_total_time(pGltf_data_t _data, uint32_t _animNum) {
     const auto& asset = GET_ASSET(_data);
     auto& animation = asset->animations[_animNum];
@@ -98,6 +123,14 @@ float animation_get_total_time(pGltf_data_t _data, uint32_t _animNum) {
     return _maxTime;
 }
 
+/**
+ * @brief Get the set of channels for the specified animation.
+ *
+ * @param anim_num The index of the animation to query.
+ * @param gltf_data Pointer to the GLTF data structure containing animation information.
+ * @param node Reference to the node associated with the animation.
+ * @return Pointer to a UintVector containing the channel indices for the animation.
+ */
 UintVector * animation_get_channel_set(std::size_t anim_num, pGltf_data_t gltf_data,  fastgltf::Node& node) {
     const auto& asset = GET_ASSET(gltf_data);    
     const auto& probe = PROBE(gltf_data);  
@@ -119,6 +152,15 @@ UintVector * animation_get_channel_set(std::size_t anim_num, pGltf_data_t gltf_d
     return &__channel_set_cache[&node];
 }
 
+/**
+ * @brief Apply the transformation matrix for the specified animation at a given timestamp.
+ *
+ * @param timestamp The timestamp in seconds at which to apply the transformation.
+ * @param anim_num The index of the animation to apply.
+ * @param gltf_data Pointer to the GLTF data structure containing animation information.
+ * @param node Reference to the node to which the transformation will be applied.
+ * @param matrix Reference to the transformation matrix to update.
+ */
 void animation_matrix_apply(float timestamp, std::size_t anim_num, pGltf_data_t gltf_data,  fastgltf::Node& node, FMAT4& matrix) {
     const auto& asset = GET_ASSET(gltf_data);  
     const auto& probe = PROBE(gltf_data);  

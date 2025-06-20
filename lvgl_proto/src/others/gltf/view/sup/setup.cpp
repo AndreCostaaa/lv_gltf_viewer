@@ -31,7 +31,15 @@ void set_matrix_view(_VIEW _viewer, FMAT4 _mat);
 void set_matrix_proj(_VIEW _viewer, FMAT4 _mat);
 void set_matrix_viewproj(_VIEW _viewer, FMAT4 _mat);
 
-// Function to retrieve uniform locations from a shader program
+/**
+ * @brief Retrieve uniform locations from a shader program.
+ *
+ * This function sets up the uniform locations for the specified shader program,
+ * allowing for easy access to the shader's uniform variables.
+ *
+ * @param uniforms Pointer to a UniformLocs structure where the uniform locations will be stored.
+ * @param _shader_prog_program The shader program from which to retrieve the uniform locations.
+ */
 void setup_uniform_locations(UniformLocs* uniforms, uint32_t _shader_prog_program) {
     auto _u = [&]( const char * _uniform ) -> GLint { return glGetUniformLocation(_shader_prog_program, _uniform); };
     // *** IMAGE QUALITY UNIFORMS ***********************************************************************
@@ -138,7 +146,15 @@ void setup_uniform_locations(UniformLocs* uniforms, uint32_t _shader_prog_progra
 
 }
 
-// Function to construct a texture transformation matrix
+/**
+ * @brief Construct a texture transformation matrix.
+ *
+ * This function creates a transformation matrix based on the provided texture transform
+ * parameters, which can be used for texture mapping in rendering.
+ *
+ * @param transform The texture transform parameters to be used for constructing the matrix.
+ * @return A FMAT3 matrix representing the texture transformation.
+ */
 FMAT3 setup_texture_transform_matrix(fastgltf::TextureTransform transform){
     FMAT3 rotation = FMAT3(0.f);
     FMAT3 scale = FMAT3(0.f);
@@ -168,6 +184,17 @@ FMAT3 setup_texture_transform_matrix(fastgltf::TextureTransform transform){
     return result;
 }
 
+/**
+ * @brief Set up the background environment for rendering.
+ *
+ * This function initializes the background environment by setting up the necessary
+ * vertex array object (VAO), index buffer, and vertex buffer for rendering.
+ *
+ * @param program The shader program to be used for rendering the background.
+ * @param vao Pointer to a GLuint where the vertex array object ID will be stored.
+ * @param indexBuffer Pointer to a GLuint where the index buffer ID will be stored.
+ * @param vertexBuffer Pointer to a GLuint where the vertex buffer ID will be stored.
+ */
 void setup_background_environment(GLuint program, GLuint* vao, GLuint* indexBuffer, GLuint* vertexBuffer) {
     int32_t indices[] = {
         1, 2, 0,
@@ -217,7 +244,16 @@ void setup_background_environment(GLuint program, GLuint* vao, GLuint* indexBuff
 	
 }
 
-// This is currently unused  (handled on the GPU) but that may change in the future, for optimization
+/**
+ * @brief Set up the tangent, bitangent, and normal matrix.
+ *
+ * This function constructs a matrix that combines the normal, tangent, and bitangent vectors.
+ * Currently unused (handled on the GPU), but may be utilized in the future for optimization.
+ *
+ * @param normal The normal vector (FVEC3) to be used in the matrix.
+ * @param tangent_and_w The tangent vector and its w component (FVEC4) to be included in the matrix.
+ * @return A FMAT3 matrix representing the tangent, bitangent, and normal transformation.
+ */
 FMAT3 setup_tangent_bitangent_normal_matrix(FVEC3 normal, FVEC4 tangent_and_w){
     FVEC3 bitangent = fastgltf::math::cross(normal, FVEC3(tangent_and_w[0], tangent_and_w[1], tangent_and_w[2]));
     FMAT3 r = FMAT3(0.f);
@@ -227,7 +263,15 @@ FMAT3 setup_tangent_bitangent_normal_matrix(FVEC3 normal, FVEC4 tangent_and_w){
     return r;
 }
 
-// Function to set the environment rotation matrix
+/**
+ * @brief Set the environment rotation matrix.
+ *
+ * This function initializes the rotation matrix for the environment based on the specified angle,
+ * which can be used in rendering to adjust the orientation of the environment.
+ *
+ * @param env_rotation_angle The angle of rotation for the environment in radians.
+ * @param shader_program The shader program to which the rotation matrix will be applied.
+ */
 void setup_environment_rotation_matrix(float env_rotation_angle, uint32_t shader_program) {
     mfloat_t rot[MAT4_SIZE];
     mat4_identity(rot);
@@ -245,17 +289,49 @@ void setup_environment_rotation_matrix(float env_rotation_angle, uint32_t shader
     GL_CALL(glUniformMatrix3fv(u_loc, 1, false, ret ));
 }
 
-// Function to set a uniform color
+/**
+ * @brief Set a uniform color in the shader.
+ *
+ * This function sets a uniform color value in the specified shader program, allowing for
+ * consistent color rendering in the graphics pipeline.
+ *
+ * @param uniform_loc The location of the uniform variable in the shader program.
+ * @param color The color value to be set, represented as a nvec3.
+ */
 void setup_uniform_color(GLint uniform_loc, fastgltf::math::nvec3 color) {
-    GL_CALL(glUniform3f(uniform_loc, static_cast<float>(color[0]), static_cast<float>(color[1]), static_cast<float>(color[2]) ) ); }
+    GL_CALL(glUniform3f(uniform_loc, static_cast<float>(color[0]), static_cast<float>(color[1]), static_cast<float>(color[2]) ) ); 
+}
 
-
-// Function to set a uniform color with alpha
+/**
+ * @brief Set a uniform color with alpha in the shader.
+ *
+ * This function sets a uniform color value with an alpha component in the specified shader program,
+ * enabling transparency effects in rendering.
+ *
+ * @param uniform_loc The location of the uniform variable in the shader program.
+ * @param color The color value to be set, represented as a nvec4, including the alpha component.
+ */
 void setup_uniform_color_alpha(GLint uniform_loc, fastgltf::math::nvec4 color){
-    GL_CALL(glUniform4f(uniform_loc, static_cast<float>(color[0]), static_cast<float>(color[1]), static_cast<float>(color[2]), static_cast<float>(color[3]) ) ); }
+    GL_CALL(glUniform4f(uniform_loc, static_cast<float>(color[0]), static_cast<float>(color[1]), static_cast<float>(color[2]), static_cast<float>(color[3]) ) ); 
+}
 
 
-// Function to set up a texture
+/**
+ * @brief Set up a texture for rendering.
+ *
+ * This function initializes a texture based on the provided parameters, including texture number,
+ * texture unit, texture coordinate index, and transformation settings. It prepares the texture for
+ * use in rendering operations.
+ *
+ * @param tex_num The texture number to be set up.
+ * @param tex_unit The texture unit to which the texture will be bound.
+ * @param tex_coord_index The index of the texture coordinates to be used.
+ * @param tex_transform A unique pointer to a TextureTransform object that defines the texture transformation.
+ * @param sampler The sampler object to be used for sampling the texture.
+ * @param uv_set The UV set index for the texture coordinates.
+ * @param uv_transform The transformation to be applied to the UV coordinates.
+ * @return The texture ID generated for the setup texture.
+ */
 uint32_t setup_texture(uint32_t tex_num, uint32_t tex_unit, int32_t tex_coord_index, 
                                     std::unique_ptr<fastgltf::TextureTransform>& tex_transform, 
                                     GLint sampler, GLint uv_set, GLint uv_transform) {
@@ -267,6 +343,20 @@ uint32_t setup_texture(uint32_t tex_num, uint32_t tex_unit, int32_t tex_coord_in
     return tex_num;
 }
 
+/**
+ * @brief OpenGL message callback function.
+ *
+ * This function is called when an OpenGL error or notification occurs. It provides information
+ * about the source, type, severity, and message of the OpenGL event, which can be useful for debugging.
+ *
+ * @param source The source of the OpenGL message.
+ * @param type The type of the OpenGL message.
+ * @param id The identifier for the message.
+ * @param severity The severity level of the message.
+ * @param length The length of the message string.
+ * @param message The message string containing the details of the OpenGL event.
+ * @param userParam User-defined parameter passed to the callback.
+ */
 void glMessageCallback(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam) {
     if (severity == GL_DEBUG_SEVERITY_HIGH) {
         std::cerr << message << '\n';
@@ -275,7 +365,15 @@ void glMessageCallback(GLenum source,GLenum type,GLuint id,GLenum severity,GLsiz
     }
 }
 
-// Function to clean up OpenGL output resources
+
+/**
+ * @brief Clean up OpenGL output resources.
+ *
+ * This function performs cleanup operations for the OpenGL output, releasing any resources
+ * associated with the rendering window state.
+ *
+ * @param state Pointer to the rendering window state structure that holds OpenGL output information.
+ */
 void setup_cleanup_opengl_output(gl_renwin_state_t *state) {
     if (state) {
         // Delete the framebuffer
@@ -299,7 +397,17 @@ void setup_cleanup_opengl_output(gl_renwin_state_t *state) {
     }
 }
 
-// Function to prepare opaque output for rendering
+/**
+ * @brief Set up the opaque output for rendering.
+ *
+ * This function initializes the opaque output buffer, which is used to render the portions of the
+ * scene that are opaque and may distort due to refractive elements in front of them. It prepares
+ * the buffer for rendering operations based on the specified texture dimensions.
+ *
+ * @param texture_width The width of the texture for the opaque output.
+ * @param texture_height The height of the texture for the opaque output.
+ * @return A gl_renwin_state_t structure containing the state of the opaque output.
+ */
 gl_renwin_state_t setup_opaque_output(uint32_t texture_width, uint32_t texture_height) {
 
     gl_renwin_state_t _ret;
@@ -337,7 +445,17 @@ gl_renwin_state_t setup_opaque_output(uint32_t texture_width, uint32_t texture_h
     return _ret;
 }
 
-// Function to prepare OpenGL output for rendering
+/**
+ * @brief Prepare OpenGL output for rendering.
+ *
+ * This function initializes the primary OpenGL output buffer based on the specified texture dimensions
+ * and whether mipmaps are enabled. It sets up the necessary resources for rendering the primary scene.
+ *
+ * @param texture_width The width of the texture for the OpenGL output.
+ * @param texture_height The height of the texture for the OpenGL output.
+ * @param mipmaps_enabled A boolean indicating whether mipmaps should be generated for the texture.
+ * @return A gl_renwin_state_t structure containing the state of the primary output.
+ */
 gl_renwin_state_t setup_primary_output(uint32_t texture_width, uint32_t texture_height, bool mipmaps_enabled) {
 
     gl_renwin_state_t _ret;
@@ -376,8 +494,19 @@ gl_renwin_state_t setup_primary_output(uint32_t texture_width, uint32_t texture_
     return _ret;
 }
 
-
-//return value = cancel this frame?
+/**
+ * @brief Restore the opaque output for rendering.
+ *
+ * This function attempts to restore the opaque output buffer, reinitializing it based on the provided
+ * dimensions and background preparation flag. If an error occurs during the restoration process,
+ * rendering for the current frame should be canceled.
+ *
+ * @param _ret The current state of the opaque output to be restored.
+ * @param texture_w The width of the texture for the opaque output.
+ * @param texture_h The height of the texture for the opaque output.
+ * @param prepare_bg A boolean indicating whether to prepare the background during restoration.
+ * @return A boolean indicating whether rendering should be canceled due to an error.
+ */
 bool setup_restore_opaque_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h, bool prepare_bg) {
 
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _ret.framebuffer));
@@ -393,6 +522,14 @@ bool setup_restore_opaque_output(gl_renwin_state_t _ret, uint32_t texture_w, uin
     return false;
 }
 
+/**
+ * @brief Check for OpenGL errors.
+ *
+ * This function checks for any OpenGL errors that may have occurred during rendering or setup.
+ * It returns true if an error is detected, allowing for appropriate error handling.
+ *
+ * @return A boolean indicating whether an OpenGL error has occurred.
+ */
 bool checkOpenGLError() {
     bool had_error = false;
     GLenum error = glGetError();
@@ -420,8 +557,23 @@ bool checkOpenGLError() {
     return had_error;
 }
 
-//return value = cancel this frame?
-bool setup_restore_primary_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h, uint32_t texture_offset_w, uint32_t texture_offset_h, bool prepare_bg) {
+/**
+ * @brief Restore the primary output for rendering.
+ *
+ * This function rebinds any necessary buffers and performs any preparation work required for
+ * repeat draws to an already existing OpenGL output. If an error occurs during the restoration,
+ * rendering for the current frame should be canceled.
+ *
+ * @param _ret The current state of the primary output to be restored.
+ * @param texture_w The width of the texture for the primary output.
+ * @param texture_h The height of the texture for the primary output.
+ * @param texture_offset_w The horizontal offset for the texture.
+ * @param texture_offset_h The vertical offset for the texture.
+ * @param prepare_bg A boolean indicating whether to prepare the background during restoration.
+ * @return A boolean indicating whether rendering should be canceled due to an error.
+ */
+bool setup_restore_primary_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h, 
+                                  uint32_t texture_offset_w, uint32_t texture_offset_h, bool prepare_bg) {
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _ret.framebuffer));
     if (checkOpenGLError()) { std::cout << "AAA "; return true; }
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _ret.texture, 0));
@@ -438,8 +590,13 @@ bool setup_restore_primary_output(gl_renwin_state_t _ret, uint32_t texture_w, ui
 
 }
 
-// Function to finish the OpenGL frame
-void setup_finish_frame( void ) {    
+/**
+ * @brief Finish the OpenGL frame.
+ *
+ * This function finalizes the current OpenGL frame, performing any necessary operations
+ * to complete rendering before presenting the frame to the display.
+ */
+void setup_finish_frame(void) {    
     GL_CALL(glDisable(GL_DEPTH_TEST));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     GL_CALL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
@@ -454,8 +611,25 @@ void setup_view_proj_matrix_from_link(lv_gltf_view_t * viewer, pGltf_data_t link
 }
 
 
-// Function to create a view-projection matrix from the camera
-void setup_view_proj_matrix_from_camera( lv_gltf_view_t * viewer, int32_t _cur_cam_num, gl_viewer_desc_t * view_desc, const FMAT4 view_mat,  const FVEC3 view_pos, pGltf_data_t gltf_data, bool transmission_pass) {
+/**
+ * @brief Create a view-projection matrix from the camera.
+ *
+ * This function constructs a view-projection matrix based on the specified camera parameters,
+ * allowing for proper rendering of the scene from the camera's perspective. The transmission
+ * pass flag indicates whether the matrix is being set up for the opaque render buffer.
+ *
+ * @param viewer Pointer to the lv_gltf_view_t structure representing the viewer.
+ * @param _cur_cam_num The current camera number to be used for the view-projection matrix.
+ * @param view_desc Pointer to the gl_viewer_desc_t structure containing view description parameters.
+ * @param view_mat The current view matrix (FMAT4) to be used in the calculation.
+ * @param view_pos The position of the viewer in the scene (FVEC3).
+ * @param gltf_data Pointer to the GLTF data structure containing scene information.
+ * @param transmission_pass A boolean indicating whether this setup is for the transmission pass.
+ */
+void setup_view_proj_matrix_from_camera(lv_gltf_view_t *viewer, int32_t _cur_cam_num, 
+                                         gl_viewer_desc_t *view_desc, const FMAT4 view_mat, 
+                                         const FVEC3 view_pos, pGltf_data_t gltf_data, 
+                                         bool transmission_pass) {
 
     mfloat_t view[MAT4_SIZE];
 
@@ -509,10 +683,20 @@ void setup_view_proj_matrix_from_camera( lv_gltf_view_t * viewer, int32_t _cur_c
 }
 
 /**
-* Function to create a view-projection matrix from a given pitch/yaw/distance 
-* described within the view_desc parameter.
-*/
-void setup_view_proj_matrix( lv_gltf_view_t * viewer, gl_viewer_desc_t * view_desc, pGltf_data_t gltf_data, bool transmission_pass) {
+ * @brief Create a view-projection matrix from pitch/yaw/distance.
+ *
+ * This function constructs a view-projection matrix based on the pitch, yaw, and distance
+ * described within the view_desc parameter. It allows for flexible camera positioning and
+ * orientation in the scene. The transmission pass flag indicates whether the matrix is being
+ * set up for the opaque render buffer.
+ *
+ * @param viewer Pointer to the lv_gltf_view_t structure representing the viewer.
+ * @param view_desc Pointer to the gl_viewer_desc_t structure containing view description parameters.
+ * @param gltf_data Pointer to the GLTF data structure containing scene information.
+ * @param transmission_pass A boolean indicating whether this setup is for the transmission pass.
+ */
+void setup_view_proj_matrix(lv_gltf_view_t *viewer, gl_viewer_desc_t *view_desc, 
+                            pGltf_data_t gltf_data, bool transmission_pass) {
     // Create Look-At Matrix
     const auto& _cenpos = FVEC3(view_desc->focal_x, view_desc->focal_y, view_desc->focal_z);
     float cen_x = _cenpos[0];
@@ -574,7 +758,15 @@ void setup_view_proj_matrix( lv_gltf_view_t * viewer, gl_viewer_desc_t * view_de
 
 }
 
-// Function to compile and load shaders
+/**
+ * @brief Compile and load shaders.
+ *
+ * This function compiles and loads the shaders from the specified shader cache, preparing them
+ * for use in rendering operations. It returns a structure containing the shader set information.
+ *
+ * @param shaders Pointer to the lv_opengl_shader_cache_t structure containing the shader cache.
+ * @return A gl_renwin_shaderset_t structure representing the compiled and loaded shaders.
+ */
 gl_renwin_shaderset_t setup_compile_and_load_shaders(lv_opengl_shader_cache_t * shaders) {
     lv_shader_key_value_t* all_defs = all_defines();
     auto _program = shaders->get_shader_program(shaders, 
@@ -588,7 +780,14 @@ gl_renwin_shaderset_t setup_compile_and_load_shaders(lv_opengl_shader_cache_t * 
     return _shader_prog;
 }
 
-// Function to compile and load background shader
+/**
+ * @brief Compile and load the background shader.
+ *
+ * This function compiles and loads the background shader from the specified shader cache,
+ * preparing it for rendering the environment background.
+ *
+ * @param shaders Pointer to the lv_opengl_shader_cache_t structure containing the shader cache.
+ */
 void setup_compile_and_load_bg_shader(lv_opengl_shader_cache_t * shaders) {
     lv_shader_key_value_t empty_defs[0] = {};
     lv_shader_key_value_t frag_defs[1] = {{"TONEMAP_KHR_PBR_NEUTRAL", NULL}};
@@ -599,7 +798,16 @@ void setup_compile_and_load_bg_shader(lv_opengl_shader_cache_t * shaders) {
     setup_background_environment(shaders->bg_program, &shaders->bg_vao, &shaders->bg_indexBuf, &shaders->bg_vertexBuf);
 }
 
-// Function to draw the environment background
+/**
+ * @brief Draw the environment background.
+ *
+ * This function renders the environment background using the specified shaders and viewer parameters.
+ * It allows for optional blurring effects to be applied to the background rendering.
+ *
+ * @param shaders Pointer to the lv_opengl_shader_cache_t structure containing the shader cache.
+ * @param viewer Pointer to the lv_gltf_view_t structure representing the viewer.
+ * @param blur The amount of blur to be applied to the background rendering.
+ */
 void setup_draw_environment_background(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t * viewer, float blur) {
     GL_CALL(glBindVertexArray(shaders->bg_vao));
     GL_CALL(glUseProgram(shaders->bg_program));
@@ -631,6 +839,15 @@ void setup_draw_environment_background(lv_opengl_shader_cache_t * shaders, lv_gl
 
 }
 
+/**
+ * @brief Link a view to GLTF data.
+ *
+ * This function links a target GLTF data structure to a source GLTF data structure, allowing for
+ * shared access and manipulation of the linked data.
+ *
+ * @param link_target Pointer to the lv_gltf_data_t structure that will be linked to the source.
+ * @param link_source Pointer to the lv_gltf_data_t structure that serves as the source for linking.
+ */
 void lv_gltf_data_link_view_to( lv_gltf_data_t * link_target,  lv_gltf_data_t * link_source) {
     link_target->view_is_linked = true;
     link_target->linked_view_source = link_source;

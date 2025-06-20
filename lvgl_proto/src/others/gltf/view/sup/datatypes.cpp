@@ -87,19 +87,123 @@ void __free_viewer_struct(_VIEW V) {
     // Nothing to do here
 }
 
-void            set_matrix_view             (_VIEW V,_MAT4 M) {V->mats.viewMatrix = M;}
-void            set_matrix_proj             (_VIEW V,_MAT4 M) {V->mats.projectionMatrix = M;}
-void            set_matrix_viewproj         (_VIEW V,_MAT4 M) {V->mats.viewProjectionMatrix = M;}
-_VEC3           get_cam_pos                 (_VIEW V)         {_RET (V->cameraPos); }
-uint32_t        get_output_framebuffer      (_VIEW V)         {_RET !V->state.render_state_ready ? V->state.render_state.framebuffer : 0;}
-void*           get_matrix_view             (_VIEW V)         {_RET &(V->mats.viewMatrix);}
-void*           get_matrix_proj             (_VIEW V)         {_RET &(V->mats.projectionMatrix);}
-void*           get_matrix_viewproj         (_VIEW V)         {_RET &(V->mats.viewProjectionMatrix);}
-_ViewerOpts*    get_viewer_opts             (_VIEW V)         {_RET &(V->state.options);}
-_ViewerMetrics* get_viewer_metrics          (_VIEW V)         {_RET &(V->state.metrics);}
-_ViewerState*   get_viewer_state            (_VIEW V)         {_RET &(V->state);}
-gl_viewer_desc_t* lv_gltf_view_get_desc     (_VIEW V)         {_RET &(V->desc);}
-_MatrixSet*     get_matrix_set              (_VIEW V)         {_RET &(V->mats);}
-double          get_view_radius             (_VIEW V)         {_RET (double)V->bound_radius;}
+/**
+ * @brief Set the view matrix for the viewer.
+ *
+ * @param V Pointer to the viewer instance.
+ * @param M The matrix to set as the view matrix.
+ */
+void set_matrix_view(_VIEW V,_MAT4 M) {V->mats.viewMatrix = M;}
 
-void set_cam_pos(_VIEW V,float x,float y,float z) { V->cameraPos[0] = x; V->cameraPos[1] = y; V->cameraPos[2] = z; }
+/**
+ * @brief Set the projection matrix for the viewer.
+ *
+ * @param V Pointer to the viewer instance.
+ * @param M The matrix to set as the projection matrix.
+ */
+void set_matrix_proj(_VIEW V,_MAT4 M) {V->mats.projectionMatrix = M;}
+
+/**
+ * @brief Set the view-projection matrix for the viewer.
+ *
+ * @param V Pointer to the viewer instance.
+ * @param M The matrix to set as the view-projection matrix.
+ */
+void set_matrix_viewproj(_VIEW V,_MAT4 M) {V->mats.viewProjectionMatrix = M;}
+
+/**
+ * @brief Get the camera position from the viewer.
+ *
+ * @param V Pointer to the viewer instance.
+ * @return The camera position as a vector.
+ */
+_VEC3 get_cam_pos(_VIEW V) {_RET (V->cameraPos); }
+
+/**
+ * @brief Get the output framebuffer from the viewer.
+ *
+ * @param V Pointer to the viewer instance.
+ * @return The framebuffer ID or 0 if not ready.
+ */
+uint32_t get_output_framebuffer(_VIEW V) {_RET !V->state.render_state_ready ? V->state.render_state.framebuffer : 0;}
+
+/**
+ * @brief Get a pointer to the view matrix.
+ *
+ * @param V Pointer to the viewer instance.
+ * @return Pointer to the view matrix.
+ */
+void* get_matrix_view(_VIEW V) {_RET &(V->mats.viewMatrix);}
+
+/**
+ * @brief Get a pointer to the projection matrix.
+ *
+ * @param V Pointer to the viewer instance.
+ * @return Pointer to the projection matrix.
+ */
+void* get_matrix_proj(_VIEW V) {_RET &(V->mats.projectionMatrix);}
+
+/**
+ * @brief Get a pointer to the view-projection matrix.
+ *
+ * @param V Pointer to the viewer instance.
+ * @return Pointer to the view-projection matrix.
+ */
+void* get_matrix_viewproj(_VIEW V) {_RET &(V->mats.viewProjectionMatrix);}
+
+/**
+ * @brief Get a pointer to the viewer options.
+ *
+ * @param V Pointer to the viewer instance.
+ * @return Pointer to the viewer options structure.
+ */
+_ViewerOpts* get_viewer_opts(_VIEW V) { _RET &(V->state.options); }
+
+/**
+ * @brief Get a pointer to the viewer metrics.
+ *
+ * @param V Pointer to the viewer instance.
+ * @return Pointer to the viewer metrics structure.
+ */
+_ViewerMetrics* get_viewer_metrics(_VIEW V) { _RET &(V->state.metrics); }
+
+/**
+ * @brief Get a pointer to the viewer state.
+ *
+ * @param V Pointer to the viewer instance.
+ * @return Pointer to the viewer state structure.
+ */
+_ViewerState* get_viewer_state(_VIEW V) { _RET &(V->state); }
+
+/**
+ * @brief Get a pointer to the viewer description.
+ *
+ * @param V Pointer to the viewer instance.
+ * @return Pointer to the viewer description structure.
+ */
+gl_viewer_desc_t* lv_gltf_view_get_desc (_VIEW V) {_RET &(V->desc);}
+
+/**
+ * @brief Get a pointer to the matrix set.
+ *
+ * @param V Pointer to the viewer instance.
+ * @return Pointer to the matrix set structure.
+ */
+_MatrixSet* get_matrix_set(_VIEW V) { _RET &(V->mats); }
+/**
+ * @brief Get the view radius from the viewer.
+ *
+ * @param V Pointer to the viewer instance.
+ * @return The view radius as a double.
+ */
+double get_view_radius(_VIEW V) { _RET (double)V->bound_radius; }
+
+/**
+ * @brief Set the camera position in the viewer.
+ *
+ * @param V Pointer to the viewer instance.
+ * @param x The X coordinate of the camera position.
+ * @param y The Y coordinate of the camera position.
+ * @param z The Z coordinate of the camera position.
+ */
+void set_cam_pos(_VIEW V, float x, float y, float z) { V->cameraPos[0] = x; V->cameraPos[1] = y; V->cameraPos[2] = z; }

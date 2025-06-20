@@ -157,6 +157,19 @@ void lv_gltf_view_destroy(lv_gltf_view_t * _viewer){
     clearDefines();
 }
 
+/**
+ * @brief Draw a primitive from the GLTF model.
+ *
+ * @param prim_num The index of the primitive to draw.
+ * @param view_desc Pointer to the viewer description structure.
+ * @param viewer Pointer to the lv_gltf_view instance used for rendering.
+ * @param gltf_data Pointer to the GLTF data containing the model information.
+ * @param node Reference to the node representing the primitive in the GLTF structure.
+ * @param mesh_index The index of the mesh within the GLTF model.
+ * @param matrix The transformation matrix to apply to the primitive.
+ * @param env_tex The environment textures to use for rendering.
+ * @param is_transmission_pass Flag indicating whether this is a transmission rendering pass.
+ */
 void draw_primitive(  int32_t prim_num,
                 gl_viewer_desc_t * view_desc,
                 lv_gltf_view_t * viewer,

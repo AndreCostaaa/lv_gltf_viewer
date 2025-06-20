@@ -195,7 +195,16 @@ bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t* from, gl_viewer_desc_t* to){
     return false;
 }
 
-// Function to multiply a matrix by a vector
+/**
+ * @brief Multiply a matrix by a vector.
+ *
+ * This function performs matrix-vector multiplication, taking a 4x4 matrix and a 3D vector
+ * as inputs, and returning the resulting 3D vector.
+ *
+ * @param mat The 4x4 matrix (FMAT4) to be multiplied.
+ * @param vec The 3D vector (FVEC3) to be multiplied by the matrix.
+ * @return The resulting 3D vector (FVEC3) after multiplication.
+ */
 FVEC3 __multiplyMatrixByVector(const FMAT4 mat, const FVEC3 vec) {
     return FVEC3 (
         mat[0][0] * vec[0] + mat[0][1] * vec[1] + mat[0][2] * vec[2] + mat[0][3],
@@ -203,7 +212,20 @@ FVEC3 __multiplyMatrixByVector(const FMAT4 mat, const FVEC3 vec) {
         mat[2][0] * vec[0] + mat[2][1] * vec[1] + mat[2][2] * vec[2] + mat[2][3] );
 }
 
-// Function to compute the ray from the camera through the mouse position
+/**
+ * @brief Compute the ray from the camera through the mouse position.
+ *
+ * This function calculates a ray originating from the camera and passing through the specified
+ * mouse position on the screen. It can be used for picking or collision detection with the ground.
+ *
+ * @param viewer Pointer to the lv_gltf_view_t structure representing the viewer.
+ * @param norm_mouseX The normalized X coordinate of the mouse position.
+ * @param norm_mouseY The normalized Y coordinate of the mouse position.
+ * @param groundHeight The height of the ground plane for collision detection.
+ * @param aspectRatio The aspect ratio of the viewport.
+ * @param collisionPoint Pointer to an FVEC3 where the collision point will be stored if a collision occurs.
+ * @return A boolean indicating whether the ray successfully intersects the ground.
+ */
 bool __computeRayToGround( lv_gltf_view_t * viewer, float norm_mouseX, float norm_mouseY, double groundHeight, float aspectRatio, FVEC3* collisionPoint) {
     const auto& _viewmat = GET_VIEW_MAT(viewer);
     //const auto& _desc = lv_gltf_view_get_desc(viewer);
