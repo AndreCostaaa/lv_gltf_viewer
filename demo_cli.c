@@ -15,8 +15,8 @@ void cli_print_usage() {
     printf("  -aa <mode>               Set antialiasing mode (ANTIALIAS_OFF [0], ANTIALIAS_CONSTANT [1], ANTIALIAS_NOT_MOVING [2]).\n");
     printf("  -bg <mode>               Set background mode (BG_CLEAR [0], BG_SOLID [1], BG_ENVIRONMENT [2]).\n");
     printf("  -blur_bg <int value>     How much to blur the background between 0 and 1000.\n");
-    printf("  -pitch <int value>       Viewing angle pitch in degrees x 10.\n");
-    printf("  -yaw <int value>         Viewing angle yaw in degrees x 10.\n");
+    printf("  -pitch <int value>       Viewing angle pitch in degrees x 100.\n");
+    printf("  -yaw <int value>         Viewing angle yaw in degrees x 100.\n");
     printf("  -distance <int value>    Viewing distance where the default of 1000 = 1x the model bounding size.\n");
     printf("  -cam <int value>         Which camera to use, or 0 to explicitly select the default platter camera even if the scene defines others.\n");
     printf("  -anim <int value>        Which animation number to play, or -1 to explicitly disable animation.\n");
@@ -42,8 +42,8 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
     lv_gltf_view_set_env_pow(viewer, 1.8f );
     lv_gltf_view_set_exposure(viewer, 0.8f );
     lv_gltf_view_set_distance(viewer, 1000);
-    lv_gltf_view_set_yaw(viewer, 420 );
-    lv_gltf_view_set_pitch(viewer, -200 );
+    lv_gltf_view_set_yaw(viewer, 4200 );
+    lv_gltf_view_set_pitch(viewer, -2000 );
     lv_gltf_view_set_blur_bg(viewer, 0.25f );
     lv_gltf_view_set_aa_mode(viewer, ANTIALIAS_NOT_MOVING );
     lv_gltf_view_set_bg_mode(viewer, BG_CLEAR);

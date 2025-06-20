@@ -6,7 +6,24 @@ static uint32_t cached_clear_tex = 0;
 
 double d_min(double a, double b) { return (a < b) ? a : b; }
 uint32_t ui_max(uint32_t a, uint32_t b) { return (a > b) ? a : b; }
-float lerp(float start, float end, float t) { return start + (end - start) * t; }
+float lerp_towards(float start, float end, float t, float min_change) { 
+    float newval = start + (end - start) * t; 
+    if (start < end) {
+        if ((end - start) < min_change) return end;
+        if (( newval - start ) < min_change ) {
+            newval = start + min_change;
+        }
+        return newval;
+    } else if (start > end) {
+        if (( start - end ) < min_change) return end;
+        if (( start - newval ) < min_change ) {
+            newval = start - min_change;
+        }
+        return newval;
+    } else {
+        return end;
+    }
+}
 
 void setup_shadercache(const char * hdr_filepath, int degrees_x10 ) {
     _shader_cache = lv_opengl_shader_cache_create(src_includes, sizeof(src_includes)/sizeof(lv_shader_key_value_t), src_vertex(), src_frag() );

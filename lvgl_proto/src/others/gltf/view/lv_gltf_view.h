@@ -129,20 +129,20 @@ uint32_t lv_gltf_view_get_aa_mode(lv_gltf_view_t * view);
 uint32_t lv_gltf_view_get_bg_mode(lv_gltf_view_t * view);
 
 /**
- * @brief Set the viewing angle pitch in degrees x 10 (3600 per full turn)
+ * @brief Set the viewing angle pitch in degrees x 100 (36000 per full turn)
  *
  * @param view Pointer to the lv_gltf_view.
  * @param pitch_degrees_x10 The view pitch in degrees times ten, as signed integer.
  */
-void lv_gltf_view_set_pitch (lv_gltf_view_t * view, int pitch_degrees_x10 );
+void lv_gltf_view_set_pitch (lv_gltf_view_t * view, int pitch_degrees_x100 );
 
 /**
- * @brief Set the viewing angle yaw in degrees x 10 (3600 per full turn)
+ * @brief Set the viewing angle yaw in degrees x 100 (36000 per full turn)
  *
  * @param view Pointer to the lv_gltf_view.
  * @param yaw_degrees_x10 The yaw pitch in degrees times ten, as signed integer.
  */
-void lv_gltf_view_set_yaw (lv_gltf_view_t * view, int yaw_degrees_x10 );
+void lv_gltf_view_set_yaw (lv_gltf_view_t * view, int yaw_degrees_x100 );
 
 /**
  * @brief Set the viewing distance in model bounding volume units x 1000 (1000 per standard distance which is 250% the bounding volume radius)

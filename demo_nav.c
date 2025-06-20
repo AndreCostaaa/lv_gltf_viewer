@@ -95,36 +95,61 @@ void demo_nav_process_drag(float movement_power, uint32_t mouse_state_ex, int mo
 void demo_nav_gradual_to_goals( void ) {
     float EASE_POWER = 0.5f;
     float EASE_CLOSE_ENOUGH = 0.001f;
-
-    float tfx = lerp(lv_gltf_view_get_focal_x(demo_gltfview), goal_focal_x, EASE_POWER / 8.f);
-    if (fabsf(tfx - goal_focal_x) < (EASE_CLOSE_ENOUGH/100.f)) {tfx = goal_focal_x;}
-    lv_gltf_view_set_focal_x(demo_gltfview, tfx); 
-
-    float tfy = lerp(lv_gltf_view_get_focal_y(demo_gltfview), goal_focal_y, EASE_POWER / 8.f);
-    if (fabsf(tfy - goal_focal_y) < (EASE_CLOSE_ENOUGH/100.f)) {tfy = goal_focal_y;}
-    lv_gltf_view_set_focal_y(demo_gltfview, tfy); 
-
-    float tfz = lerp(lv_gltf_view_get_focal_z(demo_gltfview), goal_focal_z, EASE_POWER / 8.f);
-    if (fabsf(tfz - goal_focal_z) < (EASE_CLOSE_ENOUGH/100.f)) {tfz = goal_focal_z;}
-    lv_gltf_view_set_focal_z(demo_gltfview, tfz); 
-
-    float tyaw = lerp(lv_gltf_view_get_yaw(demo_gltfview), goal_yaw, EASE_POWER / 28.f);
-    if (fabsf(tyaw - goal_yaw) < EASE_CLOSE_ENOUGH/100.f) {tyaw = goal_yaw;}
-    bool looped = demo_ui_apply_yaw_value(tyaw );
-    if (looped) {
-        // Move the goal and lerped yaw back into the -180 <-> +180 degree range
-        while (goal_yaw < -180.f) goal_yaw += 360.f;
-        while (goal_yaw > 180.f) goal_yaw -= 360.f;
-        while (tyaw < -180.f) tyaw += 360.f;
-        while (tyaw > 180.f) tyaw -= 360.f;
+    float MIN_ANGLE_CHANGE = 0.02f;
+    float MIN_DISTANCE_CHANGE = 0.001f;
+    float MIN_POSITION_CHANGE = 0.001f;
+    float tfx = lv_gltf_view_get_focal_x(demo_gltfview);
+    if (tfx != goal_focal_x) {
+        tfx = lerp_towards(tfx, goal_focal_x, EASE_POWER / 8.f, MIN_POSITION_CHANGE);
+        if (tfx == goal_focal_x) {goal_focal_x = lv_gltf_view_get_focal_x(demo_gltfview);}
+        lv_gltf_view_set_focal_x(demo_gltfview, tfx); 
     }
-    lv_gltf_view_set_yaw(demo_gltfview, (int)(tyaw * 10.f)); 
 
-    float tpitch = lerp(lv_gltf_view_get_pitch(demo_gltfview), goal_pitch, EASE_POWER / 28.f);
-    if (fabsf(tpitch - goal_pitch) < EASE_CLOSE_ENOUGH/100.f) {tpitch = goal_pitch;}
-    lv_gltf_view_set_pitch(demo_gltfview, (int)(tpitch * 10.f)); demo_ui_apply_pitch_value(tpitch );
+    float tfy = lv_gltf_view_get_focal_y(demo_gltfview);
+    if (tfy != goal_focal_y) {
+        tfy = lerp_towards(tfy, goal_focal_y, EASE_POWER / 8.f, MIN_POSITION_CHANGE);
+        if (tfy == goal_focal_y) {goal_focal_y = lv_gltf_view_get_focal_y(demo_gltfview);}
+        lv_gltf_view_set_focal_y(demo_gltfview, tfy); 
+    }
 
-    float tdistance = lerp(lv_gltf_view_get_distance(demo_gltfview), goal_distance, EASE_POWER / 8.f);
-    if (fabsf(tdistance - goal_distance) < (EASE_CLOSE_ENOUGH/100.f)) {tdistance = goal_distance;}
-    lv_gltf_view_set_distance(demo_gltfview, (int)(tdistance * 1000.f)); demo_ui_apply_distance_value(tdistance );
+    float tfz = lv_gltf_view_get_focal_z(demo_gltfview);
+    if (tfz != goal_focal_z) {
+        tfz = lerp_towards(tfz, goal_focal_z, EASE_POWER / 8.f, MIN_POSITION_CHANGE);
+        if (tfz == goal_focal_z) {goal_focal_z = lv_gltf_view_get_focal_z(demo_gltfview);}
+        lv_gltf_view_set_focal_z(demo_gltfview, tfz); 
+    }
+    
+    float tyaw = lv_gltf_view_get_yaw(demo_gltfview);
+    if (tyaw != goal_yaw) {
+        tyaw = lerp_towards(tyaw, goal_yaw, EASE_POWER / 28.f, MIN_ANGLE_CHANGE);
+        bool looped = demo_ui_apply_yaw_value(tyaw );
+        if (looped) {
+            // Move the goal and lerp_towardsed yaw back into the -180 <-> +180 degree range
+            while (goal_yaw < -180.f) goal_yaw += 360.f;
+            while (goal_yaw > 180.f) goal_yaw -= 360.f;
+            while (tyaw < -180.f) tyaw += 360.f;
+            while (tyaw > 180.f) tyaw -= 360.f;
+        }
+        lv_gltf_view_set_yaw(demo_gltfview, (int)(tyaw * 100.f));
+        if (tyaw == goal_yaw) {goal_yaw = lv_gltf_view_get_yaw(demo_gltfview);}
+
+    } else if (last_dragged_control == yaw_slider) last_dragged_control = NULL;
+
+    float tpitch = lv_gltf_view_get_pitch(demo_gltfview);
+    if (tpitch != goal_pitch) {
+        tpitch = lerp_towards(tpitch, goal_pitch, EASE_POWER / 28.f, MIN_ANGLE_CHANGE);
+        lv_gltf_view_set_pitch(demo_gltfview, (int)(tpitch * 100.f)); 
+        demo_ui_apply_pitch_value(tpitch );
+        if (tpitch == goal_pitch) {goal_pitch = lv_gltf_view_get_pitch(demo_gltfview);}
+    } else if (last_dragged_control == pitch_slider) last_dragged_control = NULL;
+
+
+    float tdistance = lv_gltf_view_get_distance(demo_gltfview);
+    if (tdistance != goal_distance) {
+        tdistance = lerp_towards(tdistance, goal_distance, EASE_POWER / 8.f, MIN_DISTANCE_CHANGE);
+        lv_gltf_view_set_distance(demo_gltfview, (int)(tdistance * 1000.f));
+        demo_ui_apply_distance_value(tdistance );
+        if (tdistance == goal_distance) {goal_distance = lv_gltf_view_get_distance(demo_gltfview);}
+    } else if (last_dragged_control == distance_slider) last_dragged_control = NULL;
+
 }

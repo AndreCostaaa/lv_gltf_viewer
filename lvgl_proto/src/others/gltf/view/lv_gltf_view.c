@@ -19,18 +19,18 @@ float       lv_gltf_view_get_focal_y (lv_gltf_view_t * view)    { return lv_gltf
 float       lv_gltf_view_get_focal_z (lv_gltf_view_t * view)    { return lv_gltf_view_get_desc(view)->focal_z; }
 float       lv_gltf_view_get_spin_degree_offset(lv_gltf_view_t * view){ return lv_gltf_view_get_desc(view)->spin_degree_offset; }
 
-void lv_gltf_view_set_pitch (lv_gltf_view_t * view, int pitch_degrees_x10 ) {
+void lv_gltf_view_set_pitch (lv_gltf_view_t * view, int pitch_degrees_x100 ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
-    float _newval = pitch_degrees_x10 * 0.1f; 
+    float _newval = pitch_degrees_x100 * 0.01f; 
     if (absf(desc->pitch - _newval) > 0.0001f ) {
         desc->pitch = _newval;
         desc->dirty = true;
     }
 }
 
-void lv_gltf_view_set_yaw (lv_gltf_view_t * view, int yaw_degrees_x10 ) {
+void lv_gltf_view_set_yaw (lv_gltf_view_t * view, int yaw_degrees_x100 ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
-    float _newval = yaw_degrees_x10 * 0.1f; 
+    float _newval = yaw_degrees_x100 * 0.01f; 
     if (absf(desc->yaw - _newval) > 0.0001f ) {
         desc->yaw = _newval;
         desc->dirty = true;

@@ -45,6 +45,7 @@ lv_style_t style_folder_button;
 
 bool __styles_ready = false;
 bool ignore_event = false;
+lv_obj_t * last_dragged_control = NULL;
 
 #define MAX_CAM_BUTTONS 16
 lv_obj_t * use_scenecam_checkbox;
@@ -154,6 +155,13 @@ void demo_ui_set_tab(unsigned int _tabnum) {
 
 // Function to set the slider value without triggering events
 void demo_ui_set_slider_value_without_event(lv_obj_t * slider, int value) {
+
+    if (slider == last_dragged_control) {
+        // Cancel this operation if the current is either being dragged currently, or was 
+        // just dragged to a new position and is gradually changing towards it's next goal still.
+        //printf ("Confirm: Cancelling this slider update because it is being dragged or was recently dragged\n");
+        return;
+    }
     // Set the flag to ignore events
     ignore_event = true;
 
@@ -163,6 +171,7 @@ void demo_ui_set_slider_value_without_event(lv_obj_t * slider, int value) {
     // Reset the flag after setting the value
     ignore_event = false;
 }
+
 // Function to set the slider value without triggering events
 void demo_ui_set_checkbox_value_without_event(lv_obj_t * checkbox, bool value) {
     // Set the flag to ignore events
@@ -204,6 +213,7 @@ static void yaw_slider_event_cb(lv_event_t * e){
         lv_obj_add_flag(spin_slider, LV_OBJ_FLAG_HIDDEN);
     }
     lv_obj_t * slider = lv_event_get_target_obj(e);
+    last_dragged_control = slider;
     goal_yaw = ((float)lv_slider_get_value(slider) / 1000.0f ) * 360.f;
     lv_refr_now(NULL);  // This forced update here helps reduce any screen flashing effects that occur during windowed operation while we're figuring out that bug
 }
@@ -213,6 +223,7 @@ void demo_ui_apply_pitch_value(float visual_pitch )         { demo_ui_set_slider
 static void pitch_slider_event_cb(lv_event_t * e){
     if (ignore_event) { return; }
     lv_obj_t * slider = lv_event_get_target_obj(e);
+    last_dragged_control = slider;
     goal_pitch = ((float)lv_slider_get_value(slider) / 100.0f ) * 180.f;
     //lv_gltf_view_set_pitch(demo_gltfview, (int)(((float)lv_slider_get_value(slider) / 100.0f ) * 1800.f));
     lv_refr_now(NULL);
@@ -248,6 +259,7 @@ void demo_ui_apply_distance_value(float visual_distance )   {
 static void distance_slider_event_cb(lv_event_t * e){
     if (ignore_event) { return; }
     lv_obj_t * slider = lv_event_get_target_obj(e);
+    last_dragged_control = slider;
     float _distance = (1.f - ((float)lv_slider_get_value(slider) / 100.0f )) * 2.0f;
     if (_distance < 1.0f) {
         _distance = pow(_distance, 4.0);

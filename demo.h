@@ -95,6 +95,7 @@ extern float spin_counter_degrees;
 extern bool reapply_layout_flag;
 extern uint32_t cycle_frames;
 
+extern lv_obj_t * last_dragged_control;
 extern lv_display_t * display_texture;
 extern lv_glfw_texture_t * window_texture;
 extern lv_glfw_window_t * window;
@@ -111,6 +112,10 @@ extern lv_obj_t * tab_pages[MAX_TABS];
 extern lv_obj_t * progbar1;
 extern lv_obj_t * progbar2;
 extern lv_obj_t * anim_checkbox;
+
+extern lv_obj_t * pitch_slider;
+extern lv_obj_t * yaw_slider;
+extern lv_obj_t * distance_slider;
 
 extern lv_gltf_data_t * temp_teapot_gltfdata;
 extern lv_gltf_data_t * system_gltfdata;
@@ -185,7 +190,7 @@ void demo_ui_apply_spin_enabled_value(bool visual_animate_spin);
 void demo_nav_gradual_to_goals( void );
 double d_min(double a, double b);
 uint32_t ui_max(uint32_t a, uint32_t b);
-float lerp(float start, float end, float t);
+float lerp_towards(float start, float end, float t, float min_change);
 void setup_shadercache(const char * hdr_filepath, int degrees_x10 );
 void demo_set_overrides(void);
 void demo_refocus(lv_gltf_view_t * gltfview, bool first_call);
