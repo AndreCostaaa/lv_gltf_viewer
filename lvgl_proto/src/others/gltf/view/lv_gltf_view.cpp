@@ -8,11 +8,13 @@
 #include "lvgl/lvgl.h"
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
+/*
 #include "webp/decode.h"
 int32_t WebPGetInfo(const uint8_t* data, size_t data_size, int32_t* width, int32_t* height);
 VP8StatusCode WebPGetFeatures(const uint8_t* data,
                               size_t data_size,
                               WebPBitstreamFeatures* features);
+*/
 
 #undef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT    // Talking withe fastgltf devs about getting this in there, should be merged in soon.
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1

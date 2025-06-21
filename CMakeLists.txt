@@ -4,12 +4,12 @@ cmake_minimum_required(VERSION 3.25.1)
 
 project(lvgl_workspace LANGUAGES C CXX)
 
+# set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CONFIG_LV_BUILD_EXAMPLES 0)
 set(CONFIG_LV_BUILD_DEMOS 0)
 set(FASTGLTF_ENABLE_DEPRECATED_EXT 1)
 set(ASAN_OPTIONS alloc_dealloc_mismatch=0)
-
-# set(CMAKE_VERBOSE_MAKEFILE ON)
+set(LVGL_ENABLE_WEBP_IMAGES 1)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
@@ -31,6 +31,7 @@ add_library(lvgl_gltfdata
     lvgl_proto/src/others/gltf/data/lv_gltf_data.cpp
     lvgl_proto/src/others/gltf/data/lv_gltf_override.cpp
 )
+# Set the compile definition for the target
 
 add_library(lvgl_gltfview 
     lvgl_proto/src/others/gltf/view/lv_gltf_view.c
@@ -78,7 +79,10 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -Wall -std=c++17")
 set(CMAKE_LINKER_FLAGS_MINSIZEREL "-Wl,--gc-sections")  # Remove unused sections
 
 target_link_libraries(lvgl_gltfdata lvgl_opengl_shader_cache)
-target_link_libraries(lvgl_gltfdata webp)
+if(DEFINED LVGL_ENABLE_WEBP_IMAGES AND LVGL_ENABLE_WEBP_IMAGES)
+    target_link_libraries(lvgl_gltfdata webp)
+    target_compile_definitions(lvgl_gltfdata PRIVATE LVGL_ENABLE_WEBP_IMAGES=${LVGL_ENABLE_WEBP_IMAGES})
+endif()
 
 target_link_libraries(lvgl_gltfview lvgl_gltfdata)
 

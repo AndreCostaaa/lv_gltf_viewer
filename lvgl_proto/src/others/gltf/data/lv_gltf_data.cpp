@@ -8,11 +8,16 @@
 #include "lvgl/lvgl.h"
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
-#include "webp/decode.h"
-int32_t WebPGetInfo(const uint8_t* data, size_t data_size, int32_t* width, int32_t* height);
-VP8StatusCode WebPGetFeatures(const uint8_t* data,
-                              size_t data_size,
-                              WebPBitstreamFeatures* features);
+#ifdef LVGL_ENABLE_WEBP_IMAGES
+    #if LVGL_ENABLE_WEBP_IMAGES
+        #include "webp/decode.h"
+        int32_t WebPGetInfo(const uint8_t* data, size_t data_size, int32_t* width, int32_t* height);
+        VP8StatusCode WebPGetFeatures(const uint8_t* data,
+                                    size_t data_size,
+                                    WebPBitstreamFeatures* features);
+    #endif /* LVGL_ENABLE_WEBP_IMAGES == true (or 1)*/
+#endif /* LVGL_ENABLE_WEBP_IMAGES */
+
 /*
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #undef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT    // Talking withe fastgltf devs about getting this in there, should be merged in soon.

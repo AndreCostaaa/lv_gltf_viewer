@@ -21,13 +21,17 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "webp/decode.h"
-int32_t WebPGetInfo(const uint8_t* data, size_t data_size, int32_t* width, int32_t* height);
+//#define LVGL_ENABLE_WEBP_IMAGES 1
 
-VP8StatusCode WebPGetFeatures(const uint8_t* data,
-                              size_t data_size,
-                              WebPBitstreamFeatures* features);
-
+#ifdef LVGL_ENABLE_WEBP_IMAGES
+    #if LVGL_ENABLE_WEBP_IMAGES
+        #include "webp/decode.h"
+        int32_t WebPGetInfo(const uint8_t* data, size_t data_size, int32_t* width, int32_t* height);
+        VP8StatusCode WebPGetFeatures(const uint8_t* data,
+                                    size_t data_size,
+                                    WebPBitstreamFeatures* features);
+    #endif /* LVGL_ENABLE_WEBP_IMAGES == true (or 1)*/
+#endif /* LVGL_ENABLE_WEBP_IMAGES */
 
 #include "include/lv_gltf_data_datatypes.h"
 #include "../lv_gltf_data_internal.h"
@@ -322,7 +326,11 @@ void injest_grow_bounds_to_include(pGltf_data_t ret_data, ASSET* asset, FMAT4 ma
  */
 bool injest_check_any_image_index_valid(std::optional<fastgltf::Texture> tex){
     if (tex->imageIndex.has_value()) return true;
-    if (tex->webpImageIndex.has_value()) return true;
+    #ifdef LVGL_ENABLE_WEBP_IMAGES
+        #if LVGL_ENABLE_WEBP_IMAGES
+            if (tex->webpImageIndex.has_value()) return true;
+        #endif /* LVGL_ENABLE_WEBP_IMAGES == true (or 1)*/
+    #endif /* LVGL_ENABLE_WEBP_IMAGES */
     return false;
 }
 
@@ -334,7 +342,13 @@ bool injest_check_any_image_index_valid(std::optional<fastgltf::Texture> tex){
  */
 int32_t injest_get_any_image_index(std::optional<fastgltf::Texture> tex){
     if (tex->imageIndex.has_value()) return tex->imageIndex.value();
-    if (tex->webpImageIndex.has_value()) return tex->webpImageIndex.value();
+
+    #ifdef LVGL_ENABLE_WEBP_IMAGES
+        #if LVGL_ENABLE_WEBP_IMAGES
+            if (tex->webpImageIndex.has_value()) return tex->webpImageIndex.value();
+        #endif /* LVGL_ENABLE_WEBP_IMAGES == true (or 1)*/
+    #endif /* LVGL_ENABLE_WEBP_IMAGES */
+
     return 0;
 }
 
@@ -538,6 +552,24 @@ bool injest_mesh(pGltf_data_t data_obj, fastgltf::Mesh& mesh) {
     return true;
 }
 
+
+void make_small_magenta_texture(uint32_t new_magenta_tex) {
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, new_magenta_tex));
+    unsigned char clearBytes[4] = {255, 0, 255, 255}; // RGBA format
+    GL_CALL(glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0,  GL_RGBA, GL_UNSIGNED_BYTE,  clearBytes ));
+    // Set texture parameters (optional but recommended)
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
+    //GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
+    return;
+}
+    //glTextureStorage2D(new_magenta_tex, 0, GL_RGBA8, 1, 1);
+    //glTextureSubImage2D(new_magenta_tex, 0, 0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, clearBytes);
+    //GL_CALL(glGenerateTextureMipmap(new_magenta_tex));
+
 /**
  * @brief Load an image from the GLTF data.
  *
@@ -567,6 +599,7 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, pGltf_data_t data_obj, fas
         //GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
         //GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
         GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+        bool image_invalidated = false;
         std::visit(fastgltf::visitor {
             [](auto& arg) {},
             [&](fastgltf::sources::URI& filePath) {
@@ -584,10 +617,10 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, pGltf_data_t data_obj, fas
                 int32_t width, height, nrChannels;
                 std::cout << "Unpacking image data: " << image.name << "\n";
 
-                int32_t webpRes = WebPGetInfo(reinterpret_cast<const uint8_t*>(vector.bytes.data()), static_cast<size_t>(vector.bytes.size()), &width, &height);
-                if (webpRes) {
-                    std::cout << "  TO-DO: FIX THIS (EMBEDDED) WEBP IMAGE DETECTED ||  WEBP IMAGE DETECTED ||  WEBP IMAGE DETECTED ||  WEBP IMAGE DETECTED ||  WEBP IMAGE DETECTED\n";
-                }
+                //int32_t webpRes = WebPGetInfo(reinterpret_cast<const uint8_t*>(vector.bytes.data()), static_cast<size_t>(vector.bytes.size()), &width, &height);
+                //if (webpRes) {
+                //    std::cout << "  TO-DO: FIX THIS (EMBEDDED) WEBP IMAGE DETECTED ||  WEBP IMAGE DETECTED ||  WEBP IMAGE DETECTED ||  WEBP IMAGE DETECTED ||  WEBP IMAGE DETECTED\n";
+                //}
                 unsigned char *data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(vector.bytes.data()), static_cast<int32_t>(vector.bytes.size()), &width, &height, &nrChannels, 4);
                 glTextureStorage2D(texture, getLevelCount(width, height), GL_RGBA8, width, height);
                 glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -606,6 +639,9 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, pGltf_data_t data_obj, fas
                     [](auto& arg) {},
                     [&](fastgltf::sources::Array& vector) {
                         int32_t width, height, nrChannels;
+                    #ifdef LVGL_ENABLE_WEBP_IMAGES
+                        #if LVGL_ENABLE_WEBP_IMAGES
+                        //if (tex->webpImageIndex.has_value()) return tex->webpImageIndex.value();
                         int32_t webpRes = WebPGetInfo(reinterpret_cast<const uint8_t*>(vector.bytes.data() + bufferView.byteOffset), static_cast<std::size_t>(bufferView.byteLength), &width, &height);
                         if (webpRes) {
                             WebPBitstreamFeatures features = WebPBitstreamFeatures();
@@ -625,22 +661,34 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, pGltf_data_t data_obj, fas
                                 std::cout << "[WEBP] width / height: " << width << ", " << height << "\n";
                             } else {
                                 // Could not load this webp file for some reason
+                                make_small_magenta_texture(texture);
+                                image_invalidated=true;                                
                             }
-                        } else {
+                        } else 
+                            #endif /* LVGL_ENABLE_WEBP_IMAGES == true (or 1)*/
+                        #endif /* LVGL_ENABLE_WEBP_IMAGES */
+                        {
                             unsigned char* data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(vector.bytes.data() + bufferView.byteOffset),
                                                                         static_cast<int32_t>(bufferView.byteLength), &width, &height, &nrChannels, 4);
-                            std::cout << "width / height: " << width << ", " << height << "\n";
-                            glTextureStorage2D(texture, getLevelCount(width, height), GL_RGBA8, width, height);
-                            glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
-                            stbi_image_free(data);
+                            if ((width <= 0)||(height <= 0)){
+                                make_small_magenta_texture(texture);
+                                image_invalidated=true;
+                                std::cout << "[Image format unsupported] To enable WEBP image decoding, rebuild with LVGL_ENABLE_WEBP_IMAGES 1\n";
+                            } else {
+                                std::cout << "width / height: " << width << ", " << height << "\n";
+                                glTextureStorage2D(texture, getLevelCount(width, height), GL_RGBA8, width, height);
+                                glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                                stbi_image_free(data);
+                            }
                         }
                     }
                 }, buffer.data);
             },
         }, image.data);
 
-        glGenerateTextureMipmap(texture);
+        if ( !image_invalidated ) { glGenerateTextureMipmap(texture); }
         shaders->set_texture_cache_item(shaders, hash, texture);
+        GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
     }
     // ----
     data_obj->textures->emplace_back(Texture { texture });
@@ -740,7 +788,11 @@ void lv_gltf_data_load(const char * gltf_path, pGltf_data_t _retdata, lv_opengl_
         fastgltf::Extensions::KHR_materials_transmission |
         fastgltf::Extensions::KHR_materials_volume |
         fastgltf::Extensions::KHR_materials_unlit |
+    //#ifdef LVGL_ENABLE_WEBP_IMAGES
+    //    #if LVGL_ENABLE_WEBP_IMAGES
         fastgltf::Extensions::EXT_texture_webp |
+    //    #endif
+    //#endif
         //fastgltf::Extensions::KHR_materials_diffuse_transmission |
         fastgltf::Extensions::KHR_materials_variants;
 
