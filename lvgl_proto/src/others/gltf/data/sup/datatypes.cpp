@@ -27,7 +27,7 @@ MeshData* lv_gltf_get_new_meshdata(_DATA _data) {
     return &((*_data->meshes)[_data->meshes->size() - 1 ]);
 }
 
-uint32_t get_gltf_datastruct_datasize(void) {
+uint32_t lv_gltf_data_get_struct_size(void) {
     return sizeof(lv_gltf_data_t);
 }
 

@@ -58,37 +58,10 @@
 #include "sup/datatypes.cpp"
 #include "sup/injest.cpp"
 #include "sup/reports.cpp"
+#include "sup/utils.cpp"
 
 #define __GLFW_SAMPLES 0x0002100D
 
 void lv_gltf_data_destroy(pGltf_data_t _data){
     __free_data_struct(_data);
 }
-
-/*
-lv_gltf_override_t * lv_gltf_view_add_override_by_index(pGltf_data_t _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask){
-    return NULL;
-}
-
-lv_gltf_override_t * lv_gltf_view_add_override_by_ip(pGltf_data_t _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask){
-    return NULL;
-}
-
-lv_gltf_override_t * lv_gltf_view_add_override_by_id(pGltf_data_t _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask){
-    std::string sNodeId = std::string(nodeId);
-    if ((*_data->node_by_path).find(sNodeId) != (*_data->node_by_path).end()) {
-        const auto& _node = (*_data->node_by_path)[sNodeId];
-        std::cout << "Found Node within the __node_by_path collection under path:\n" << sNodeId << "\nNode Name is:\n" << _node->name << "\n";
-        lv_gltf_override_t _newOverride = lv_gltf_override_t();
-        _newOverride.prop = whichProp;
-        _newOverride.dataMask = dataMask;
-        _newOverride.data1 = 0.f;
-        _newOverride.data2 = 0.f;
-        _newOverride.data3 = 0.f;
-        _newOverride.data4 = 0.f;
-        (*_data->overrides)[_node] = _newOverride;
-        return &((*_data->overrides)[_node]);
-    }
-    return NULL;
-}
-*/

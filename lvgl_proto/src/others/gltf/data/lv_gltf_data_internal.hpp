@@ -58,8 +58,6 @@ using NodeIntMap = std::map<NodePtr, uint32_t>;                 // Map of Nodes 
 using NodeVector = std::vector<NodePtr>;                        // Map of Nodes by string (name)
 using NodePrimCenterMap = std::map<uint32_t, std::map<uint32_t, fastgltf::math::fvec4>>; // Map of Node Index to Map of Prim Index to CenterXYZ+RadiusW Vec4
 #include "sup/include/lv_gltf_data_datatypes.h"
-
-//#include "../../../../../lvgl_proto/src/others/gltf/override/lv_gltf_override.h"
 using NodeOverrideMap = std::map<NodePtr, lv_gltf_override_t>;           // Map of Overrides by Node
 
 
@@ -145,22 +143,134 @@ typedef lv_gltf_data_t *    _DATA;
 typedef uint64_t            _UINT;
 typedef NodePtr             _NODE;
 typedef FMAT4               _MAT4;
-void*                   get_texdata_set(_DATA D);
-Texture *               get_texdata(_DATA D, _UINT I);
-uint64_t                get_texdata_glid(_DATA D, _UINT I);
-UniformLocs*            get_uniform_ids(_DATA D, _UINT I);
-uint64_t                get_shader_program(_DATA D, _UINT I);
-gl_renwin_shaderset_t * get_shader_set(_DATA D, _UINT I);
-float*                  get_bounds_min (_DATA D);
-float*                  get_bounds_max (_DATA D);
-float*                  setup_get_center(_DATA D);
-double                  get_radius(_DATA D);
-const char*             lv_gltf_get_filename(_DATA D);
-gltf_probe_info *       lv_gltf_view_get_probe(_DATA _data);
-bool centerpoint_cache_contains (_DATA D,_UINT I,int32_t P);
-void*           get_prim_from_mesh          (MeshData* M, uint64_t I);
+/**
+ * @brief Retrieve the texture data set from the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Pointer to the texture data set.
+ */
+void* get_texdata_set(lv_gltf_data_t * D);
 
-void*                   get_asset (_DATA D);
+/**
+ * @brief Retrieve a specific texture from the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the texture to retrieve.
+ * @return Pointer to the Texture object.
+ */
+Texture* get_texdata(lv_gltf_data_t * D, uint64_t I);
+
+/**
+ * @brief Retrieve the OpenGL ID of a specific texture from the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the texture whose OpenGL ID is to be retrieved.
+ * @return The OpenGL ID of the texture.
+ */
+uint64_t get_texdata_glid(lv_gltf_data_t * D, uint64_t I);
+
+/**
+ * @brief Retrieve the uniform location IDs for all textures from the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I Draw order index.
+ * @return Pointer to the UniformLocs structure containing the uniform location IDs.
+ */
+UniformLocs* get_uniform_ids(lv_gltf_data_t * D, uint64_t I);
+
+/**
+ * @brief Retrieve the shader program associated with a specific index from the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the shader program to retrieve.
+ * @return The shader program ID.
+ */
+uint64_t get_shader_program(lv_gltf_data_t * D, uint64_t I);
+
+/**
+ * @brief Retrieve the shader set associated with a specific index from the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the shader set to retrieve.
+ * @return Pointer to the gl_renwin_shaderset_t structure containing the shader set.
+ */
+gl_renwin_shaderset_t* get_shader_set(lv_gltf_data_t * D, uint64_t I);
+
+/**
+ * @brief Retrieve the minimum bounds (X/Y/Z) of the model from the GLTF data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Pointer to a 3-element float array representing the minimum bounds.
+ */
+float* get_bounds_min(lv_gltf_data_t * D);
+
+/**
+ * @brief Retrieve the maximum bounds (X/Y/Z) of the model from the GLTF data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Pointer to a 3-element float array representing the maximum bounds.
+ */
+float* get_bounds_max(lv_gltf_data_t * D);
+
+/**
+ * @brief Retrieve the center point of the model from the GLTF data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Pointer to a float array representing the center point (X/Y/Z).
+ */
+float* setup_get_center(lv_gltf_data_t * D);
+
+/**
+ * @brief Retrieve the radius of the model from the GLTF data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return The radius of the model.
+ */
+double get_radius(lv_gltf_data_t * D);
+
+/**
+ * @brief Retrieve the filename of the GLTF model.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Pointer to a constant character string representing the filename.
+ */
+const char* lv_gltf_get_filename(lv_gltf_data_t * D);
+
+/**
+ * @brief Retrieve the probe information from the GLTF view.
+ *
+ * @param _data Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Pointer to the gltf_probe_info structure containing the probe information.
+ */
+gltf_probe_info* lv_gltf_view_get_probe(lv_gltf_data_t * _data);
+
+/**
+ * @brief Check if the centerpoint cache contains a specific entry.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the entry to check.
+ * @param P The specific parameter to check within the cache.
+ * @return True if the cache contains the entry, false otherwise.
+ */
+bool centerpoint_cache_contains(lv_gltf_data_t * D, uint64_t I, int32_t P);
+
+/**
+ * @brief Retrieve a specific primitive from a mesh.
+ *
+ * @param M Pointer to the MeshData structure containing the mesh data.
+ * @param I The index of the primitive to retrieve.
+ * @return Pointer to the primitive data.
+ */
+void* get_prim_from_mesh(MeshData* M, uint64_t I);
+
+/**
+ * @brief Retrieve the asset associated with the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Pointer to the asset data.
+ */
+void* get_asset(lv_gltf_data_t * D);
+
 #define GET_ASSET(d)    ((ASSET*)get_asset(d))
 #define PROBE(d)        ((gltf_probe_info*)lv_gltf_view_get_probe(d))
 #define TEXDSET(x)      ((std::vector<Texture>*)get_texdata_set(x))
@@ -170,41 +280,251 @@ void*                   get_asset (_DATA D);
 #define SKINTEXS(d)     ((IntVector*)get_skintex_set(d))
 #define GET_PRIM_FROM_MESH(m, i)    ((Primitive*)get_prim_from_mesh(m,i))
 
-void set_probe              (_DATA D,gltf_probe_info _probe);
-void allocate_index         (_DATA D,_UINT I);
-void recache_centerpoint    (_DATA D,_UINT I,int32_t P);
-MeshData* get_meshdata_num  (_DATA D,_UINT I);
-int32_t get_skintex_at      (_DATA D,_UINT I);
-void* get_skintex_set       (_DATA D);
+/**
+ * @brief Set the probe information for the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param _probe The gltf_probe_info structure containing the probe information to set.
+ */
+void set_probe(lv_gltf_data_t * D, gltf_probe_info _probe);
 
-bool validated_skins_contains   (_DATA D,int64_t I);
-void validate_skin              (_DATA D,int64_t I);
+/**
+ * @brief Allocate an index for a specific entry in the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index to allocate.
+ */
+void allocate_index(lv_gltf_data_t * D, uint64_t I);
 
-void add_opaque_node_prim(_DATA D, _UINT I, _NODE N, int32_t P );
-MaterialIndexMap::iterator get_opaque_begin(_DATA D);
-MaterialIndexMap::iterator get_opaque_end(_DATA D);
+/**
+ * @brief Recache the centerpoint for a specific entry in the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the entry to recache.
+ * @param P The specific parameter to recache.
+ */
+void recache_centerpoint(lv_gltf_data_t * D, uint64_t I, int32_t P);
 
-void add_blended_node_prim(_DATA D, _UINT I, _NODE N, int32_t P ) ;
-MaterialIndexMap::iterator get_blended_begin(_DATA D);
-MaterialIndexMap::iterator get_blended_end(_DATA D);
+/**
+ * @brief Retrieve mesh data for a specific index from the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the mesh data to retrieve.
+ * @return Pointer to the MeshData structure containing the mesh data.
+ */
+MeshData* get_meshdata_num(lv_gltf_data_t * D, uint64_t I);
 
-void clear_distance_sort (_DATA D);
-void add_distance_sort_prim(_DATA D, NodeIndexDistancePair P );
-NodeDistanceVector::iterator get_distance_sort_begin(_DATA D);
-NodeDistanceVector::iterator get_distance_sort_end(_DATA D);
+/**
+ * @brief Retrieve the skin texture index for a specific entry in the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the entry for which to retrieve the skin texture index.
+ * @return The skin texture index.
+ */
+int32_t get_skintex_at(lv_gltf_data_t * D, uint64_t I);
 
-void        set_cached_transform        (_DATA D,_NODE N,_MAT4 M);
-void        clear_transform_cache       (_DATA D);
-_MAT4       get_cached_transform        (_DATA D,_NODE N);
-bool        transform_cache_is_empty    (_DATA D);
-_UINT       get_skins_size              (_DATA D);
-int32_t     get_skin                    (_DATA D, uint64_t I);
-void        injest_discover_defines     (_DATA data_obj, void *node, void *prim);
+/**
+ * @brief Retrieve the set of skin textures associated with the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Pointer to the skin texture set.
+ */
+void* get_skintex_set(lv_gltf_data_t * D);
 
-void        set_shader(_DATA D, uint64_t _index, UniformLocs _uniforms, gl_renwin_shaderset_t _shaderset);
-void        init_shaders(_DATA D, uint64_t _max_index);
-uint32_t    get_gltf_datastruct_datasize(void);
+/**
+ * @brief Check if the validated skins contain a specific entry.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the skin to check.
+ * @return True if the validated skins contain the entry, false otherwise.
+ */
+bool validated_skins_contains(lv_gltf_data_t * D, int64_t I);
 
+/**
+ * @brief Validate a specific skin in the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the skin to validate.
+ */
+void validate_skin(lv_gltf_data_t * D, int64_t I);
+
+/**
+ * @brief Add an opaque node primitive to the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the primitive to add.
+ * @param N Pointer to the NodePtr representing the node to add.
+ * @param P The specific parameter associated with the primitive.
+ */
+void add_opaque_node_prim(lv_gltf_data_t * D, uint64_t I, NodePtr N, int32_t P);
+
+/**
+ * @brief Retrieve an iterator to the beginning of the opaque material index map.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Iterator to the beginning of the MaterialIndexMap.
+ */
+MaterialIndexMap::iterator get_opaque_begin(lv_gltf_data_t * D);
+
+/**
+ * @brief Retrieve an iterator to the end of the opaque material index map.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Iterator to the end of the MaterialIndexMap.
+ */
+MaterialIndexMap::iterator get_opaque_end(lv_gltf_data_t * D);
+
+/**
+ * @brief Add a blended node primitive to the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the primitive to add.
+ * @param N Pointer to the NodePtr representing the node to add.
+ * @param P The specific parameter associated with the primitive.
+ */
+void add_blended_node_prim(lv_gltf_data_t * D, uint64_t I, NodePtr N, int32_t P);
+
+/**
+ * @brief Retrieve an iterator to the beginning of the blended material index map.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Iterator to the beginning of the MaterialIndexMap.
+ */
+MaterialIndexMap::iterator get_blended_begin(lv_gltf_data_t * D);
+
+/**
+ * @brief Retrieve an iterator to the end of the blended material index map.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Iterator to the end of the MaterialIndexMap.
+ */
+MaterialIndexMap::iterator get_blended_end(lv_gltf_data_t * D);
+
+/**
+ * @brief Clear the distance sorting data for the GLTF model.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ */
+void clear_distance_sort(lv_gltf_data_t * D);
+
+/**
+ * @brief Add a primitive to the distance sorting data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param P The NodeIndexDistancePair representing the primitive to add.
+ */
+void add_distance_sort_prim(lv_gltf_data_t * D, NodeIndexDistancePair P);
+
+/**
+ * @brief Retrieve an iterator to the beginning of the distance sorted node vector.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Iterator to the beginning of the NodeDistanceVector.
+ */
+NodeDistanceVector::iterator get_distance_sort_begin(lv_gltf_data_t * D);
+
+/**
+ * @brief Retrieve an iterator to the end of the distance sorted node vector.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return Iterator to the end of the NodeDistanceVector.
+ */
+NodeDistanceVector::iterator get_distance_sort_end(lv_gltf_data_t * D);
+
+/**
+ * @brief Set the cached transformation matrix for a specific node in the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param N Pointer to the NodePtr representing the node for which to set the transformation.
+ * @param M The transformation matrix to cache.
+ */
+void set_cached_transform(lv_gltf_data_t * D, NodePtr N, FMAT4 M);
+
+/**
+ * @brief Clear the transformation cache for the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ */
+void clear_transform_cache(lv_gltf_data_t * D);
+
+/**
+ * @brief Retrieve the cached transformation matrix for a specific node in the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param N Pointer to the NodePtr representing the node for which to retrieve the transformation.
+ * @return The cached transformation matrix.
+ */
+FMAT4 get_cached_transform(lv_gltf_data_t * D, NodePtr N);
+
+/**
+ * @brief Check if the transformation cache is empty.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return True if the transformation cache is empty, false otherwise.
+ */
+bool transform_cache_is_empty(lv_gltf_data_t * D);
+
+/**
+ * @brief Retrieve the size of the skins in the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @return The size of the skins.
+ */
+uint64_t get_skins_size(lv_gltf_data_t * D);
+
+/**
+ * @brief Retrieve a specific skin from the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param I The index of the skin to retrieve.
+ * @return The skin index.
+ */
+int32_t get_skin(lv_gltf_data_t * D, uint64_t I);
+
+/**
+ * @brief Ingest and discover defines for a specific node and primitive in the GLTF model data.
+ *
+ * @param data_obj Pointer to the lv_gltf_data_t object containing the model data.
+ * @param node Pointer to the node for which to ingest defines.
+ * @param prim Pointer to the primitive for which to ingest defines.
+ */
+void injest_discover_defines(lv_gltf_data_t * data_obj, void *node, void *prim);
+
+/**
+ * @brief Retrieve the center point of a specific mesh element from the GLTF model data.
+ *
+ * @param gltf_data Pointer to the lv_gltf_data_t object containing the model data.
+ * @param matrix The transformation matrix to apply when calculating the center point.
+ * @param meshIndex The index of the mesh from which to retrieve the center point.
+ * @param elem The specific element index within the mesh.
+ * @return The center point as a FVEC3 structure.
+ */
+FVEC3 lv_gltf_get_centerpoint(lv_gltf_data_t * gltf_data, FMAT4 matrix, uint32_t meshIndex, int32_t elem);
+
+/**
+ * @brief Set the shader information for a specific index in the GLTF model data.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param _index The index of the shader to set.
+ * @param _uniforms The UniformLocs structure containing the uniform locations.
+ * @param _shaderset The gl_renwin_shaderset_t structure containing the shader set.
+ */
+void set_shader(lv_gltf_data_t * D, uint64_t _index, UniformLocs _uniforms, gl_renwin_shaderset_t _shaderset);
+
+/**
+ * @brief Initialize shaders for the GLTF model data with a specified maximum index.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param _max_index The maximum index for the shaders to initialize.
+ */
+void init_shaders(lv_gltf_data_t * D, uint64_t _max_index);
+
+/**
+ * @brief Retrieve the size of the structure used in the GLTF data.
+ *
+ * @return The size of the structure in bytes.
+ */
+uint32_t lv_gltf_data_get_struct_size(void);
 
 #endif
 

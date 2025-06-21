@@ -67,7 +67,7 @@ void reload(char * _filename, const char * _hdr_filename) {
     
     lv_obj_clear_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
 
-    demo_gltfdata = lv_malloc(get_gltf_datastruct_datasize() );
+    demo_gltfdata = lv_malloc(lv_gltf_data_get_struct_size() );
 
     if (shader_cache == NULL) setup_shadercache(_hdr_filename, 1800);
     lv_gltf_data_load_file(_filename, demo_gltfdata, shader_cache);
@@ -93,12 +93,12 @@ void reload(char * _filename, const char * _hdr_filename) {
     #endif
     
     if (needs_system_gltfdata) {
-        system_gltfdata = lv_malloc(get_gltf_datastruct_datasize() );
+        system_gltfdata = lv_malloc(lv_gltf_data_get_struct_size() );
         lv_gltf_data_load_file(SYSTEM_ASSETS_FILENAME, system_gltfdata, shader_cache);
-        lv_gltf_data_link_view_to(system_gltfdata, demo_gltfdata);
+        //lv_gltf_data_link_view_to(system_gltfdata, demo_gltfdata); // this doesn't actually do anything yet, it was not necessary.  Just draw the next object into the same buffer, the view will be linked.
         lv_gltf_data_copy_bounds_info(system_gltfdata, demo_gltfdata);
         float newradius = lv_gltf_data_get_int_radiusX1000(demo_gltfdata) / 1000.f;
-        ov_ground_scale = lv_gltf_view_add_override_by_id(system_gltfdata, "/grid", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
+        ov_ground_scale = lv_gltf_data_override_add_by_id(system_gltfdata, "/grid", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
         float unitscale = newradius * ((1.f / 2.f) * 3.f);
         float tscale = unitscale;
         if (!show_grid) {
@@ -109,7 +109,7 @@ void reload(char * _filename, const char * _hdr_filename) {
         ov_ground_scale->data3 = tscale;
 
         tscale = unitscale / 8.f;
-        ov_cursor_scale = lv_gltf_view_add_override_by_id(system_gltfdata, "/cursor/visible", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
+        ov_cursor_scale = lv_gltf_data_override_add_by_id(system_gltfdata, "/cursor/visible", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
         #ifndef EXPERIMENTAL_GROUNDCAST
         tscale = 0.f;
         #endif
@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
         /*
         // Example of how to convert a GLTF file texture into an lv_image_dsc_t, for use with lv_image_t's
         //
-        
+
         static lv_image_dsc_t img_dsc = {0};
         lv_gltf_data_utils_texture_to_image_dsc(&img_dsc, demo_gltfdata, 0);
         if (img_dsc.data_size > 0) lv_image_set_src(lv_image_create(lv_scr_act()), &img_dsc);
@@ -434,9 +434,7 @@ int main(int argc, char *argv[]) {
             for (int i = 0; i < MAX_THREADS; i++) pthread_join(desktop_mode_worker_threads[i], NULL);
         }
         #endif
-        if (img_dsc.data_size > 0) {
-            lv_free((void*)img_dsc.data);
-        }
+        //if (img_dsc.data_size > 0) lv_free((void*)img_dsc.data);
     }
     lv_free(demo_gltfview);
     #ifndef NDEBUG

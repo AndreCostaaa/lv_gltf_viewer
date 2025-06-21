@@ -8,13 +8,6 @@
 #include "lvgl/lvgl.h"
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
-/*
-#include "webp/decode.h"
-int32_t WebPGetInfo(const uint8_t* data, size_t data_size, int32_t* width, int32_t* height);
-VP8StatusCode WebPGetFeatures(const uint8_t* data,
-                              size_t data_size,
-                              WebPBitstreamFeatures* features);
-*/
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #undef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT    // Talking withe fastgltf devs about getting this in there, should be merged in soon.
 #pragma GCC diagnostic push
@@ -24,19 +17,17 @@ VP8StatusCode WebPGetFeatures(const uint8_t* data,
 #include "deps/fastgltf/include/fastgltf/tools.hpp"
 #pragma GCC diagnostic pop
 
-//#include "lv_gltf_override.h"
 #include "lv_gltf_data.h"
-//#include "lv_gltf_data_internal.h"
 
-lv_gltf_override_t * lv_gltf_view_add_override_by_index(lv_gltf_data_t * _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask){
+lv_gltf_override_t * lv_gltf_data_override_add_by_index(lv_gltf_data_t * _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask){
     return NULL;
 }
 
-lv_gltf_override_t * lv_gltf_view_add_override_by_ip(lv_gltf_data_t * _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask){
+lv_gltf_override_t * lv_gltf_data_override_add_by_ip(lv_gltf_data_t * _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask){
     return NULL;
 }
 
-lv_gltf_override_t * lv_gltf_view_add_override_by_id(lv_gltf_data_t * _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask){
+lv_gltf_override_t * lv_gltf_data_override_add_by_id(lv_gltf_data_t * _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask){
     std::string sNodeId = std::string(nodeId);
     if ((*_data->node_by_path).find(sNodeId) != (*_data->node_by_path).end()) {
         const auto& _node = (*_data->node_by_path)[sNodeId];

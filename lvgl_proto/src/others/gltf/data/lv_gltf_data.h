@@ -81,29 +81,104 @@ void lv_gltf_data_load_file(const char * gltf_path, pGltf_data_t ret_data, lv_op
  */
 bool lv_gltf_view_set_loadphase_callback(void (*load_progress_callback)(const char*, const char* , float, float, float, float));
 
+/**
+ * @brief Retrieve the probe information for a GLTF view.
+ *
+ * @param _data Pointer to the lv_gltf_data_t object from which to get the probe information.
+ * @return Pointer to the gltf_probe_info structure containing the probe information.
+ */
 gltf_probe_info * lv_gltf_view_get_probe(lv_gltf_data_t * _data);
 
-double  lv_gltf_data_get_radius(lv_gltf_data_t * D);
-float*  lv_gltf_data_get_center(lv_gltf_data_t * D);
-void    lv_gltf_data_destroy(lv_gltf_data_t * _data);
+/**
+ * @brief Retrieve the radius of the GLTF data object.
+ *
+ * @param D Pointer to the lv_gltf_data_t object from which to get the radius.
+ * @return The radius of the GLTF data object.
+ */
+double lv_gltf_data_get_radius(lv_gltf_data_t * D);
+
+/**
+ * @brief Retrieve the center coordinates of the GLTF data object.
+ *
+ * @param D Pointer to the lv_gltf_data_t object from which to get the center.
+ * @return Pointer to an array containing the center coordinates (x, y, z).
+ */
+float* lv_gltf_data_get_center(lv_gltf_data_t * D);
+
+/**
+ * @brief Destroy a GLTF data object and free associated resources.
+ *
+ * @param _data Pointer to the lv_gltf_data_t object to be destroyed.
+ */
+void lv_gltf_data_destroy(lv_gltf_data_t * _data);
+
+/**
+ * @brief Retrieve the radius of the GLTF data object multiplied by 1000 as an integer.
+ *
+ * @param _data Pointer to the lv_gltf_data_t object from which to get the radius.
+ * @return The radius of the GLTF data object multiplied by 1000 as an int64_t.
+ */
 int64_t lv_gltf_data_get_int_radiusX1000(lv_gltf_data_t * _data);
-void    lv_gltf_data_copy_bounds_info(lv_gltf_data_t * to, lv_gltf_data_t * from);
 
-void lv_gltf_data_link_view_to( lv_gltf_data_t * link_target,  lv_gltf_data_t * link_source);
+/**
+ * @brief Copy the bounds information from one GLTF data object to another.
+ *
+ * @param to Pointer to the destination lv_gltf_data_t object.
+ * @param from Pointer to the source lv_gltf_data_t object.
+ */
+void lv_gltf_data_copy_bounds_info(lv_gltf_data_t * to, lv_gltf_data_t * from);
 
-lv_gltf_override_t * lv_gltf_view_add_override_by_index(lv_gltf_data_t * _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask);
-lv_gltf_override_t * lv_gltf_view_add_override_by_ip(lv_gltf_data_t * _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask);
-lv_gltf_override_t * lv_gltf_view_add_override_by_id(lv_gltf_data_t * _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask);
+/**
+ * @brief Retrieve the size of the GLTF data structure.
+ *
+ * @return The size of the GLTF data structure in bytes.
+ */
+unsigned int lv_gltf_data_get_struct_size(void);
 
-void lv_opengl_shader_cache_destroy(lv_opengl_shader_cache_t * _shaders);
+/**
+ * @brief Retrieve information about a specific texture in a GLTF model.
+ *
+ * @param data_obj Pointer to the lv_gltf_data_t object containing the model data.
+ * @param model_texture_index The index of the texture in the model.
+ * @param mipmapnum The mipmap level to retrieve information for.
+ * @param byte_count Pointer to a size_t variable to store the byte count of the texture.
+ * @param width Pointer to a uint32_t variable to store the width of the texture.
+ * @param height Pointer to a uint32_t variable to store the height of the texture.
+ * @param has_alpha Pointer to a bool variable to indicate if the texture has an alpha channel.
+ * @return True if the texture information was successfully retrieved, false otherwise.
+ */
+bool lv_gltf_data_utils_get_texture_info(lv_gltf_data_t * data_obj, uint32_t model_texture_index, uint32_t mipmapnum, size_t * byte_count, uint32_t * width, uint32_t * height, bool * has_alpha);
 
-unsigned int get_gltf_datastruct_datasize(void);
-unsigned int get_primitive_datasize(void);
+/**
+ * @brief Retrieve the pixel data for a specific texture in a GLTF model.
+ *
+ * @param pixels Pointer to the memory where the pixel data will be stored.
+ * @param data_obj Pointer to the lv_gltf_data_t object containing the model data.
+ * @param model_texture_index The index of the texture in the model.
+ * @param mipmapnum The mipmap level to retrieve pixel data for.
+ * @param width The width of the texture.
+ * @param height The height of the texture.
+ * @param has_alpha Flag indicating whether the texture includes an alpha channel.
+ * @return True if the pixel data was successfully retrieved, false otherwise.
+ */
+bool lv_gltf_data_utils_get_texture_pixels(void * pixels, lv_gltf_data_t * data_obj, uint32_t model_texture_index, uint32_t mipmapnum, uint32_t width, uint32_t height, bool has_alpha);
 
-bool lv_gltf_data_utils_get_texture_info( lv_gltf_data_t * data_obj, uint32_t model_texture_index, uint32_t mipmapnum, size_t * byte_count, uint32_t * width, uint32_t * height, bool * has_alpha );
-bool lv_gltf_data_utils_get_texture_pixels( void * pixels, lv_gltf_data_t * data_obj, uint32_t model_texture_index, uint32_t mipmapnum, uint32_t width, uint32_t height, bool has_alpha );
-
+/**
+ * @brief Swap the red and blue channels in a pixel buffer.
+ *
+ * @param pixel_buffer Pointer to the pixel buffer containing the image data.
+ * @param byte_total_count The total number of bytes in the pixel buffer.
+ * @param has_alpha Flag indicating whether the pixel buffer includes an alpha channel.
+ */
 void lv_gltf_data_utils_swap_pixels_red_blue(void * pixel_buffer, size_t byte_total_count, bool has_alpha);
+
+/**
+ * @brief Convert a texture from a GLTF model to an image descriptor.
+ *
+ * @param new_image_dsc Pointer to the lv_image_dsc_t structure to be populated with the image data.
+ * @param data_obj Pointer to the lv_gltf_data_t object containing the model data.
+ * @param model_texture_index The index of the texture in the model to convert.
+ */
 void lv_gltf_data_utils_texture_to_image_dsc(lv_image_dsc_t * new_image_dsc, lv_gltf_data_t * data_obj, uint32_t model_texture_index);
 
 #ifdef __cplusplus

@@ -41,9 +41,40 @@ struct lv_gltf_override_struct {
 
 typedef struct lv_gltf_override_struct lv_gltf_override_t;
 
-lv_gltf_override_t * lv_gltf_view_add_override_by_index(lv_gltf_data_t * _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask);
-lv_gltf_override_t * lv_gltf_view_add_override_by_ip(lv_gltf_data_t * _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask);
-lv_gltf_override_t * lv_gltf_view_add_override_by_id(lv_gltf_data_t * _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask);
+/**
+ * @brief Add an override to a GLTF data object by node index.
+ *
+ * @param _data Pointer to the lv_gltf_data_t object to which the override will be added.
+ * @param nodeIndex The index of the node to override.
+ * @param whichProp The property to override.
+ * @param dataMask A mask indicating which data fields to override.
+ * @return Pointer to the newly created lv_gltf_override_t object, or NULL if the operation failed.
+ */
+lv_gltf_override_t * lv_gltf_data_override_add_by_index(lv_gltf_data_t * _data, uint64_t nodeIndex, OverrideProp whichProp, uint32_t dataMask);
+
+/**
+ * @brief Add an override to a GLTF data object by node IP address.
+ *
+ * @param _data Pointer to the lv_gltf_data_t object to which the override will be added.
+ * @param nodeIp The IP address of the node to override.
+ * @param whichProp The property to override.
+ * @param dataMask A mask indicating which data fields to override.
+ * @return Pointer to the newly created lv_gltf_override_t object, or NULL if the operation failed.
+ */
+lv_gltf_override_t * lv_gltf_data_override_add_by_ip(lv_gltf_data_t * _data, const char * nodeIp, OverrideProp whichProp, uint32_t dataMask);
+
+/**
+ * @brief Add an override to a GLTF data object by node ID.
+ *
+ * @param _data Pointer to the lv_gltf_data_t object to which the override will be added.
+ * @param nodeId The ID of the node to override.
+ * @param whichProp The property to override.
+ * @param dataMask A mask indicating which data fields to override.
+ * @return Pointer to the newly created lv_gltf_override_t object, or NULL if the operation failed.
+ */
+lv_gltf_override_t * lv_gltf_data_override_add_by_id(lv_gltf_data_t * _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask);
+
+
 
 #ifdef __cplusplus
 } /*extern "C"*/

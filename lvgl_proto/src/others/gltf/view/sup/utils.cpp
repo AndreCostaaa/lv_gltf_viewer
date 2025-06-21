@@ -20,7 +20,7 @@ GLint blendSrc;
 GLint blendDst;
 GLint blendEquation;
 
-_VEC3 get_cached_centerpoint(_DATA D, _UINT I, int32_t P, _MAT4 M);
+//_VEC3 get_cached_centerpoint(_DATA D, _UINT I, int32_t P, _MAT4 M);
 _VEC3 get_cam_pos(_VIEW V);
 
 inline void lv_gltf_opengl_state_push(void) {
@@ -41,6 +41,7 @@ inline void lv_gltf_opengl_state_pop(void) {
     GL_CALL(glDepthMask(GL_TRUE));    
 }
 
+/*
 FVEC4 lv_gltf_get_primitive_centerpoint(pGltf_data_t ret_data, fastgltf::Mesh& mesh, uint32_t prim_num){
     FVEC4 _retval = FVEC4(0.0f);
     FVEC3 _vmin = FVEC3(999999999.f);
@@ -90,7 +91,7 @@ FVEC4 lv_gltf_get_primitive_centerpoint(pGltf_data_t ret_data, fastgltf::Mesh& m
     }
     return _retval;
 }
-
+*/
 void lv_gltf_print_matrix_summary(FMAT4 matrix) {
     const auto& m = matrix.data();
     std::cout << std::to_string(m[0]) << ", " << std::to_string(m[1]) << ", " << std::to_string(m[2]) << ", " << std::to_string(m[3]) << "\n"; 
@@ -294,11 +295,12 @@ bool lv_gltf_view_raycast_ground_position( lv_gltf_view_t * viewer, int32_t _mou
     return validres;
 }
 
+/*
 FVEC3 lv_gltf_get_centerpoint(pGltf_data_t gltf_data, FMAT4 matrix, uint32_t meshIndex, int32_t elem) {
     if (!centerpoint_cache_contains(gltf_data, meshIndex, elem)) recache_centerpoint(gltf_data, meshIndex, elem);
     return get_cached_centerpoint(gltf_data, meshIndex, elem, matrix);
 }
-
+*/
 void lv_gltf_view_recenter_view_on_model( lv_gltf_view_t * viewer, pGltf_data_t gltf_data) {
     const auto& _autocenpos = lv_gltf_data_get_center(gltf_data);
     lv_gltf_view_set_focal_x(viewer, _autocenpos[0]);
@@ -316,6 +318,7 @@ void lv_gltf_view_utils_get_texture_pixels( char * pixels, uint32_t tex_id, bool
     GL_CALL(glBindTexture(GL_TEXTURE_2D, tex_id));
     glGetTexImage(GL_TEXTURE_2D, mipmapnum, alpha_enabled?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE, pixels);
 }
+/*
 bool lv_gltf_data_utils_get_texture_info( lv_gltf_data_t * data_obj, uint32_t model_texture_index, uint32_t mipmapnum, size_t * byte_count, uint32_t * width, uint32_t * height, bool * has_alpha ) {
     *byte_count = 0;
     if (model_texture_index < data_obj->textures->size()) {
@@ -364,6 +367,7 @@ bool lv_gltf_data_utils_get_texture_info( lv_gltf_data_t * data_obj, uint32_t mo
     return false;
 }
 
+
 bool lv_gltf_data_utils_get_texture_pixels( void * pixels, lv_gltf_data_t * data_obj, uint32_t model_texture_index, uint32_t mipmapnum, uint32_t width, uint32_t height, bool has_alpha ) {
     if (model_texture_index < data_obj->textures->size()) {
         uint32_t texid = (*data_obj->textures)[model_texture_index].texture;
@@ -375,7 +379,7 @@ bool lv_gltf_data_utils_get_texture_pixels( void * pixels, lv_gltf_data_t * data
     }
     return false;
 }
-
+    */
 void lv_gltf_view_utils_save_texture_to_png( uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
     char * pixels =(char *)lv_malloc(height * width * 4);
     lv_gltf_view_utils_get_texture_pixels( pixels, tex_id, alpha_enabled, mipmapnum, width, height );
@@ -389,6 +393,7 @@ void lv_gltf_view_utils_save_png( lv_gltf_view_t * viewer, const char * filename
     lv_gltf_view_utils_save_texture_to_png( vstate->render_state.texture, filename, alpha_enabled, compression_level, lv_gltf_view_check_frame_was_antialiased(viewer) ? 1 : 0, vdesc->width, vdesc->height );
 }
 
+/*
 void lv_gltf_data_utils_swap_pixels_red_blue(void * pixels, size_t byte_total_count, bool has_alpha){
     char * pixel_buffer = (char*) pixels;
     size_t bytes_per_pixel = has_alpha ? 4 : 3;
@@ -418,7 +423,7 @@ void lv_gltf_data_utils_swap_pixels_red_blue(void * pixels, size_t byte_total_co
     }
 }
 
-/* Caller becomes responsible for freeing data of the result if data_size > 0, but if a new_image_dsc is passed to this function with a data_size > 0, it will free it's data first. */
+// Caller becomes responsible for freeing data of the result if data_size > 0, but if a new_image_dsc is passed to this function with a data_size > 0, it will free it's data first. 
 void lv_gltf_data_utils_texture_to_image_dsc(lv_image_dsc_t * new_image_dsc, lv_gltf_data_t * data_obj, uint32_t model_texture_index) {
     size_t byte_total_count = 0;
     uint32_t source_pixel_width = 0;
@@ -450,3 +455,4 @@ void lv_gltf_data_utils_texture_to_image_dsc(lv_image_dsc_t * new_image_dsc, lv_
         }
     }
 }
+*/
