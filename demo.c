@@ -1,5 +1,5 @@
 #include "demo.h"
-
+//#include "torusknot.h"
 //#define EXPERIMENTAL_GROUNDCAST
 #define SYSTEM_ASSETS_FILENAME  "./gltfs/support_assets.glb"
 
@@ -46,6 +46,8 @@ lv_gltf_override_t * ov_cursor;
 lv_gltf_override_t * ov_cursor_scale;
 lv_gltf_override_t * ov_ground_scale;
 
+//static lv_image_dsc_t img_dsc = {0};
+
 void reload(char * _filename, const char * _hdr_filename) {
     printf("Loading %s...\n", _filename);
 
@@ -68,7 +70,8 @@ void reload(char * _filename, const char * _hdr_filename) {
     demo_gltfdata = lv_malloc(get_gltf_datastruct_datasize() );
 
     if (shader_cache == NULL) setup_shadercache(_hdr_filename, 1800);
-    lv_gltf_data_load(_filename, demo_gltfdata, shader_cache);
+    lv_gltf_data_load_file(_filename, demo_gltfdata, shader_cache);
+    //lv_gltf_data_load_bytes(__gltfs_torusknot_gltf, __gltfs_torusknot_gltf_len, demo_gltfdata, shader_cache);
 
     if (lv_gltf_view_get_probe(demo_gltfdata)->cameraCount == 0) {
         use_scenecam = false;
@@ -91,7 +94,7 @@ void reload(char * _filename, const char * _hdr_filename) {
     
     if (needs_system_gltfdata) {
         system_gltfdata = lv_malloc(get_gltf_datastruct_datasize() );
-        lv_gltf_data_load(SYSTEM_ASSETS_FILENAME, system_gltfdata, shader_cache);
+        lv_gltf_data_load_file(SYSTEM_ASSETS_FILENAME, system_gltfdata, shader_cache);
         lv_gltf_data_link_view_to(system_gltfdata, demo_gltfdata);
         lv_gltf_data_copy_bounds_info(system_gltfdata, demo_gltfdata);
         float newradius = lv_gltf_data_get_int_radiusX1000(demo_gltfdata) / 1000.f;
@@ -199,6 +202,16 @@ int main(int argc, char *argv[]) {
 
         reload(gltfFilePath, hdrFilePath);
         demo_set_overrides();
+
+        /*
+        // Example of how to convert a GLTF file texture into an lv_image_dsc_t, for use with lv_image_t's
+        //
+        
+        static lv_image_dsc_t img_dsc = {0};
+        lv_gltf_data_utils_texture_to_image_dsc(&img_dsc, demo_gltfdata, 0);
+        if (img_dsc.data_size > 0) lv_image_set_src(lv_image_create(lv_scr_act()), &img_dsc);
+
+        */
 
         if (lv_gltf_view_get_probe(demo_gltfdata)->animationCount > 0) anim = 0;
         if (lv_gltf_view_get_probe(demo_gltfdata)->cameraCount == 0) {
@@ -421,6 +434,9 @@ int main(int argc, char *argv[]) {
             for (int i = 0; i < MAX_THREADS; i++) pthread_join(desktop_mode_worker_threads[i], NULL);
         }
         #endif
+        if (img_dsc.data_size > 0) {
+            lv_free((void*)img_dsc.data);
+        }
     }
     lv_free(demo_gltfview);
     #ifndef NDEBUG

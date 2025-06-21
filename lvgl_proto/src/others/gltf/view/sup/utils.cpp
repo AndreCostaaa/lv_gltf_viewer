@@ -316,6 +316,65 @@ void lv_gltf_view_utils_get_texture_pixels( char * pixels, uint32_t tex_id, bool
     GL_CALL(glBindTexture(GL_TEXTURE_2D, tex_id));
     glGetTexImage(GL_TEXTURE_2D, mipmapnum, alpha_enabled?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE, pixels);
 }
+bool lv_gltf_data_utils_get_texture_info( lv_gltf_data_t * data_obj, uint32_t model_texture_index, uint32_t mipmapnum, size_t * byte_count, uint32_t * width, uint32_t * height, bool * has_alpha ) {
+    *byte_count = 0;
+    if (model_texture_index < data_obj->textures->size()) {
+        uint32_t texid = (*data_obj->textures)[model_texture_index].texture;
+        // Bind the texture
+        GL_CALL(glBindTexture(GL_TEXTURE_2D, texid));
+        int32_t internalFormat;
+        GL_CALL(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat));
+
+        // Determine if the texture has an alpha channel
+        *has_alpha = false;
+        bool not_valid = false;
+
+        switch (internalFormat) {
+            case GL_RGBA:
+            case GL_BGRA:
+            case GL_RGBA8:
+                *has_alpha = true;
+                break;
+            case GL_RGB:
+            case GL_BGR:
+            case GL_RGB8:
+                *has_alpha = false;
+                break;
+            default:
+                // Handle other formats if necessary
+                not_valid = true;
+                break;
+        }
+        // even if the pixel format is invalid, we can still get the width and height
+        int _twidth;
+        GL_CALL(glGetTexLevelParameteriv(GL_TEXTURE_2D, mipmapnum, GL_TEXTURE_WIDTH, &_twidth));
+        *width = (uint32_t)(_twidth);
+        int _theight;
+        GL_CALL(glGetTexLevelParameteriv(GL_TEXTURE_2D, mipmapnum, GL_TEXTURE_HEIGHT, &_theight));
+        *height = (uint32_t)(_theight);
+        GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
+
+        if (!not_valid) {
+            *byte_count = _twidth * _theight * (*has_alpha ? 4 : 3);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    return false;
+}
+
+bool lv_gltf_data_utils_get_texture_pixels( void * pixels, lv_gltf_data_t * data_obj, uint32_t model_texture_index, uint32_t mipmapnum, uint32_t width, uint32_t height, bool has_alpha ) {
+    if (model_texture_index < data_obj->textures->size()) {
+        uint32_t texid = (*data_obj->textures)[model_texture_index].texture;
+        // Bind the texture
+        GL_CALL(glBindTexture(GL_TEXTURE_2D, texid));       
+        glGetTexImage(GL_TEXTURE_2D, mipmapnum, (has_alpha)?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE, pixels);
+        GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
+        return true;
+    }
+    return false;
+}
 
 void lv_gltf_view_utils_save_texture_to_png( uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
     char * pixels =(char *)lv_malloc(height * width * 4);
@@ -328,4 +387,66 @@ void lv_gltf_view_utils_save_png( lv_gltf_view_t * viewer, const char * filename
     const auto& vstate = get_viewer_state(viewer);
     const auto& vdesc = lv_gltf_view_get_desc(viewer);
     lv_gltf_view_utils_save_texture_to_png( vstate->render_state.texture, filename, alpha_enabled, compression_level, lv_gltf_view_check_frame_was_antialiased(viewer) ? 1 : 0, vdesc->width, vdesc->height );
+}
+
+void lv_gltf_data_utils_swap_pixels_red_blue(void * pixels, size_t byte_total_count, bool has_alpha){
+    char * pixel_buffer = (char*) pixels;
+    size_t bytes_per_pixel = has_alpha ? 4 : 3;
+    size_t pixel_count = (byte_total_count / bytes_per_pixel);
+    if (bytes_per_pixel == 4) {
+        for (size_t p = 0; p < pixel_count; p++) {
+            size_t index = p << 2;
+            uint8_t r = pixel_buffer[index + 0];
+            uint8_t g = pixel_buffer[index + 1];
+            uint8_t b = pixel_buffer[index + 2];
+            uint8_t a = pixel_buffer[index + 3];
+            pixel_buffer[index + 0] = b;
+            pixel_buffer[index + 1] = g;
+            pixel_buffer[index + 2] = r;
+            pixel_buffer[index + 3] = a;
+        }
+    } else {
+        for (size_t p = 0; p < pixel_count; p++) {
+            size_t index = p * 3;
+            uint8_t r = pixel_buffer[index + 0];
+            uint8_t g = pixel_buffer[index + 1];
+            uint8_t b = pixel_buffer[index + 2];
+            pixel_buffer[index + 0] = b;
+            pixel_buffer[index + 1] = g;
+            pixel_buffer[index + 2] = r;
+        }
+    }
+}
+
+/* Caller becomes responsible for freeing data of the result if data_size > 0, but if a new_image_dsc is passed to this function with a data_size > 0, it will free it's data first. */
+void lv_gltf_data_utils_texture_to_image_dsc(lv_image_dsc_t * new_image_dsc, lv_gltf_data_t * data_obj, uint32_t model_texture_index) {
+    size_t byte_total_count = 0;
+    uint32_t source_pixel_width = 0;
+    uint32_t source_pixel_height = 0;
+    bool has_alpha = false;
+    bool temp_got_valid_texture = false;
+    uint8_t * pixel_buffer;
+    if (lv_gltf_data_utils_get_texture_info( data_obj, model_texture_index, 0, &byte_total_count, &source_pixel_width, &source_pixel_height, &has_alpha )) {
+        pixel_buffer = (uint8_t*)lv_malloc(byte_total_count);
+        temp_got_valid_texture = true;
+        if (lv_gltf_data_utils_get_texture_pixels(pixel_buffer, data_obj, model_texture_index, 0, source_pixel_width, source_pixel_height, has_alpha )) {
+            if (pixel_buffer == NULL || byte_total_count == 0 || source_pixel_width == 0) return; 
+
+            if ( new_image_dsc->data_size > 0) {
+                lv_free((uint8_t*)new_image_dsc->data);
+                new_image_dsc->data = NULL;
+                new_image_dsc->data_size = 0;
+            }
+
+            lv_gltf_data_utils_swap_pixels_red_blue(pixel_buffer, byte_total_count, has_alpha);
+            size_t bytes_per_pixel = has_alpha ? 4 : 3;
+            size_t pixel_count = (byte_total_count / bytes_per_pixel);
+            
+            new_image_dsc->data = (const uint8_t*)pixel_buffer;
+            new_image_dsc->data_size = byte_total_count;
+            new_image_dsc->header.w = source_pixel_width;
+            new_image_dsc->header.h = (uint16_t)(pixel_count / source_pixel_width);
+            new_image_dsc->header.cf = has_alpha ? LV_COLOR_FORMAT_ARGB8888 : LV_COLOR_FORMAT_RGB888;
+        }
+    }
 }

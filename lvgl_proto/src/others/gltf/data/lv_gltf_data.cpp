@@ -4,6 +4,7 @@
 #include <map>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <cstddef>
 
 #include "lvgl/lvgl.h"
 #include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */

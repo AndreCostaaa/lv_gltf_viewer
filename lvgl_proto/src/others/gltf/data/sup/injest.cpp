@@ -1,41 +1,13 @@
+/*
 #include <string>
 #include <iostream>
 
 #include <GL/glew.h>
-#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
-
-#define FASTGLTF_ENABLE_DEPRECATED_EXT 1
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wredundant-move"
-#include "../deps/fastgltf/include/fastgltf/core.hpp"
-#include "../deps/fastgltf/include/fastgltf/types.hpp"
-#include "../deps/fastgltf/include/fastgltf/tools.hpp"
-#pragma GCC diagnostic pop
-
-#ifndef STB_HAS_BEEN_INCLUDED
-#define STB_HAS_BEEN_INCLUDED
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtype-limits"
-//#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image/stb_image.h"
-#pragma GCC diagnostic pop
-#endif
-
-//#define LVGL_ENABLE_WEBP_IMAGES 1
-
-#ifdef LVGL_ENABLE_WEBP_IMAGES
-    #if LVGL_ENABLE_WEBP_IMAGES
-        #include "webp/decode.h"
-        int32_t WebPGetInfo(const uint8_t* data, size_t data_size, int32_t* width, int32_t* height);
-        VP8StatusCode WebPGetFeatures(const uint8_t* data,
-                                    size_t data_size,
-                                    WebPBitstreamFeatures* features);
-    #endif /* LVGL_ENABLE_WEBP_IMAGES == true (or 1)*/
-#endif /* LVGL_ENABLE_WEBP_IMAGES */
-
+#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" // GL_CALL //
 #include "include/lv_gltf_data_datatypes.h"
 #include "../lv_gltf_data_internal.h"
 #include "../../../../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
+*/
 #include "../../view/sup/include/shader_includes.h"
 
 #ifndef __MESH_DATA_DEFINED
@@ -766,10 +738,8 @@ bool lv_gltf_view_set_loadphase_callback(void (*_load_progress_callback)(const c
     return true;
 }
 
-void lv_gltf_data_load(const char * gltf_path, pGltf_data_t _retdata, lv_opengl_shader_cache_t * shaders) {
-    __init_gltf_datastruct(_retdata, gltf_path);
+void data_load_file_or_bytes(const char * gltf_path_or_bytes, size_t size_if_path_is_data, pGltf_data_t _retdata, lv_opengl_shader_cache_t * shaders) {
 
-    std::filesystem::path gltfFilePath = std::string_view { gltf_path };
     static constexpr auto supportedExtensions =
         //fastgltf::Extensions::KHR_draco_mesh_compression |
         //fastgltf::Extensions::EXT_meshopt_compression |
@@ -800,11 +770,6 @@ void lv_gltf_data_load(const char * gltf_path, pGltf_data_t _retdata, lv_opengl_
 
     if (lv_gltf_data_load_progress_callback != NULL) { lv_gltf_data_load_progress_callback("Initializing...", "SUBTEST1234", 2.0f, 5.f, 23.0f, 100.f); }
 
-    auto gltfFile = fastgltf::MappedGltfFile::FromPath(gltfFilePath);
-    if (!bool(gltfFile)) {
-        std::cerr << "Failed to open glTF file: " << gltfFilePath << " -> " << fastgltf::getErrorMessage(gltfFile.error()) << '\n';
-        return; }
-
     constexpr auto gltfOptions =
         fastgltf::Options::DontRequireValidAssetMember |
         fastgltf::Options::AllowDouble |
@@ -812,12 +777,38 @@ void lv_gltf_data_load(const char * gltf_path, pGltf_data_t _retdata, lv_opengl_
         fastgltf::Options::LoadExternalImages |
         fastgltf::Options::GenerateMeshIndices;
 
-    auto __asset = parser.loadGltf(gltfFile.get(), gltfFilePath.parent_path(), gltfOptions);
-    if (__asset.error() != fastgltf::Error::None) {
-        std::cerr << "Failed to load glTF: " << fastgltf::getErrorMessage(__asset.error()) << '\n';
-        return; }
+    //fastgltf::Expected<fastgltf::Asset> __asset;
+    //fastgltf::Asset __asset;
 
-    set_asset(_retdata, std::move(__asset.get()));
+    if (size_if_path_is_data > 0) {
+        auto gltfFile = fastgltf::GltfDataBuffer::FromBytes(reinterpret_cast<const std::byte*>(gltf_path_or_bytes), size_if_path_is_data);
+        if (!bool(gltfFile)) {
+            std::cerr << "Failed to open glTF bytes -> " << fastgltf::getErrorMessage(gltfFile.error()) << '\n';
+            return; 
+        }
+        auto __asset = parser.loadGltf(gltfFile.get(), ".", gltfOptions);
+        if (__asset.error() != fastgltf::Error::None) {
+            std::cerr << "Failed to decode glTF bytes: " << fastgltf::getErrorMessage(__asset.error()) << '\n';
+            return; }
+        __init_gltf_datastruct(_retdata, "from_bytes");
+        set_asset(_retdata, std::move(__asset.get()));
+    } else {
+        std::filesystem::path gltfFilePath = std::string_view { gltf_path_or_bytes };
+        auto gltfFile = fastgltf::MappedGltfFile::FromPath(gltfFilePath);
+        if (!bool(gltfFile)) {
+            std::cerr << "Failed to open glTF file: " << gltfFilePath << " -> " << fastgltf::getErrorMessage(gltfFile.error()) << '\n';
+            return; 
+        }
+        auto __asset = parser.loadGltf(gltfFile.get(), gltfFilePath.parent_path(), gltfOptions);
+        if (__asset.error() != fastgltf::Error::None) {
+            std::cerr << "Failed to decode glTF file: " << fastgltf::getErrorMessage(__asset.error()) << '\n';
+            return; }
+        __init_gltf_datastruct(_retdata, gltf_path_or_bytes );
+        set_asset(_retdata, std::move(__asset.get()));
+        std::cout << "[ Opened glTF file: " << gltfFilePath << " ]\n";
+    }
+
+
 
     gltf_probe_info _probe;
     injest_fill_probe_info(&_probe, _retdata);
@@ -870,7 +861,6 @@ void lv_gltf_data_load(const char * gltf_path, pGltf_data_t _retdata, lv_opengl_
 
     // -----------
 
-    std::cout << "[ Opened glTF file: " << gltfFilePath << " ]\n";
     //if (_retdata->probe.meshCount > 0) {
     //    std::cout << __make_mesh_summary( _retdata ); }
     //if (_retdata->probe.materialCount > 0) {
@@ -921,4 +911,12 @@ void lv_gltf_data_load(const char * gltf_path, pGltf_data_t _retdata, lv_opengl_
             __debug_print_node(*asset, asset->nodes[rootnode], 1); } }*/
 
     return;
+}
+
+void lv_gltf_data_load_bytes(const void * gltf_bytes, size_t gltf_data_size, pGltf_data_t ret_data, lv_opengl_shader_cache_t * shaders) {
+    data_load_file_or_bytes((const char*)gltf_bytes, gltf_data_size, ret_data, shaders);
+}
+
+void lv_gltf_data_load_file(const char * gltf_path, pGltf_data_t ret_data, lv_opengl_shader_cache_t * shaders) {
+    data_load_file_or_bytes(gltf_path, 0, ret_data, shaders);
 }

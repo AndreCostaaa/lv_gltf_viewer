@@ -53,8 +53,8 @@ void demo_refocus(lv_gltf_view_t * gltfview, bool first_call) {
 
     if (!first_call) {
         lv_gltf_view_set_distance(gltfview, 1000);
-        lv_gltf_view_set_yaw(gltfview, 420 );
-        lv_gltf_view_set_pitch(gltfview, -200 );
+        lv_gltf_view_set_yaw(gltfview, 4200 );
+        lv_gltf_view_set_pitch(gltfview, -2000 );
     }
 
     goal_pitch = lv_gltf_view_get_pitch(gltfview);
@@ -77,8 +77,8 @@ uint32_t demo_make_small_clear_texture() {
     if (cached_clear_tex > 0) return cached_clear_tex;
     GL_CALL(glCreateTextures(GL_TEXTURE_2D, 1, &cached_clear_tex));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, cached_clear_tex));
-    unsigned char clearBytes[4] = {255, 0, 255, 255}; // RGBA format
-    GL_CALL(glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0,  GL_RGBA8, GL_UNSIGNED_BYTE,  clearBytes ));
+    unsigned char clearBytes[4] = {255, 0, 255, 0}; // RGBA format
+    GL_CALL(glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0,  GL_RGBA, GL_UNSIGNED_BYTE,  clearBytes ));
     // Set texture parameters (optional but recommended)
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
