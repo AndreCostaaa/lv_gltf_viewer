@@ -10,24 +10,18 @@
 
 #ifdef LVGL_ENABLE_WEBP_IMAGES
     #if LVGL_ENABLE_WEBP_IMAGES
-        #include "webp/decode.h"
+        #if LVGL_ENABLE_WEBP_IMAGES == 1
+            #include "deps/webp_min/src/webp/decode.h"
+        #endif
+        #if LVGL_ENABLE_WEBP_IMAGES == 2
+            #include "webp/decode.h"
+        #endif
         int32_t WebPGetInfo(const uint8_t* data, size_t data_size, int32_t* width, int32_t* height);
         VP8StatusCode WebPGetFeatures(const uint8_t* data,
                                     size_t data_size,
                                     WebPBitstreamFeatures* features);
     #endif /* LVGL_ENABLE_WEBP_IMAGES == true (or 1)*/
 #endif /* LVGL_ENABLE_WEBP_IMAGES */
-
-/*
-#define FASTGLTF_ENABLE_DEPRECATED_EXT 1
-#undef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT    // Talking withe fastgltf devs about getting this in there, should be merged in soon.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wredundant-move"
-#include "lib/fastgltf/include/fastgltf/core.hpp"
-#include "lib/fastgltf/include/fastgltf/types.hpp"
-#include "lib/fastgltf/include/fastgltf/tools.hpp"
-#pragma GCC diagnostic pop
-*/
 
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #undef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT    // Talking withe fastgltf devs about getting this in there, should be merged in soon.

@@ -1,3 +1,3 @@
 cd ~/Desktop/lv_gltf_viewer
 echo Loading: $1
-./build/lvgl_workspace $1 -env 10 -aa 2 -bg 0 -maximized
+./build/gltf_view $1 -env 8 -aa 2 -bg 0 -maximized
