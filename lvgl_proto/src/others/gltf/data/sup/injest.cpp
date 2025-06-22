@@ -524,7 +524,6 @@ bool injest_mesh(pGltf_data_t data_obj, fastgltf::Mesh& mesh) {
     return true;
 }
 
-
 void make_small_magenta_texture(uint32_t new_magenta_tex) {
     GL_CALL(glBindTexture(GL_TEXTURE_2D, new_magenta_tex));
     unsigned char clearBytes[4] = {255, 0, 255, 255}; // RGBA format
@@ -535,12 +534,10 @@ void make_small_magenta_texture(uint32_t new_magenta_tex) {
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
     GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
-    //GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
     return;
 }
-    //glTextureStorage2D(new_magenta_tex, 0, GL_RGBA8, 1, 1);
-    //glTextureSubImage2D(new_magenta_tex, 0, 0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, clearBytes);
-    //GL_CALL(glGenerateTextureMipmap(new_magenta_tex));
+
 
 /**
  * @brief Load an image from the GLTF data.

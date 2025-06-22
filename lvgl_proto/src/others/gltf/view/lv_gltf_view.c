@@ -14,6 +14,7 @@ uint32_t    lv_gltf_view_get_height (lv_gltf_view_t * view )    { return lv_gltf
 float       lv_gltf_view_get_pitch (lv_gltf_view_t * view)      { return lv_gltf_view_get_desc(view)->pitch; }
 float       lv_gltf_view_get_yaw (lv_gltf_view_t * view)        { return lv_gltf_view_get_desc(view)->yaw; }
 float       lv_gltf_view_get_distance (lv_gltf_view_t * view)   { return lv_gltf_view_get_desc(view)->distance; }
+float       lv_gltf_view_get_fov (lv_gltf_view_t * view)        { return lv_gltf_view_get_desc(view)->fov; }
 float       lv_gltf_view_get_focal_x (lv_gltf_view_t * view)    { return lv_gltf_view_get_desc(view)->focal_x; }
 float       lv_gltf_view_get_focal_y (lv_gltf_view_t * view)    { return lv_gltf_view_get_desc(view)->focal_y; }
 float       lv_gltf_view_get_focal_z (lv_gltf_view_t * view)    { return lv_gltf_view_get_desc(view)->focal_z; }
@@ -66,6 +67,14 @@ void lv_gltf_view_set_focal_z (lv_gltf_view_t * view, float focal_z ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
     if (absf(desc->focal_z - focal_z) > 0.00001f ) {
         desc->focal_z = focal_z;
+        desc->dirty = true;
+    }
+}
+
+void lv_gltf_view_set_fov (lv_gltf_view_t * view, float vertical_fov ) {
+    gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
+    if (absf(desc->fov - vertical_fov) > 0.001f ) {
+        desc->fov = vertical_fov;
         desc->dirty = true;
     }
 }

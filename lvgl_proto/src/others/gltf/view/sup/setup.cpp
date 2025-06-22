@@ -659,30 +659,44 @@ void setup_view_proj_matrix_from_camera(lv_gltf_view_t *viewer, int32_t _cur_cam
     view[15] = view_mat[3][3];
     
     // Create Perspective Matrix
-    mfloat_t perspective[MAT4_SIZE];
+    mfloat_t projection[MAT4_SIZE];
     auto _bradius = lv_gltf_data_get_radius(gltf_data);
     float _mindist = _bradius * 0.05f;
     float _maxdist = _bradius * std::max(2.0, 4.0 * view_desc->distance);
-    const auto& asset = GET_ASSET(gltf_data);    
+    const auto& asset = GET_ASSET(gltf_data);   
+    float fov = view_desc->fov; 
     if (_cur_cam_num > -1) {
         const fastgltf::Camera::Perspective * _perspcam = std::get_if<fastgltf::Camera::Perspective> (&(asset->cameras[_cur_cam_num].camera));
         if (_perspcam != NULL) {
             _mindist = _perspcam->znear;
+            fov = _perspcam->yfov;
             if ( _perspcam->zfar.has_value()) {
                 _maxdist = _perspcam->zfar.value();
             } else {
-                _maxdist = 5000.0f; } } }
-    if (transmission_pass) {
-        mat4_perspective_fov(perspective,to_radians(45.0), 256, 256, _mindist, _maxdist);
-    } else {
-        mat4_perspective_fov(perspective,to_radians(45.0), view_desc->render_width, view_desc->render_height, _mindist, _maxdist);
+                _maxdist = 5000.0f; } 
+            if (transmission_pass) {
+                mat4_perspective_fov(projection,(fov), 256, 256, _mindist, _maxdist);
+            } else {
+                mat4_perspective_fov(projection,(fov), view_desc->render_width, view_desc->render_height, _mindist, _maxdist);
+            }
+        } else {
+            const fastgltf::Camera::Orthographic * _orthocam = std::get_if<fastgltf::Camera::Orthographic> (&(asset->cameras[_cur_cam_num].camera));
+            if (_orthocam != NULL) {
+                fov = 0;
+                _mindist = _orthocam->znear;
+                _maxdist = _orthocam->zfar;
+                // Isometric view: create an orthographic projection
+                float orthoSize = _orthocam->ymag; 
+                float aspect = (float)view_desc->render_width / (float)view_desc->render_height;
+                mat4_ortho(projection, -(orthoSize * aspect), (orthoSize * aspect), -orthoSize, orthoSize, _bradius * 0.05f, _bradius * std::max(4.0, 8.0 * view_desc->distance));
+            }
+        }
     }
-
     mfloat_t viewProj[MAT4_SIZE];
-    mat4_multiply(viewProj, perspective, view);
+    mat4_multiply(viewProj, projection, view);
 
     { auto _t = view;         set_matrix_view(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
-    { auto _t = perspective;  set_matrix_proj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
+    { auto _t = projection;  set_matrix_proj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
     { auto _t = viewProj; set_matrix_viewproj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
     set_cam_pos(viewer, view_pos[0], view_pos[1], view_pos[2]);
 }
@@ -716,9 +730,7 @@ void setup_view_proj_matrix(lv_gltf_view_t *viewer, gl_viewer_desc_t *view_desc,
     }
 
     auto _bradius = lv_gltf_data_get_radius(gltf_data);
-
     float radius = _bradius * 2.5;
-
     radius *= view_desc->distance;
 
     mfloat_t cam_position[VEC3_SIZE];
@@ -745,19 +757,29 @@ void setup_view_proj_matrix(lv_gltf_view_t *viewer, gl_viewer_desc_t *view_desc,
         vec3(cam_position, cen_x + (ncam_dir[0]*radius), cen_y + (ncam_dir[1]*radius) , cen_z + (ncam_dir[2]*radius)),
         vec3(cam_target, cen_x, cen_y, cen_z),
         vec3(up, 0.0, 1.0, 0.0));
-    // Create Perspective Matrix
-    mfloat_t perspective[MAT4_SIZE];
-    if (transmission_pass) {
-        mat4_perspective_fov(perspective,to_radians(45.0), 256, 256, _bradius * 0.05f, _bradius * std::max(4.0, 8.0 * view_desc->distance));
+
+    // Create Projection Matrix
+    mfloat_t projection[MAT4_SIZE];
+    float fov = view_desc->fov;
+    if (fov <= 0.0f) {
+        // Isometric view: create an orthographic projection
+        float orthoSize =  view_desc->distance * _bradius; // Adjust as needed
+        float aspect = (float)view_desc->render_width / (float)view_desc->render_height;
+        mat4_ortho(projection, -(orthoSize * aspect), (orthoSize * aspect), -orthoSize, orthoSize, _bradius * 0.05f, _bradius * std::max(4.0, 8.0 * view_desc->distance));
     } else {
-        mat4_perspective_fov(perspective,to_radians(45.0), view_desc->render_width, view_desc->render_height, _bradius * 0.05f, _bradius * std::max(4.0, 8.0 * view_desc->distance));
+        // Perspective view
+        if (transmission_pass) {
+            mat4_perspective_fov(projection, to_radians(fov), 256, 256, _bradius * 0.05f, _bradius * std::max(4.0, 8.0 * view_desc->distance));
+        } else {
+            mat4_perspective_fov(projection, to_radians(fov), view_desc->render_width, view_desc->render_height, _bradius * 0.05f, _bradius * std::max(4.0, 8.0 * view_desc->distance));
+        }
     }
 
     mfloat_t viewProj[MAT4_SIZE];
-    mat4_multiply(viewProj, perspective, view);
+    mat4_multiply(viewProj, projection, view);
 
     { auto _t = view;         set_matrix_view(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
-    { auto _t = perspective;  set_matrix_proj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
+    { auto _t = projection;   set_matrix_proj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
     { auto _t = viewProj; set_matrix_viewproj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
     set_cam_pos(viewer, cam_position[0], cam_position[1], cam_position[2]);
 

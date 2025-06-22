@@ -369,6 +369,7 @@ void lv_gltf_view_reset_between_models( lv_gltf_view_t * viewer ){
 }
 
 uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t * viewer, pGltf_data_t gltf_data, bool prepare_bg, uint32_t crop_left,  uint32_t crop_right,  uint32_t crop_top,  uint32_t crop_bottom ) {
+
     const auto& asset =     GET_ASSET(gltf_data);
     const auto& probe =     PROBE(gltf_data);
     const auto& vstate =    get_viewer_state(viewer);

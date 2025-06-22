@@ -18,6 +18,7 @@ void cli_print_usage() {
     printf("  -pitch <int value>       Viewing angle pitch in degrees x 100.\n");
     printf("  -yaw <int value>         Viewing angle yaw in degrees x 100.\n");
     printf("  -distance <int value>    Viewing distance where the default of 1000 = 1x the model bounding size.\n");
+    printf("  -fov <int value>         The vertical fov, in degrees * 100.  If value is zero or less, the view is orthographic (non-perspective).\n");
     printf("  -cam <int value>         Which camera to use, or 0 to explicitly select the default platter camera even if the scene defines others.\n");
     printf("  -anim <int value>        Which animation number to play, or -1 to explicitly disable animation.\n");
     printf("  -anim_rate <int value>   How fast to play back the animation where 1000 is 1x normal rate.\n");
@@ -41,6 +42,7 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
     /* First apply the defaults */
     lv_gltf_view_set_env_pow(viewer, 1.8f );
     lv_gltf_view_set_exposure(viewer, 0.8f );
+    lv_gltf_view_set_fov(viewer, 45.f );
     lv_gltf_view_set_distance(viewer, 1000);
     lv_gltf_view_set_yaw(viewer, 4200 );
     lv_gltf_view_set_pitch(viewer, -2000 );
@@ -147,6 +149,13 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                     i++;
                 } else {
                     printf("Error: -expo option requires an integer value.\n");
+                }
+            } else if (strcmp(argv[i], "-fov") == 0 && (i + 1) < argc) {
+                if (i + 1 < argc) {
+                    lv_gltf_view_set_fov(viewer, atoi(argv[i + 1]) / 100.0f );
+                    i++;
+                } else {
+                    printf("Error: -fov option requires an integer value.\n");
                 }
             } else if (strcmp(argv[i], "-sw") == 0) {
                 *software_only = true;

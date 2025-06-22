@@ -81,6 +81,14 @@ float lv_gltf_view_get_yaw (lv_gltf_view_t * view);
 float lv_gltf_view_get_distance (lv_gltf_view_t * view);
 
 /**
+ * @brief Get the vertical field of view, in degrees.
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @return The vertical field of view, in degrees.
+ */
+float lv_gltf_view_get_fov (lv_gltf_view_t * view);
+
+/**
  * @brief Get the focal position x component. This is only valid when a scene camera is not enabled.
  *
  * @param view Pointer to the lv_gltf_view.
@@ -151,6 +159,14 @@ void lv_gltf_view_set_yaw (lv_gltf_view_t * view, int yaw_degrees_x100 );
  * @param distance_x1000 The viewing distance in model bounding volume units x 1000 as signed integer (note: negative numbers are valid but will probably not be useful, putting the model out of view).
  */
 void lv_gltf_view_set_distance (lv_gltf_view_t * view, int distance_x1000 );
+
+/**
+ * @brief Set the vertical field of view.  If value is 0 or less, orthographic projection will be used, otherwise perspective projection will be used.
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @param fov_degrees The number of degrees visible from the bottom edge of the window to the top.  Default: 45.0
+ */
+void lv_gltf_view_set_fov (lv_gltf_view_t * view, float fov_degrees );
 
 /**
  * @brief Set the viewing focal position x component
