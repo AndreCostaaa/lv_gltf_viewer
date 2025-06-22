@@ -167,6 +167,10 @@ void lv_gltf_copy_viewer_desc(gl_viewer_desc_t* from, gl_viewer_desc_t* to) {
     to->exposure = from->exposure;
     to->fov = from->fov;
     to->env_pow = from->env_pow;
+    to->bg_r = from->bg_r;
+    to->bg_g = from->bg_g;
+    to->bg_b = from->bg_b;
+    to->bg_a = from->bg_a;
     to->spin_degree_offset = from->spin_degree_offset;
 }
 
@@ -185,6 +189,10 @@ bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t* from, gl_viewer_desc_t* to){
        (to->blur_bg       != from->blur_bg) || 
        (to->exposure      != from->exposure) || 
        (to->fov           != from->fov) || 
+       (to->bg_r          != from->bg_r) || 
+       (to->bg_g          != from->bg_g) || 
+       (to->bg_b          != from->bg_b) || 
+       (to->bg_a          != from->bg_a) || 
        (to->spin_degree_offset != from->spin_degree_offset) || 
        (to->env_pow       != from->env_pow) ) { return true; }    
     // These will be handled elsewhere

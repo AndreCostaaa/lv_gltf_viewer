@@ -53,6 +53,10 @@ typedef struct {
     float focal_x;
     float focal_y;
     float focal_z;
+    uint8_t bg_r;               // The background color r/g/b/a - note the rgb components have affect on antialiased edges that border on empty space, even when alpha is zero.
+    uint8_t bg_g;
+    uint8_t bg_b;
+    uint8_t bg_a;
     bool frame_was_cached;
     bool frame_was_antialiased;
     bool dirty;

@@ -206,11 +206,11 @@ int main(int argc, char *argv[]) {
         /*
         // Example of how to convert a GLTF file texture into an lv_image_dsc_t, for use with lv_image_t's
         //
-
         static lv_image_dsc_t img_dsc = {0};
         lv_gltf_data_utils_texture_to_image_dsc(&img_dsc, demo_gltfdata, 0);
         if (img_dsc.data_size > 0) lv_image_set_src(lv_image_create(lv_scr_act()), &img_dsc);
-
+        // ... (do things)... //
+        if (img_dsc.data_size > 0) lv_free((void*)img_dsc.data); // and then free it later
         */
 
         if (lv_gltf_view_get_probe(demo_gltfdata)->animationCount > 0) anim = 0;

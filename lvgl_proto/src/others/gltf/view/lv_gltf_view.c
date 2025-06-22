@@ -79,6 +79,53 @@ void lv_gltf_view_set_fov (lv_gltf_view_t * view, float vertical_fov ) {
     }
 }
 
+void lv_gltf_view_set_bgcolor_red (lv_gltf_view_t * view, uint32_t r ) {
+    gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
+    if (abs(desc->bg_r - r) > 0 ) {
+        desc->bg_r = r;
+        desc->dirty = true;
+    }
+}
+
+void lv_gltf_view_set_bgcolor_green (lv_gltf_view_t * view, uint32_t g ) {
+    gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
+    if (abs(desc->bg_g - g) > 0 ) {
+        desc->bg_g = g;
+        desc->dirty = true;
+    }
+}
+
+void lv_gltf_view_set_bgcolor_blue (lv_gltf_view_t * view, uint32_t b ) {
+    gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
+    if (abs(desc->bg_b - b) > 0 ) {
+        desc->bg_b = b;
+        desc->dirty = true;
+    }
+}
+
+void lv_gltf_view_set_bg_opa (lv_gltf_view_t * view, uint32_t a ) {
+    gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
+    if (abs(desc->bg_a - a) > 0 ) {
+        desc->bg_a = a;
+        desc->dirty = true;
+    }
+}
+
+void lv_gltf_view_set_bgcolor_RGB (lv_gltf_view_t * view, uint32_t r, uint32_t g, uint32_t b) {
+    gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
+    lv_gltf_view_set_bgcolor_red(view, r);
+    lv_gltf_view_set_bgcolor_green(view, g);
+    lv_gltf_view_set_bgcolor_blue(view, b);
+}
+
+void lv_gltf_view_set_bgcolor_RGBA (lv_gltf_view_t * view, uint32_t r, uint32_t g, uint32_t b, uint32_t a ) {
+    gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
+    lv_gltf_view_set_bgcolor_red(view, r);
+    lv_gltf_view_set_bgcolor_green(view, g);
+    lv_gltf_view_set_bgcolor_blue(view, b);
+    lv_gltf_view_set_bg_opa(view, a);
+}
+
 void lv_gltf_view_inc_pitch (lv_gltf_view_t * view, float pitch_inc_degrees ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
     if (absf(pitch_inc_degrees) > 0.0001f ) {

@@ -634,7 +634,7 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
             else setup_view_proj_matrix( viewer, view_desc, gltf_data, true );
         }
         _opaque = vstate->opaque_render_state;
-        if (setup_restore_opaque_output(_opaque, vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight, prepare_bg) ) {
+        if (setup_restore_opaque_output(view_desc, _opaque, vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight, prepare_bg) ) {
             // Should drawing this frame be canceled due to GL_INVALID_OPERATION error from possibly conflicting update cycles?
             view_desc->error_frames += 1;
             std::cout<< "CANCELED FRAME A\n";
@@ -670,7 +670,7 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
     viewer->envRotationAngle = shaders->lastEnv->angle;
 
     {
-        if (setup_restore_primary_output(_output, (uint32_t)view_desc->render_width - (crop_left + crop_right), (uint32_t)view_desc->render_height - (crop_top + crop_bottom), crop_left, crop_bottom, prepare_bg) ) {
+        if (setup_restore_primary_output(view_desc, _output, (uint32_t)view_desc->render_width - (crop_left + crop_right), (uint32_t)view_desc->render_height - (crop_top + crop_bottom), crop_left, crop_bottom, prepare_bg) ) {
             // Should drawing this frame be canceled due to GL_INVALID_OPERATION error from possibly conflicting update cycles?
             view_desc->error_frames += 1;
             std::cout << "CANCELED FRAME B\n";

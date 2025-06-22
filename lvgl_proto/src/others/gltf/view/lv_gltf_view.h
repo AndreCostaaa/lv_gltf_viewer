@@ -193,6 +193,59 @@ void lv_gltf_view_set_focal_y (lv_gltf_view_t * view, float focal_y);
 void lv_gltf_view_set_focal_z (lv_gltf_view_t * view, float focal_z);
 
 /**
+ * @brief Set the red component of the background color.
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @param r The red component value (0-255) as a uint32_t.
+ */
+void lv_gltf_view_set_bgcolor_red (lv_gltf_view_t * view, uint32_t r );
+
+/**
+ * @brief Set the green component of the background color.
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @param g The green component value (0-255) as a uint32_t.
+ */
+void lv_gltf_view_set_bgcolor_green (lv_gltf_view_t * view, uint32_t g );
+
+/**
+ * @brief Set the blue component of the background color.
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @param b The blue component value (0-255) as a uint32_t.
+ */
+void lv_gltf_view_set_bgcolor_blue (lv_gltf_view_t * view, uint32_t b );
+
+/**
+ * @brief Set the opacity of the background color.
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @param a The opacity value (0-255) as a uint32_t, where 0 is fully transparent and 255 is fully opaque.
+ */
+void lv_gltf_view_set_bg_opa (lv_gltf_view_t * view, uint32_t a );
+
+/**
+ * @brief Set the background color using RGB components.
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @param r The red component value (0-255) as a uint32_t.
+ * @param g The green component value (0-255) as a uint32_t.
+ * @param b The blue component value (0-255) as a uint32_t.
+ */
+void lv_gltf_view_set_bgcolor_RGB (lv_gltf_view_t * view, uint32_t r, uint32_t g, uint32_t b);
+
+/**
+ * @brief Set the background color using RGBA components.
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @param r The red component value (0-255) as a uint32_t.
+ * @param g The green component value (0-255) as a uint32_t.
+ * @param b The blue component value (0-255) as a uint32_t.
+ * @param a The opacity value (0-255) as a uint32_t, where 0 is fully transparent and 255 is fully opaque.
+ */
+void lv_gltf_view_set_bgcolor_RGBA (lv_gltf_view_t * view, uint32_t r, uint32_t g, uint32_t b, uint32_t a );
+
+/**
  * @brief Increment the viewing angle pitch by a floating point number of degrees
  *
  * @param view Pointer to the lv_gltf_view.

@@ -506,20 +506,22 @@ gl_renwin_state_t setup_primary_output(uint32_t texture_width, uint32_t texture_
  * dimensions and background preparation flag. If an error occurs during the restoration process,
  * rendering for the current frame should be canceled.
  *
+ * @param view_desc Pointer to the gl_viewer_desc_t structure containing view description parameters.
  * @param _ret The current state of the opaque output to be restored.
  * @param texture_w The width of the texture for the opaque output.
  * @param texture_h The height of the texture for the opaque output.
  * @param prepare_bg A boolean indicating whether to prepare the background during restoration.
  * @return A boolean indicating whether rendering should be canceled due to an error.
  */
-bool setup_restore_opaque_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h, bool prepare_bg) {
+bool setup_restore_opaque_output( gl_viewer_desc_t *view_desc, gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h, bool prepare_bg) {
 
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _ret.framebuffer));
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _ret.texture, 0));
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _ret.renderbuffer, 0));
     GL_CALL(glViewport(0, 0, texture_w, texture_h));
     if (prepare_bg) {
-        GL_CALL(glClearColor(208.0/255.0, 220.0/255.0, 230.0/255.0, 0.0f));
+        GL_CALL(glClearColor(view_desc->bg_r/255.0f, view_desc->bg_g/255.0f, view_desc->bg_b/255.0f, view_desc->bg_a/255.0f));
+        //GL_CALL(glClearColor(208.0/255.0, 220.0/255.0, 230.0/255.0, 0.0f));
         GL_CALL(glClearDepth(1.0f));
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
@@ -569,6 +571,7 @@ bool checkOpenGLError() {
  * repeat draws to an already existing OpenGL output. If an error occurs during the restoration,
  * rendering for the current frame should be canceled.
  *
+ * @param view_desc Pointer to the gl_viewer_desc_t structure containing view description parameters.
  * @param _ret The current state of the primary output to be restored.
  * @param texture_w The width of the texture for the primary output.
  * @param texture_h The height of the texture for the primary output.
@@ -577,7 +580,7 @@ bool checkOpenGLError() {
  * @param prepare_bg A boolean indicating whether to prepare the background during restoration.
  * @return A boolean indicating whether rendering should be canceled due to an error.
  */
-bool setup_restore_primary_output(gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h, 
+bool setup_restore_primary_output( gl_viewer_desc_t *view_desc, gl_renwin_state_t _ret, uint32_t texture_w, uint32_t texture_h, 
                                   uint32_t texture_offset_w, uint32_t texture_offset_h, bool prepare_bg) {
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _ret.framebuffer));
     if (checkOpenGLError()) { std::cout << "AAA "; return true; }
@@ -585,7 +588,7 @@ bool setup_restore_primary_output(gl_renwin_state_t _ret, uint32_t texture_w, ui
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _ret.renderbuffer, 0));
     GL_CALL(glViewport(texture_offset_w, texture_offset_h, texture_w, texture_h));
     if (prepare_bg) {
-        GL_CALL(glClearColor(208.0/255.0, 220.0/255.0, 230.0/255.0, 0.0f));
+        GL_CALL(glClearColor(view_desc->bg_r/255.0f, view_desc->bg_g/255.0f, view_desc->bg_b/255.0f, view_desc->bg_a/255.0f));
         GL_CALL(glClearDepth(1.0f));
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }

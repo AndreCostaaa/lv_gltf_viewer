@@ -14,6 +14,10 @@ void cli_print_usage() {
     printf("  -expo <int value>        The exposure level, default = 80 (80%% normal)\n");
     printf("  -aa <mode>               Set antialiasing mode (ANTIALIAS_OFF [0], ANTIALIAS_CONSTANT [1], ANTIALIAS_NOT_MOVING [2]).\n");
     printf("  -bg <mode>               Set background mode (BG_CLEAR [0], BG_SOLID [1], BG_ENVIRONMENT [2]).\n");
+    printf("  -bg_r <red 0-255>        Set background color red component.\n");
+    printf("  -bg_g <green 0-255>      Set background color green component.\n");
+    printf("  -bg_b <blue 0-255>       Set background color blue component.\n");
+    printf("  -bg_a <alpha 0-255>      Set background color opacity / alpha component.\n");
     printf("  -blur_bg <int value>     How much to blur the background between 0 and 1000.\n");
     printf("  -pitch <int value>       Viewing angle pitch in degrees x 100.\n");
     printf("  -yaw <int value>         Viewing angle yaw in degrees x 100.\n");
@@ -51,6 +55,7 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
     lv_gltf_view_set_bg_mode(viewer, BG_CLEAR);
     lv_gltf_view_set_width(viewer, BIG_TEXTURE_WIDTH);
     lv_gltf_view_set_height(viewer, BIG_TEXTURE_HEIGHT);
+    lv_gltf_view_set_bgcolor_RGBA(viewer, 230, 230, 230, 0);
 
     bool gotFilenameInput = false;
     bool passedParamChecks = true;
@@ -121,6 +126,18 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                 } else {
                     lv_gltf_view_set_bg_mode(viewer, BG_CLEAR);
                 }
+                i++;
+            } else if (strcmp(argv[i], "-bg_r") == 0 && (i + 1) < argc) {
+                lv_gltf_view_set_bgcolor_red(viewer, (uint8_t)atoi(argv[i + 1]) );
+                i++;
+            } else if (strcmp(argv[i], "-bg_g") == 0 && (i + 1) < argc) {
+                lv_gltf_view_set_bgcolor_green(viewer, (uint8_t)atoi(argv[i + 1]) );
+                i++;
+            } else if (strcmp(argv[i], "-bg_b") == 0 && (i + 1) < argc) {
+                lv_gltf_view_set_bgcolor_blue(viewer, (uint8_t)atoi(argv[i + 1]) );
+                i++;
+            } else if (strcmp(argv[i], "-bg_a") == 0 && (i + 1) < argc) {
+                lv_gltf_view_set_bg_opa(viewer, (uint8_t)atoi(argv[i + 1]) );
                 i++;
             } else if (strcmp(argv[i], "-blur_bg") == 0 && (i + 1) < argc) {
                 if (i + 1 < argc) {
