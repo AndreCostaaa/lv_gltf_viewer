@@ -14,6 +14,13 @@ typedef struct {
 } lv_shader_key_value_t;
 #endif /* LV_SHADER_CACHE_KEYVAL */
 
+bool shader_fragment_is_overridden(void);
+const char * get_shader_fragment_override(void);
+bool shader_vertex_is_overridden(void);
+const char * get_shader_vertex_override(void);
+void lv_gltf_view_shader_fragment_override(const char * override_fragment_code);
+void lv_gltf_view_shader_vertex_override(const char * override_vertex_code);
+
 char* process_includes(const char* src, const char* _defines);
 char* process_defines(const lv_shader_key_value_t* __define_set, size_t _num_items);
 char* get_defines_str(void);

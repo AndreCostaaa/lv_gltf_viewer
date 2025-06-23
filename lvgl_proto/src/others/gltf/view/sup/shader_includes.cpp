@@ -16,6 +16,28 @@
 bool _vdefines_initialized = false;
 std::vector<lv_shader_key_value_t> v_defines;
 
+const  char *src_fragmentShader_override;
+bool src_fragmentShader_has_override = false;
+void lv_gltf_view_shader_fragment_override(const char * override_fragment_code) {
+    src_fragmentShader_has_override = true;
+    src_fragmentShader_override = override_fragment_code;
+    printf("Establishing fragment shader override. Override: %s\n", src_fragmentShader_has_override ? "true" : "false"); 
+}
+
+const char *src_vertexShader_override;
+bool src_vertexShader_has_override = false;
+void lv_gltf_view_shader_vertex_override(const char * override_vertex_code) {
+    src_vertexShader_has_override = true;
+    src_vertexShader_override = override_vertex_code;
+    printf("Establishing vertex shader override. Override: %s\n", src_vertexShader_has_override ? "true" : "false"); 
+}
+
+bool shader_fragment_is_overridden(void) { return src_fragmentShader_has_override; }
+const char * get_shader_fragment_override(void) { return src_fragmentShader_override; }
+
+bool shader_vertex_is_overridden(void) { return src_vertexShader_has_override; }
+const char * get_shader_vertex_override(void) { return src_vertexShader_override; }
+
 void __init_vdefines(void) { 
     if (_vdefines_initialized) return;
     _vdefines_initialized = true;

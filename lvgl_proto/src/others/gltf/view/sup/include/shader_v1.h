@@ -789,9 +789,15 @@ static const char *src_fragmentShader = R"(
     }
 )";
 
+inline static char* src_vertex(void) { 
+    printf("Requesting vertex shader. Override: %s\n", shader_vertex_is_overridden() ? "true" : "false"); 
+    return PREPROCESS(shader_vertex_is_overridden() ? get_shader_vertex_override() : src_vertexShader); 
+}
 
-static char* src_vertex(void) { return PREPROCESS(src_vertexShader); }
-static char* src_frag(void) { return PREPROCESS(src_fragmentShader); }
+inline static char* src_frag(void) {
+    printf("Requesting fragment shader. Override: %s\n", shader_fragment_is_overridden() ? "true" : "false");
+    return PREPROCESS(shader_fragment_is_overridden() ? get_shader_fragment_override() : src_fragmentShader); 
+}
 
 #pragma GCC diagnostic pop
 

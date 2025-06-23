@@ -49,6 +49,32 @@ lv_gltf_override_t * ov_ground_scale;
 
 //static lv_image_dsc_t img_dsc = {0};
 
+
+// Note: it's very important that the #include lines start at the beginning 
+// of the line they're on, with no whitespace in front.  Also, if you decide to 
+// comment out any line with an #include in it, you should apply the // at the 
+// beginning of the line like normal, but also put an underscore or something 
+// inside the #include, so it doesn't create any matches during the preparse phase. 
+
+const char *src_fragOverride = R"(
+precision highp float;
+
+#include <textures.glsl>
+#include <functions.glsl>
+#include <material_info.glsl>
+
+out vec4 g_finalColor;
+void main() {
+    float edgeFactor = 1.0;
+    g_finalColor = vec4(0.0, 0.0, 0.0, 1.0);
+    float gridSpacing = 0.500;
+    edgeFactor = min((mod(v_Position.x, gridSpacing) / gridSpacing), edgeFactor); 
+    edgeFactor = min((mod(v_Position.y, gridSpacing) / gridSpacing), edgeFactor); 
+    edgeFactor = min((mod(v_Position.z, gridSpacing) / gridSpacing), edgeFactor); 
+    if (edgeFactor < 0.01) g_finalColor = vec4(0.0, 1.0, 0.0, 1.0);
+}
+)";
+
 void reload(char * _filename, const char * _hdr_filename) {
     printf("Loading %s...\n", _filename);
 
@@ -142,6 +168,8 @@ int main(int argc, char *argv[]) {
     use_scenecam = true;
 
     if ( demo_cli_apply_commandline_options(demo_gltfview, gltfFilePath, hdrFilePath, &frameCount, &softwareOnly, &startMaximized, &stub_mode, &anim_rate, argc, argv) ) {
+
+        //lv_gltf_view_shader_fragment_override(src_fragOverride);
 
         if (softwareOnly) setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
