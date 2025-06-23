@@ -95,7 +95,7 @@ void (*lv_gltf_data_load_progress_callback)(const char*, const char* , float, fl
  * @param node Pointer to the GLTF node.
  * @param prim Pointer to the GLTF primitive.
  */
- void injest_discover_defines(pGltf_data_t data_obj, void *node, void *prim) {
+ void injest_discover_defines(lv_gltf_data_t * data_obj, void *node, void *prim) {
     const auto& asset = GET_ASSET(data_obj);
     auto it = (fastgltf::Primitive *)prim;
     clearDefines();
@@ -116,14 +116,40 @@ void (*lv_gltf_data_load_progress_callback)(const char*, const char* , float, fl
             addDefine("LINEAR_OUTPUT", NULL );
 
             //addDefine("USE_IBL", NULL ); 
-            addDefine("LIGHT_COUNT", "0" );
+            //addDefine("LIGHT_COUNT", "0" );
         } else {
             addDefine("MATERIAL_METALLICROUGHNESS", NULL );
-            addDefine("USE_IBL", NULL ); 
-            addDefine("LIGHT_COUNT", "0" );
+            //addDefine("USE_IBL", NULL ); 
+            //addDefine("LIGHT_COUNT", "0" );
             //addDefine("USE_PUNCTUAL", NULL ); 
             //addDefine("LIGHT_COUNT", "2" );
         }
+
+        if (data_obj->node_by_light_index->size() > 0) {
+            addDefine("USE_PUNCTUAL", NULL ); 
+            addDefine("USE_IBL", NULL ); 
+            //addDefine("LIGHT_COUNT", "2" );
+            //char _tbuffer[10];
+            //snprintf(_tbuffer, 10, "%ld", data_obj->node_by_light_index->size());
+//            addDefine("LIGHT_COUNT", std::to_string(data_obj->node_by_light_index->size()).c_str() );
+            size_t lc = data_obj->node_by_light_index->size();
+            if (lc == 1) addDefine("LIGHT_COUNT", "1" );
+            else if (lc == 2) addDefine("LIGHT_COUNT", "2" );
+            else if (lc == 3) addDefine("LIGHT_COUNT", "3" );
+            else if (lc == 4) addDefine("LIGHT_COUNT", "4" );
+            else if (lc == 5) addDefine("LIGHT_COUNT", "5" );
+            else if (lc == 6) addDefine("LIGHT_COUNT", "6" );
+            else if (lc == 7) addDefine("LIGHT_COUNT", "7" );
+            else if (lc == 8) addDefine("LIGHT_COUNT", "8" );
+            else if (lc == 9) addDefine("LIGHT_COUNT", "9" );
+            else if (lc == 10) addDefine("LIGHT_COUNT", "10" );
+            else std::cerr << "ERROR: Too many scene lights, max is 10\n";
+            std::cout << "Added " << std::to_string(lc) << " lights to the shader\n";
+        } else {
+            addDefine("LIGHT_COUNT", "0" );
+            addDefine("USE_IBL", NULL ); 
+        }
+
         // only set cutoff value for mask material
         if(material.alphaMode == fastgltf::AlphaMode::Mask) {
             addDefine("ALPHAMODE", "_MASK");
@@ -194,7 +220,7 @@ void (*lv_gltf_data_load_progress_callback)(const char*, const char* , float, fl
  * @param matrix The transformation matrix.
  * @param mesh Reference to the mesh.
  */
-void injest_set_initial_bounds(pGltf_data_t ret_data, ASSET* asset, FMAT4 matrix, fastgltf::Mesh& mesh){
+void injest_set_initial_bounds(lv_gltf_data_t * ret_data, ASSET* asset, FMAT4 matrix, fastgltf::Mesh& mesh){
     FVEC3 _vmin, _vmax, _vcen;
     float _bradius = 0.f;
     if (mesh.primitives.size() > 0) {
@@ -245,7 +271,7 @@ void injest_set_initial_bounds(pGltf_data_t ret_data, ASSET* asset, FMAT4 matrix
  * @param matrix The transformation matrix.
  * @param mesh Reference to the mesh.
  */
-void injest_grow_bounds_to_include(pGltf_data_t ret_data, ASSET* asset, FMAT4 matrix, fastgltf::Mesh& mesh){
+void injest_grow_bounds_to_include(lv_gltf_data_t * ret_data, ASSET* asset, FMAT4 matrix, fastgltf::Mesh& mesh){
     FVEC3 _vmin, _vmax, _vcen;
     
     { const auto& _t = get_bounds_min(ret_data); _vmin[0] = _t[0]; _vmin[1] = _t[1]; _vmin[2] = _t[2]; }
@@ -339,7 +365,7 @@ int32_t injest_get_any_image_index(std::optional<fastgltf::Texture> tex){
  */
 std::size_t injest_vec2_attribute(
     int32_t current_attrib_index,
-    pGltf_data_t data,
+    lv_gltf_data_t * data,
     fastgltf::Primitive* prim,
     const char * attrib_id,
     GLuint vao,
@@ -363,7 +389,7 @@ std::size_t injest_vec2_attribute(
 
 std::size_t injest_vec3_attribute(
     int32_t current_attrib_index,
-    pGltf_data_t data,
+    lv_gltf_data_t * data,
     fastgltf::Primitive* prim,
     const char * attrib_id,
     GLuint vao,
@@ -387,7 +413,7 @@ std::size_t injest_vec3_attribute(
 
 std::size_t injest_vec4_attribute(
     int32_t current_attrib_index,
-    pGltf_data_t data,
+    lv_gltf_data_t * data,
     fastgltf::Primitive* prim,
     const char * attrib_id,
     GLuint vao,
@@ -414,13 +440,35 @@ std::size_t injest_vec4_attribute(
 //}
 
 /**
+ * @brief Load a light from the GLTF data.
+ *
+ * @param asset Pointer to the fastgltf asset object.
+ * @param data_obj Pointer to the GLTF data object.
+ * @param light_index The index number of the light param, within the GLTF asset's light collection
+ * @param light Reference to the light to load.
+ * @param sceneIndex Which scene to use.
+ */
+void injest_light(fastgltf::Asset * asset, lv_gltf_data_t * data_obj, uint32_t light_index, fastgltf::Light& light, size_t sceneIndex) {
+    FMAT4 tmat;
+    fastgltf::findlight_iterateSceneNodes(*asset, sceneIndex, &tmat, [&](fastgltf::Node& node, FMAT4& parentworldmatrix, FMAT4& localmatrix) {
+        if (node.lightIndex.has_value()) {
+            if (node.lightIndex.value() == light_index){
+                printf ("SCENE LIGHT BEING ADDED #%d\n", light_index);
+                data_obj->node_by_light_index->push_back(&node);
+                return;
+            }
+        }
+    });
+}
+
+/**
  * @brief Load a mesh from the GLTF data.
  *
  * @param data_obj Pointer to the GLTF data object.
  * @param mesh Reference to the mesh to load.
  * @return true if the mesh was loaded successfully, false otherwise.
  */
-bool injest_mesh(pGltf_data_t data_obj, fastgltf::Mesh& mesh) {
+bool injest_mesh(lv_gltf_data_t * data_obj, fastgltf::Mesh& mesh) {
     const auto& asset = GET_ASSET(data_obj);
     const auto& outMesh = lv_gltf_get_new_meshdata(data_obj); //outMesh = {};
     outMesh->primitives.resize(mesh.primitives.size());
@@ -548,7 +596,7 @@ void make_small_magenta_texture(uint32_t new_magenta_tex) {
  * @param index The index of the image to load.
  * @return true if the image was loaded successfully, false otherwise.
  */
-bool injest_image(lv_opengl_shader_cache_t * shaders, pGltf_data_t data_obj, fastgltf::Image& image, uint32_t index) {
+bool injest_image(lv_opengl_shader_cache_t * shaders, lv_gltf_data_t * data_obj, fastgltf::Image& image, uint32_t index) {
     const auto& asset = GET_ASSET(data_obj);
     auto getLevelCount = [](int32_t width, int32_t height) -> GLsizei {
         return static_cast<GLsizei>(1 + floor(log2(width > height ? width : height)));
@@ -718,7 +766,7 @@ bool injest_camera(lv_gltf_view_t * viewer, fastgltf::Camera& camera) {
  * @param p_probe_info Pointer to the probe information structure.
  * @param data Pointer to the GLTF data.
  */
-void injest_fill_probe_info(gltf_probe_info *p_probe_info, pGltf_data_t data){
+void injest_fill_probe_info(gltf_probe_info *p_probe_info, lv_gltf_data_t * data){
     const auto& asset = GET_ASSET(data);
     p_probe_info->imageCount     = asset->images.size();
     p_probe_info->textureCount   = asset->textures.size();
@@ -735,7 +783,7 @@ bool lv_gltf_view_set_loadphase_callback(void (*_load_progress_callback)(const c
     return true;
 }
 
-void data_load_file_or_bytes(const char * gltf_path_or_bytes, size_t size_if_path_is_data, pGltf_data_t _retdata, lv_opengl_shader_cache_t * shaders) {
+void data_load_file_or_bytes(const char * gltf_path_or_bytes, size_t size_if_path_is_data, lv_gltf_data_t * _retdata, lv_opengl_shader_cache_t * shaders) {
 
     static constexpr auto supportedExtensions =
         //fastgltf::Extensions::KHR_draco_mesh_compression |
@@ -848,7 +896,13 @@ void data_load_file_or_bytes(const char * gltf_path_or_bytes, size_t size_if_pat
         if (lv_gltf_data_load_progress_callback != NULL) { lv_gltf_data_load_progress_callback("Loading Images", "SUBTEST1234", 2.f + (((float)i / (float)(_probe.imageCount) ) * 3.0f), 5.f, 23.0f, 100.f); }
     } }
     //for (auto& material : asset.materials)  { loadMaterial(viewer, material); }
+    uint16_t lightnum = 0; 
+    for (auto& light : asset->lights) { 
+        injest_light( asset, _retdata, lightnum, light, 0); 
+        lightnum += 1; 
+    }
     for (auto& mesh : asset->meshes)         { injest_mesh( _retdata, mesh); }
+
     //for (auto& camera : asset->cameras)      { injest_camera(viewer, camera); }      // Loading the cameras (possibly) requires knowing the viewport size, which we get using glfwGetWindowSize above.
 
     if (lv_gltf_data_load_progress_callback != NULL) { lv_gltf_data_load_progress_callback("Done.", "SUBTEST1234", 5.0, 5.f, 23.0f, 100.f); }
@@ -910,10 +964,10 @@ void data_load_file_or_bytes(const char * gltf_path_or_bytes, size_t size_if_pat
     return;
 }
 
-void lv_gltf_data_load_bytes(const void * gltf_bytes, size_t gltf_data_size, pGltf_data_t ret_data, lv_opengl_shader_cache_t * shaders) {
+void lv_gltf_data_load_bytes(const void * gltf_bytes, size_t gltf_data_size, lv_gltf_data_t * ret_data, lv_opengl_shader_cache_t * shaders) {
     data_load_file_or_bytes((const char*)gltf_bytes, gltf_data_size, ret_data, shaders);
 }
 
-void lv_gltf_data_load_file(const char * gltf_path, pGltf_data_t ret_data, lv_opengl_shader_cache_t * shaders) {
+void lv_gltf_data_load_file(const char * gltf_path, lv_gltf_data_t * ret_data, lv_opengl_shader_cache_t * shaders) {
     data_load_file_or_bytes(gltf_path, 0, ret_data, shaders);
 }

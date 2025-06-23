@@ -110,6 +110,7 @@ void os_integrate_window_resize_callback(GLFWwindow* _glfw_window, int width, in
     lv_gltf_view_set_width(demo_gltfview, width -  (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT));
     lv_gltf_view_set_height(demo_gltfview, height - (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM));
     lv_display_set_resolution(display_texture, width, height);
+    //glViewport(0, 0, width, height);
     glfwSwapBuffers(_glfw_window);
     demo_ui_reposition_all();
     lv_refr_now(NULL); 

@@ -37,6 +37,7 @@ struct lv_gltf_override_struct {
     float data2;
     float data3;
     float data4;
+    lv_gltf_override_t* nextOverride; // Pointer to the next override
 } ;
 
 typedef struct lv_gltf_override_struct lv_gltf_override_t;
@@ -74,6 +75,16 @@ lv_gltf_override_t * lv_gltf_data_override_add_by_ip(lv_gltf_data_t * _data, con
  */
 lv_gltf_override_t * lv_gltf_data_override_add_by_id(lv_gltf_data_t * _data, const char * nodeId, OverrideProp whichProp, uint32_t dataMask);
 
+/**
+ * @brief Remove an override from a GLTF data object.
+ *
+ * @param _data Pointer to the lv_gltf_data_t object from which the override will be removed.
+ * @param override The override to be removed.
+ * @param whichProp The property to override.
+ * @param dataMask A mask indicating which data fields to override.
+ * @return True on success, False on failure.
+ */
+bool lv_gltf_data_override_remove(lv_gltf_data_t * _data, lv_gltf_override_t * override);
 
 
 #ifdef __cplusplus

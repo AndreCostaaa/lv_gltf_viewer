@@ -45,6 +45,7 @@ lv_gltf_override_t * ov_swing;
 lv_gltf_override_t * ov_cursor;
 lv_gltf_override_t * ov_cursor_scale;
 lv_gltf_override_t * ov_ground_scale;
+//lv_gltf_override_t * ov_ground_rot;
 
 //static lv_image_dsc_t img_dsc = {0};
 
@@ -99,6 +100,9 @@ void reload(char * _filename, const char * _hdr_filename) {
         lv_gltf_data_copy_bounds_info(system_gltfdata, demo_gltfdata);
         float newradius = lv_gltf_data_get_int_radiusX1000(demo_gltfdata) / 1000.f;
         ov_ground_scale = lv_gltf_data_override_add_by_id(system_gltfdata, "/grid", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
+        //ov_ground_rot = lv_gltf_data_override_add_by_id(system_gltfdata, "/grid", OP_ROTATION, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
+        //lv_gltf_data_override_remove(system_gltfdata, ov_ground_rot);
+        
         float unitscale = newradius * ((1.f / 2.f) * 3.f);
         float tscale = unitscale;
         if (!show_grid) {
@@ -107,7 +111,7 @@ void reload(char * _filename, const char * _hdr_filename) {
         ov_ground_scale->data1 = tscale;
         ov_ground_scale->data2 = tscale;
         ov_ground_scale->data3 = tscale;
-
+        
         tscale = unitscale / 8.f;
         ov_cursor_scale = lv_gltf_data_override_add_by_id(system_gltfdata, "/cursor/visible", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
         #ifndef EXPERIMENTAL_GROUNDCAST
@@ -378,9 +382,10 @@ int main(int argc, char *argv[]) {
             #endif
             { 
                 gltf_texture = lv_gltf_view_render( shader_cache, demo_gltfview, demo_gltfdata, true, 0, 0, 0, 0 );
-                if (needs_system_gltfdata && (use_scenecam == false))
+                if (needs_system_gltfdata && (use_scenecam == false)) {
                     if (!lv_gltf_view_check_frame_was_cached(demo_gltfview)) 
                         gltf_texture = lv_gltf_view_render( shader_cache, demo_gltfview, system_gltfdata, false, 0,0,0,0);
+                }
             }
             if (reapply_layout_flag) demo_ui_reposition_all();
             if (!lv_gltf_view_check_frame_was_cached(demo_gltfview)) {

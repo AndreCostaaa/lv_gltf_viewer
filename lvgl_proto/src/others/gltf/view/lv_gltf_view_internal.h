@@ -5,6 +5,7 @@
 
 #include "sup/include/lv_gltf_view_datatypes.h"
 #include "../data/lv_gltf_data_internal.h"
+#include "../data/lv_gltf_override.h"
 
 #endif
 

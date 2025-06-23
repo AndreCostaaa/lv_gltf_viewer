@@ -451,6 +451,7 @@ static const char *src_fragmentShader = R"(
         vec3 f_metal_brdf = vec3(0.0);
 
     #ifdef USE_PUNCTUAL
+        /*
         Light temp_keylight = Light( 
             normalize(vec3(-0.1, -0.75, -0.45)),    //vec3 direction
             -1.0,                  //float range
@@ -478,12 +479,12 @@ static const char *src_fragmentShader = R"(
                                     //  const Type_Spot = 2;
             );
 
-        u_Lights[0] = temp_keylight;
-        u_Lights[1] = temp_filllight;
-
+        u_Lights[1] = temp_keylight;
+        u_Lights[2] = temp_filllight;
+        */
         for (int i = 0; i < LIGHT_COUNT; ++i)
         {
-            Light light = u_Lights[i];
+            Light light = u_Lights[i+1];
 
             vec3 pointToLight;
             if (light.type != LightType_Directional)
@@ -496,6 +497,7 @@ static const char *src_fragmentShader = R"(
             }
 
             // BSTF
+
             vec3 l = normalize(pointToLight);   // Direction from surface point to light
             vec3 h = normalize(l + v);          // Direction of the vector between l and v, called halfway vector
             float NdotL = clampedDot(n, l);
@@ -517,7 +519,6 @@ static const char *src_fragmentShader = R"(
             vec3 l_clearcoat_brdf = vec3(0.0);
             vec3 l_sheen = vec3(0.0);
             float l_albedoSheenScaling = 1.0;
-
           
     #ifdef MATERIAL_DIFFUSE_TRANSMISSION
             l_diffuse = l_diffuse * (1.0 - materialInfo.diffuseTransmissionFactor);

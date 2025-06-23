@@ -11,6 +11,7 @@ struct MeshData {
     std::vector<Primitive> primitives;
 };
 #endif /* __MESH_DATA_DEFINED */
+#define MAX_OVERRIDES 128
 
 typedef pGltf_data_t        _DATA;
 typedef FVEC3               _VEC3;
@@ -66,7 +67,10 @@ void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
     memcpy (_DataStructMem, &_newDataStruct, sizeof (lv_gltf_data_t));
     _DataStructMem->asset = new ASSET();
 
-    _DataStructMem->overrides = new std::map<fastgltf::Node *, lv_gltf_override_t>();
+    _DataStructMem->overrides = new NodeOverrideMap();
+    _DataStructMem->all_overrides = new OverrideVector();
+    _DataStructMem->all_overrides->reserve(MAX_OVERRIDES);
+    _DataStructMem->all_override_count = 0;
     _DataStructMem->node_by_path = new StringNodeMap();
     _DataStructMem->index_by_node = new NodeIntMap();
     _DataStructMem->node_by_index = new NodeVector();
@@ -78,7 +82,7 @@ void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
     _DataStructMem->validated_skins = new LongVector();
     _DataStructMem->skin_tex = new IntVector();
     _DataStructMem->local_mesh_to_center_points_by_primitive = new std::map<uint32_t, std::map<uint32_t, FVEC4>>();
-
+    _DataStructMem->node_by_light_index = new NodeVector();
     //_DataStructMem->bufferAllocations = new std::vector<_GLUINT>();
     _DataStructMem->meshes = new std::vector<MeshData>();
     _DataStructMem->textures = new std::vector<Texture>();
@@ -93,6 +97,7 @@ void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
 void __free_data_struct(_DATA _data) {
 //    if (_data == NULL) return;
 
+    _data->all_overrides->clear(); delete _data->all_overrides; _data->all_overrides = nullptr; 
     _data->overrides->clear(); delete _data->overrides; _data->overrides = nullptr; 
     _data->node_by_path->clear(); delete _data->node_by_path; _data->node_by_path = nullptr; 
     _data->index_by_node->clear(); delete _data->index_by_node; _data->index_by_node = nullptr;  
@@ -106,6 +111,7 @@ void __free_data_struct(_DATA _data) {
     _data->local_mesh_to_center_points_by_primitive->clear();delete _data->local_mesh_to_center_points_by_primitive;_data->local_mesh_to_center_points_by_primitive = nullptr; 
     // ---
     //_data->bufferAllocations->clear();delete _data->bufferAllocations;
+    _data->node_by_light_index->clear();delete _data->node_by_light_index;_data->node_by_light_index = nullptr; 
     _data->meshes->clear();delete _data->meshes;_data->meshes = nullptr; 
     _data->textures->clear();delete _data->textures;_data->textures = nullptr; 
     _data->cameras->clear();delete _data->cameras;_data->cameras = nullptr; 

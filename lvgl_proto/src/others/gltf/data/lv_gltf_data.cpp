@@ -55,6 +55,34 @@
 
 #include "lv_gltf_data.h"
 #include "lv_gltf_data_internal.h"
+
+
+namespace fastgltf {
+    FASTGLTF_EXPORT template <typename AssetType, typename Callback>
+    #if FASTGLTF_HAS_CONCEPTS
+    requires std::same_as<std::remove_cvref_t<AssetType>, Asset>
+        && std::is_invocable_v<Callback, fastgltf::Node&, FMAT4&, FMAT4&>
+    #endif
+    void findlight_iterateSceneNodes(AssetType&& asset, std::size_t sceneIndex, math::fmat4x4* initial, Callback callback) {
+        auto& scene = asset.scenes[sceneIndex];
+        auto function = [&](std::size_t nodeIndex, math::fmat4x4& parentWorldMatrix, auto& self) -> void {
+            assert(asset.nodes.size() > nodeIndex);
+            auto& node = asset.nodes[nodeIndex];
+            auto _localMat = getTransformMatrix(node, math::fmat4x4());
+            std::invoke(callback, node, parentWorldMatrix, _localMat);
+            for (auto& child : node.children) {
+                math::fmat4x4 _parentWorldTemp = parentWorldMatrix * _localMat;
+                self(child, _parentWorldTemp,  self);
+            }
+        };
+        for (auto& sceneNode : scene.nodeIndices) {
+            auto tmat2 = FMAT4(*initial);
+            function(sceneNode, tmat2, function);
+        }
+    }
+}
+
+
 #include "sup/datatypes.cpp"
 #include "sup/injest.cpp"
 #include "sup/reports.cpp"
@@ -65,3 +93,5 @@
 void lv_gltf_data_destroy(pGltf_data_t _data){
     __free_data_struct(_data);
 }
+
+

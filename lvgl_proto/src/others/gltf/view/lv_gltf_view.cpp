@@ -241,7 +241,56 @@ void draw_primitive(  int32_t prim_num,
                     GL_CALL(glDisable(GL_CULL_FACE));
                 }                
             }
-                    
+            
+            // Update any scene lights present
+
+            if (gltf_data->node_by_light_index->size() > 0) {
+                size_t max_light_nodes = gltf_data->node_by_light_index->size();
+                size_t max_scene_lights = asset->lights.size();
+                if (max_scene_lights != max_light_nodes) {
+                    std::cerr << "ERROR: Scene light count != scene light node count\n";
+                } else {
+                    // Scene contains lights and they may have just moved so update their position within the current shaders
+                    // Update any lights present in the scene file
+                    for (size_t ii = 0; ii < max_scene_lights; ii++) {
+                        size_t i = ii + 1;
+                        // Update each field of the light struct
+                        std::string _prefix = "u_Lights[" + std::to_string(i) + "].";
+                        auto& lightNode = (*gltf_data->node_by_light_index)[ii];
+                        FMAT4 lightNodeMat = get_cached_transform( gltf_data, lightNode );
+                        const auto& m = lightNodeMat.data();
+                        char _targ1[100];
+
+                        strncpy(_targ1, (_prefix + "position").c_str(), sizeof(_targ1) - 1); _targ1[sizeof(_targ1) - 1] = '\0';
+                        glUniform3fv( glGetUniformLocation( program, _targ1), 1, &lightNodeMat[3][0]);
+
+                        strncpy(_targ1, (_prefix + "direction").c_str(), sizeof(_targ1) - 1); _targ1[sizeof(_targ1) - 1] = '\0'; 
+                        glUniform3fv( glGetUniformLocation( program, _targ1), 1, &lightNodeMat[2][0]);
+
+                        strncpy(_targ1, (_prefix + "range").c_str(), sizeof(_targ1) - 1); _targ1[sizeof(_targ1) - 1] = '\0'; 
+                        if (asset->lights[ii].range.has_value()) {
+                            float light_scale = fastgltf::math::length(FVEC3( m[0], m[4], m[8] ));
+                            glUniform1f( glGetUniformLocation( program, _targ1), asset->lights[ii].range.value() * light_scale);
+                        } else glUniform1f(  glGetUniformLocation( program, _targ1), 9999.f);
+
+                        strncpy(_targ1, (_prefix + "color").c_str(), sizeof(_targ1) - 1); _targ1[sizeof(_targ1) - 1] = '\0'; 
+                        glUniform3fv( glGetUniformLocation( program, _targ1), 1, &(asset->lights[ii].color.data()[0]));
+
+                        strncpy(_targ1, (_prefix + "intensity").c_str(), sizeof(_targ1) - 1); _targ1[sizeof(_targ1) - 1] = '\0';
+                        glUniform1f(  glGetUniformLocation( program, _targ1), asset->lights[ii].intensity);
+
+                        strncpy(_targ1, (_prefix + "innerConeCos").c_str(), sizeof(_targ1) - 1); _targ1[sizeof(_targ1) - 1] = '\0';
+                        glUniform1f(  glGetUniformLocation( program, _targ1), asset->lights[ii].innerConeAngle.has_value() ? std::cos(asset->lights[ii].innerConeAngle.value()) : -1.0f);
+
+                        strncpy(_targ1, (_prefix + "outerConeCos").c_str(), sizeof(_targ1) - 1); _targ1[sizeof(_targ1) - 1] = '\0';
+                        glUniform1f(  glGetUniformLocation( program, _targ1), asset->lights[ii].outerConeAngle.has_value() ? std::cos(asset->lights[ii].outerConeAngle.value()) : -1.0f);
+
+                        strncpy(_targ1, (_prefix + "type").c_str(), sizeof(_targ1) - 1); _targ1[sizeof(_targ1) - 1] = '\0';
+                        glUniform1i(  glGetUniformLocation( program, _targ1), (int)asset->lights[ii].type);
+                    }
+                }
+            }
+
         //if (viewer->overrideBaseColor){
         //    GL_CALL(glUniform4f(uniforms->baseColorFactor, viewer->overrideBaseColorFactor[0], viewer->overrideBaseColorFactor[1], viewer->overrideBaseColorFactor[2], viewer->overrideBaseColorFactor[3]));
         //} else {
@@ -532,7 +581,47 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
         auto cammat = FMAT4();
         fastgltf::custom_iterateSceneNodes(*asset, sceneIndex, &tmat, [&](fastgltf::Node& node, FMAT4& parentworldmatrix, FMAT4& localmatrix) {
             animation_matrix_apply(gltf_data->local_timestamp, anim_num, gltf_data, node, localmatrix);
-            if (gltf_data->overrides->find(&node) != gltf_data->overrides->end() ) {
+            if (gltf_data->overrides->find(&node) != gltf_data->overrides->end()) {
+                lv_gltf_override_t * currentOverride = (*gltf_data->overrides)[&node];
+                FVEC3 _pos;
+                fastgltf::math::fquat _quat;
+                FVEC3 _scale;
+                fastgltf::math::decomposeTransformMatrix(localmatrix, _scale, _quat, _pos);
+                FVEC3 _rot = quaternionToEuler(_quat);
+
+                // Traverse through all linked overrides
+                while (currentOverride != nullptr) {
+                    if (currentOverride->prop == OP_ROTATION) {
+                        if (currentOverride->dataMask & OMC_CHAN1) _rot[0] = currentOverride->data1;
+                        if (currentOverride->dataMask & OMC_CHAN2) _rot[1] = currentOverride->data2;
+                        if (currentOverride->dataMask & OMC_CHAN3) _rot[2] = currentOverride->data3;
+                    } else if (currentOverride->prop == OP_POSITION) {
+                        if (currentOverride->dataMask & OMC_CHAN1) _pos[0] = currentOverride->data1;
+                        if (currentOverride->dataMask & OMC_CHAN2) _pos[1] = currentOverride->data2;
+                        if (currentOverride->dataMask & OMC_CHAN3) _pos[2] = currentOverride->data3;
+                    } else if (currentOverride->prop == OP_SCALE) {
+                        if (currentOverride->dataMask & OMC_CHAN1) _scale[0] = currentOverride->data1;
+                        if (currentOverride->dataMask & OMC_CHAN2) _scale[1] = currentOverride->data2;
+                        if (currentOverride->dataMask & OMC_CHAN3) _scale[2] = currentOverride->data3;
+                    }
+
+                    // Move to the next override in the linked list
+                    currentOverride = currentOverride->nextOverride;
+                }
+
+                // Rebuild the local matrix after applying all overrides
+                localmatrix = 
+                    fastgltf::math::scale( 
+                        fastgltf::math::rotate(
+                            fastgltf::math::translate(
+                                FMAT4(), 
+                                _pos), 
+                            fastgltf::math::eulerToQuaternion(_rot[0], _rot[1], _rot[2])),
+                        _scale);
+            }
+
+
+/*            if (gltf_data->overrides->find(&node) != gltf_data->overrides->end() ) {
                 const auto& _override = (*gltf_data->overrides)[&node];
                 FVEC3 _pos;
                 fastgltf::math::fquat _quat;
@@ -559,18 +648,29 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
                                 FMAT4(), 
                                 _pos ), 
                             fastgltf::math::eulerToQuaternion(_rot[0], _rot[1], _rot[2]) ),
-                         _scale);
+                            _scale);
             }
+*/
             set_cached_transform(gltf_data, &node, parentworldmatrix * localmatrix);
             if (node.cameraIndex.has_value() && (gltf_data->current_camera_index < PREF_CAM_NUM)) {
-                gltf_data->has_any_cameras = true; gltf_data->selected_camera_node = &node; cammat = (parentworldmatrix * localmatrix); gltf_data->current_camera_index += 1; } } ); 
+                gltf_data->has_any_cameras = true; 
+                gltf_data->selected_camera_node = &node; 
+                cammat = (parentworldmatrix * localmatrix); 
+                gltf_data->current_camera_index += 1; 
+            } 
+        } ); 
         if (gltf_data->has_any_cameras) {
             gltf_data->viewPos[0] = cammat[3][0];
             gltf_data->viewPos[1] = cammat[3][1];
             gltf_data->viewPos[2] = cammat[3][2];
-            gltf_data->viewMat = fastgltf::math::invert(cammat); }
-        else
-            gltf_data->current_camera_index = -1; } 
+            gltf_data->viewMat = fastgltf::math::invert(cammat); 
+        } else gltf_data->current_camera_index = -1; 
+
+        //if (gltf_data->node_by_light_index->size() > 0) {
+        //    // Scene contains lights and they may have just moved so update their position within the current shaders
+        //    std::cout << "Updating "<< std::to_string(gltf_data->node_by_light_index->size()) <<" lights...\n";
+        //}
+    } 
 
     if ((gltf_data->_lastFrameNoMotion == true) && (gltf_data->__lastFrameNoMotion == true) && (___lastFrameNoMotion == true)) {
         // Nothing changed at all, return the previous output frame

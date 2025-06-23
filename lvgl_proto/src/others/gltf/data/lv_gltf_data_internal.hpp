@@ -58,7 +58,8 @@ using NodeIntMap = std::map<NodePtr, uint32_t>;                 // Map of Nodes 
 using NodeVector = std::vector<NodePtr>;                        // Map of Nodes by string (name)
 using NodePrimCenterMap = std::map<uint32_t, std::map<uint32_t, fastgltf::math::fvec4>>; // Map of Node Index to Map of Prim Index to CenterXYZ+RadiusW Vec4
 #include "sup/include/lv_gltf_data_datatypes.h"
-using NodeOverrideMap = std::map<NodePtr, lv_gltf_override_t>;           // Map of Overrides by Node
+using NodeOverrideMap = std::map<NodePtr, lv_gltf_override_t *>;           // Map of Overrides by Node
+using OverrideVector= std::vector<lv_gltf_override_t>;           // Map of Overrides by Node
 
 
 struct MeshData;
@@ -70,12 +71,14 @@ struct lv_gltf_data_struct {
     StringNodeMap* node_by_path;
     NodeIntMap* index_by_node;
     NodeVector* node_by_index;
+    NodeVector* node_by_light_index;
     NodeTransformMap* node_transform_cache;
     MaterialIndexMap* opaque_nodes_by_materialIndex;
     MaterialIndexMap* blended_nodes_by_materialIndex;
     NodeDistanceVector* distance_sort_nodes;
     MapofTransformMap* ibmBySkinThenNode;
     NodeOverrideMap* overrides;
+    OverrideVector* all_overrides;
     LongVector* validated_skins;
     IntVector* skin_tex;
     NodePrimCenterMap* local_mesh_to_center_points_by_primitive;
@@ -88,6 +91,8 @@ struct lv_gltf_data_struct {
     std::vector<UniformLocs>* shaderUniforms;
     std::vector<gl_renwin_shaderset_t>* shaderSets;
 
+    size_t all_override_count;
+    
     float vertex_max[3];
     float vertex_min[3];
     float vertex_cen[3];

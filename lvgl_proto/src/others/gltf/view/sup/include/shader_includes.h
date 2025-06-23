@@ -923,15 +923,14 @@ static lv_shader_key_value_t src_includes[] = {
             int type;
         };
 
-
         const int LightType_Directional = 0;
         const int LightType_Point = 1;
         const int LightType_Spot = 2;
 
 
         #ifdef USE_PUNCTUAL
-        Light u_Lights[LIGHT_COUNT + 1]; //Array [0] is not allowed
-        //uniform Light u_Lights[LIGHT_COUNT + 1]; //Array [0] is not allowed
+        //Light u_Lights[LIGHT_COUNT + 1]; //Array [0] is not allowed
+        uniform Light u_Lights[LIGHT_COUNT + 1]; //Array [0] is not allowed
         #endif
 
 

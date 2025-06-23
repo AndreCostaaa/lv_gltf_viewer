@@ -324,8 +324,8 @@ void iblSampler::applyFilter(
         GL_CALL(glUniform1i(location, 0)); // texture unit 0
         shader->update_uniform_1f(shader, "u_roughness", roughness);
         shader->update_uniform_1i(shader, "u_sampleCount", sampleCount);
-        shader->update_uniform_1i(shader, "u_width", currentTextureSize);
-        //shader->update_uniform_1i(shader, "u_width", textureSize);
+        //shader->update_uniform_1i(shader, "u_width", currentTextureSize);  // Software rendered mode looks better with this and horrible with below
+        shader->update_uniform_1i(shader, "u_width", textureSize);  // Standard mode looks best with this and somewhat worse with above
         shader->update_uniform_1f(shader, "u_lodBias", _lodBias);
         shader->update_uniform_1i(shader, "u_distribution", distribution);
         shader->update_uniform_1i(shader, "u_currentFace", i);

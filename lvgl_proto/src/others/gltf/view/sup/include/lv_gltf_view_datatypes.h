@@ -71,6 +71,17 @@ typedef struct {
     float exposure;             // Image exposure level, 1.0 default
 } gl_viewer_desc_t;
 
+struct gl_shader_light_t {
+    float direction[3];   // Represents a vec3
+    float range;          // Float value
+    float color[3];       // Represents a vec3
+    float intensity;      // Float value
+    float position[3];    // Represents a vec3
+    float innerConeCos;   // Float value
+    float outerConeCos;   // Float value
+    int type;             // Integer value
+};
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
