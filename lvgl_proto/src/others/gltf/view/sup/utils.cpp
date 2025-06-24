@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include <GL/glew.h>
-#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
+#include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
 
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #pragma GCC diagnostic push

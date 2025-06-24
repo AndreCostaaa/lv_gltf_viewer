@@ -1,7 +1,10 @@
 
-#include "lvgl/lvgl.h"
-#include "demo.h"
+#include <lvgl.h>
+#include <string.h>
 #include <math.h>
+#include <stdlib.h>
+#include "demo.h"
+#include <gltf/data/lv_gltf_data.h>
 
 lv_obj_t * grp_loading;
 lv_obj_t * spin_checkbox;

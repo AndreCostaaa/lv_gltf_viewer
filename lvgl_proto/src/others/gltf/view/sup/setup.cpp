@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include <GL/glew.h>
-#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
+#include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
 
 //#include <memory> // Include necessary headers for std::unique_ptr
 

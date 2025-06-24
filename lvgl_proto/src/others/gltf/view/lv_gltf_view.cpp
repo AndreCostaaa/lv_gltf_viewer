@@ -5,8 +5,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "lvgl/lvgl.h"
-#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
+#include <lvgl.h>
+#include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
 
 #undef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT    // Talking withe fastgltf devs about getting this in there, should be merged in soon.
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1

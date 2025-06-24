@@ -1,12 +1,14 @@
 
 
 #include "demo.h"
-#include "lvgl_proto/src/others/gltf/data/deps/stb_image/stb_image.h"
 #include <signal.h>     /* to trap ctrl-break */
+#include <stdlib.h>
 #include <sys/statvfs.h>  /* to check drive space */
 
-#include "lvgl/src/drivers/glfw/lv_opengles_texture.h"
-#include "lvgl/src/drivers/glfw/lv_glfw_window_private.h"
+#include <stb_image/stb_image.h>
+#include <gltf/data/lv_gltf_data.h>
+#include <drivers/glfw/lv_opengles_texture.h>
+#include <drivers/glfw/lv_glfw_window_private.h>
 
 typedef struct {
     unsigned int texture_id;

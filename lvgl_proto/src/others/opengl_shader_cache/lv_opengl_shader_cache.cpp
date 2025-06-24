@@ -1,8 +1,8 @@
-#include "lvgl/lvgl.h"
+#include <lvgl.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
+#include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
 #include "lv_opengl_shader_cache.h"
 
 #include <map>

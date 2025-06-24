@@ -1,6 +1,8 @@
 #include "demo.h"
+#include <stdlib.h>
+#include <string.h>
 
-void cli_print_usage() {
+void cli_print_usage(void) {
     printf("Usage: gltf_view [path_to_gltf_file] (one or more options from below)\n");//[-in input_file] [-env hdr_file] [-aa ANTIALIAS_MODE] [-bg BACKGROUND_MODE]\n");
     printf("Options:\n");
     printf("  -in <input_file>         Specify the input file path.\n");
@@ -207,7 +209,7 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
                     printf("script from the application root directory:\n\n");
                     char command[256];
                     snprintf(command, sizeof(command), "./ex/__create_ramdrive.sh %s 1M\n", DESKTOP_OUTPUT_RAMTEMP_PATH);
-                    printf(command);
+                    printf("%s", command);
                     passedParamChecks = false;
                 }
             } else if (strcmp(argv[i], "-ratio") == 0 && (i + 1) < argc) {
@@ -323,3 +325,4 @@ bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char *
     }
     return passedParamChecks;
 }
+

@@ -1,4 +1,9 @@
 #include "demo.h"
+#include <stdlib.h>
+#include <math.h>
+#include <gltf/data/lv_gltf_data.h>
+#include <gltf/view/lv_gltf_view.h>
+
 //#include "torusknot.h"
 //#define EXPERIMENTAL_GROUNDCAST
 #define SYSTEM_ASSETS_FILENAME  "./gltfs/support_assets.glb"

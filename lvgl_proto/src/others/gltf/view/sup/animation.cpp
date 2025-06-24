@@ -3,7 +3,7 @@
 #include <map>
 
 #include <GL/glew.h>
-#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
+#include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
 #include "../../data/deps/fastgltf/include/fastgltf/types.hpp"
 
 #ifndef STB_HAS_BEEN_INCLUDED

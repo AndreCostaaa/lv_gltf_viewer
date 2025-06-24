@@ -1,10 +1,10 @@
 
-#include "lvgl/lvgl.h"
+#include <lvgl.h>
+#include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
 #include "include/ibl_sampler.h"
 #include "../../../../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
@@ -261,8 +261,8 @@ void iblSampler::panoramaToCubeMap(void)
         GL_CALL(glClearColor(1.0, 0.0, 0.0, 0.0));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT));
         pProgram shader = shaderCache->get_shader_program( shaderCache, 
-            shaderCache->select_shader ( shaderCache, "panorama_to_cubemap.frag", NO_DEFINES, 0 ), 
-            shaderCache->select_shader ( shaderCache, "fullscreen.vert", NO_DEFINES, 0 ) );
+            shaderCache->select_shader ( shaderCache, "panorama_to_cubemap.frag", nullptr, 0 ), 
+            shaderCache->select_shader ( shaderCache, "fullscreen.vert", nullptr, 0 ) );
         GLint success;
         //GL_CALL(glGetShaderiv(shader->program, GL_COMPILE_STATUS, &success));
         GL_CALL(glGetProgramiv(shader->program, GL_LINK_STATUS, &success));
@@ -312,8 +312,8 @@ void iblSampler::applyFilter(
         GL_CALL(glClearColor(0.0, 1.0, 0.0, 0.0));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT));
         pProgram shader = shaderCache->get_shader_program( shaderCache, 
-            shaderCache->select_shader ( shaderCache, "ibl_filtering.frag", NO_DEFINES, 0 ), 
-            shaderCache->select_shader ( shaderCache, "fullscreen.vert", NO_DEFINES, 0 ) );                
+            shaderCache->select_shader ( shaderCache, "ibl_filtering.frag", nullptr, 0 ), 
+            shaderCache->select_shader ( shaderCache, "fullscreen.vert", nullptr, 0 ) );                
         GL_CALL(glUseProgram(shader->program));
         //  TEXTURE0 = active.
         GL_CALL(glActiveTexture(GL_TEXTURE0));
@@ -398,8 +398,8 @@ void iblSampler::sampleLut(uint32_t distribution, uint32_t targetTexture, uint32
     GL_CALL(glClearColor(0.0, 1.0, 1.0, 0.0));
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT));
     pProgram shader = shaderCache->get_shader_program( shaderCache, 
-        shaderCache->select_shader ( shaderCache, "ibl_filtering.frag", NO_DEFINES, 0 ), 
-        shaderCache->select_shader ( shaderCache, "fullscreen.vert", NO_DEFINES, 0 ) );   
+        shaderCache->select_shader ( shaderCache, "ibl_filtering.frag", nullptr, 0 ), 
+        shaderCache->select_shader ( shaderCache, "fullscreen.vert", nullptr, 0 ) );   
         
     GL_CALL(glUseProgram(shader->program));
     //  TEXTURE0 = active.

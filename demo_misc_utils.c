@@ -1,4 +1,6 @@
 #include "demo.h"
+#include <gltf/data/lv_gltf_data.h>
+#include <drivers/glfw/lv_opengles_debug.h>
 
 lv_opengl_shader_cache_t _shader_cache;
 gl_environment_textures _environment;
@@ -73,7 +75,7 @@ void demo_refocus(lv_gltf_view_t * gltfview, bool first_call) {
     demo_set_overrides();
 }
 
-uint32_t demo_make_small_clear_texture() {
+uint32_t demo_make_small_clear_texture(void) {
     if (cached_clear_tex > 0) return cached_clear_tex;
     GL_CALL(glCreateTextures(GL_TEXTURE_2D, 1, &cached_clear_tex));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, cached_clear_tex));

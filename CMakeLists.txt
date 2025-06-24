@@ -1,42 +1,54 @@
 cmake_minimum_required(VERSION 3.25.1)
-#set(CMAKE_CXX_STANDARD 11)  # or 14, 17, etc.
-#set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 project(gltf_view LANGUAGES C CXX)
 
-# set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CONFIG_LV_BUILD_EXAMPLES 0)
-set(CONFIG_LV_BUILD_DEMOS 0)
-set(FASTGLTF_ENABLE_DEPRECATED_EXT 1)
-set(ASAN_OPTIONS alloc_dealloc_mismatch=0)
+# Set policy to allow to run the target_link_libraries cmd on targets that are
+# build in another directory. Currently, the linking is not handled by
+# env_support/cmake/os.cmake This means that if a driver is enabled and it
+# requires linking an external library it needs to be handled in the top-level
+# project.
+cmake_policy(SET CMP0079 NEW)
+
+
+# Compiler settings
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wpedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -flax-vector-conversions")
+
+# LVGL build settings
+set(CONFIG_LV_BUILD_EXAMPLES OFF CACHE BOOL "disable lvgl examples" FORCE)
+set(CONFIG_LV_BUILD_DEMOS OFF CACHE BOOL "disable lvgl demos" FORCE)
+set(CONFIG_LV_USE_THORVG_INTERNAL OFF CACHE BOOL "disable thorvg internal" FORCE)
+
+add_subdirectory(lvgl)
+
+set(FASTGLTF_ENABLE_DEPRECATED_EXT ON)
 set(LVGL_ENABLE_WEBP_IMAGES 1) # 0 = disable / 1 = enabled with internal decoder code / 2 = enabled with external lib webp
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
-#set(CMAKE_PREFIX_PATH /usr/lib/aarch64-linux-gnu/cmake/glfw3)
-#find_package(glfw3 REQUIRED)
-
-# LVGL
-include(${CMAKE_CURRENT_LIST_DIR}/lvgl/CMakeLists.txt)
-include_directories(
-    ${CMAKE_CURRENT_LIST_DIR}
-)
 
 add_library(lvgl_opengl_shader_cache 
     lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.cpp
 )
+target_include_directories(lvgl_opengl_shader_cache PRIVATE lvgl lvgl/src)
 
 add_library(lvgl_gltfdata 
     lvgl_proto/src/others/gltf/data/lv_gltf_data.c
     lvgl_proto/src/others/gltf/data/lv_gltf_data.cpp
     lvgl_proto/src/others/gltf/data/lv_gltf_override.cpp
 )
-# Set the compile definition for the target
+
+target_include_directories(lvgl_gltfdata PRIVATE lvgl lvgl/src ./lvgl_proto/src/others/gltf/data/deps)
 
 add_library(lvgl_gltfview 
     lvgl_proto/src/others/gltf/view/lv_gltf_view.c
     lvgl_proto/src/others/gltf/view/lv_gltf_view.cpp
 )
+
+target_include_directories(lvgl_gltfview PRIVATE lvgl lvgl/src ./lvgl_proto/src/others/gltf/data/deps)
 
 add_executable(gltf_view
     demo.c
@@ -51,9 +63,6 @@ add_executable(gltf_view
     resources/sprites1_32x32x7.c
 )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow ")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17 -flax-vector-conversions")
-set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_definitions(-DNDEBUG)
@@ -135,14 +144,11 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/lvgl_proto/src/others/gltf/data/deps/fastgltf/include/)
 target_link_libraries(lvgl_gltfview lvgl_gltfdata)
 
-target_link_libraries(gltf_view lvgl_gltfview)
-target_link_libraries(gltf_view lvgl)
-target_link_libraries(gltf_view pthread)
-target_link_libraries(gltf_view m)
-target_link_libraries(gltf_view GL)
-target_link_libraries(gltf_view GLEW)
-target_link_libraries(gltf_view glfw)
-target_link_libraries(gltf_view webp)
+target_link_libraries(gltf_view PRIVATE lvgl lvgl_gltfview pthread m GL GLEW glfw webp)
+target_include_directories(gltf_view PRIVATE lvgl_proto/src/others lvgl lvgl/src ./lvgl_proto/src/others/gltf/data/deps)
+
+set_target_properties(gltf_view PROPERTIES COMPILE_DEFINITIONS
+                                            "${LVGL_COMPILER_DEFINES}")
 
 # These seem necessary in certain build targets like RELEASE, where compilation produces a large 
 # flood of warnings within the standard library without them.  Eventually we'll get them isolated to 

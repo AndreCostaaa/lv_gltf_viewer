@@ -40,8 +40,6 @@ char* PREPROCESS(const char* x);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
-static lv_shader_key_value_t NO_DEFINES[] = {};
-
 static lv_shader_key_value_t src_includes[] = {
     {"tonemapping.glsl", R"( 
 

@@ -1,7 +1,9 @@
 
-#include "lvgl/lvgl.h"
 #include "demo.h"
+#include <gltf/data/lv_gltf_data.h>
 #include <dirent.h>  // For directory operations
+#include <stdlib.h>
+#include <string.h>
 
 // Function prototypes
 void create_file_open_dialog(lv_obj_t *parent);
@@ -42,7 +44,7 @@ void demo_file_load_dialog_set_directory_from_filepath(char *current_filename) {
 
     if (parent_path[0] == '.') {
         char absolute_path[MAX_PATH_LENGTH];
-        if (realpath(parent_path, absolute_path) == NULL) {
+        if (realpath(parent_path, absolute_path) == 0) {
             perror("Error resolving absolute path");
             return;
         }

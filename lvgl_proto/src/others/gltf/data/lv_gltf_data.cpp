@@ -6,8 +6,8 @@
 #include <GLFW/glfw3.h>
 #include <cstddef>
 
-#include "lvgl/lvgl.h"
-#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
+#include <lvgl.h>
+#include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
 
 #ifdef LVGL_ENABLE_WEBP_IMAGES
     #if LVGL_ENABLE_WEBP_IMAGES

@@ -1,6 +1,7 @@
 #ifndef LV_GLTFDATA_H
 #define LV_GLTFDATA_H
 
+#include <draw/lv_image_dsc.h>
 #ifdef __cplusplus
 
 extern "C" {

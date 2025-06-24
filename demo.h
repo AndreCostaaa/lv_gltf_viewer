@@ -1,25 +1,14 @@
 #ifndef MAINUI_SHARED_H
 #define MAINUI_SHARED_H
-#include "lvgl/lvgl.h"
-#include "lvgl/demos/lv_demos.h"
-#include "lvgl/examples/lv_examples.h"
-//#include "lvgl_proto/src/others/gltf/override/lv_gltf_override.h"
-#include "lvgl_proto/src/others/gltf/data/lv_gltf_data.h"
+#include <lvgl.h>
 #include "lvgl_proto/src/others/gltf/view/lv_gltf_view.h"
 
 #include <unistd.h>     /* usleep */
 #include <GL/glew.h>    /* For window size restrictions */
-//#define GLFW_INCLUDE_ES31 
 #include <GLFW/glfw3.h> /* For window size / title */
 
-#include <stdio.h>      /* printf */
-#include <string.h>
-#include <stdlib.h>     /* exit */
-#include <time.h>       /* for animation timing */
 #include <sys/time.h>
-#include <math.h>       /* pow */
 #include <poll.h>
-#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" /* GL_CALL */
 
 #define ENABLE_DESKTOP_MODE
 
