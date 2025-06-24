@@ -123,7 +123,6 @@ namespace fastgltf::math {
 
     template <typename T>
     [[nodiscard]] fastgltf::math::vec<T,3> quaternionToEuler(fastgltf::math::quat<T> q) {
-        fastgltf::math::vec<T,3> euler;
         T Q11 = q[1] * q[1];
         // Roll (Z)
         T sinr_cosp = T(2.0) * (q[3] * q[0] + q[1] * q[2]);
@@ -143,7 +142,8 @@ namespace fastgltf::math {
 
 } // namespace fastgltf::math
 
-int64_t lv_gltf_view_get_node_handle_by_name(const char * _nodename) {
+int64_t lv_gltf_view_get_node_handle_by_name(const char * nodename) {
+    LV_UNUSED(nodename);
     return -1;
 }
 
@@ -701,7 +701,8 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
             GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
             GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
             GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-            float _data[_tex_width * _tex_width * 4];
+            /* TODO: perf: Avoid doing memory allocations inside loops */
+            float *_data = new float[_tex_width * _tex_width * 4];
             std::size_t _dpos = 0;
             for (uint64_t j =0; j< num_joints; j++) {
                 auto& _jointNode = asset->nodes[skin.joints[j]];
@@ -713,6 +714,7 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
             GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _tex_width, _tex_width, 0, GL_RGBA, GL_FLOAT, _data));
             GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
             GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
+            delete[] _data;
             ++i;
         }
     }

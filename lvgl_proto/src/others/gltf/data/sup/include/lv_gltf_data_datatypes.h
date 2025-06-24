@@ -5,10 +5,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-typedef uint32_t _GLENUM;
-typedef uint32_t _GLUINT;
-typedef int32_t  _GLINT;
-
 #ifdef __cplusplus
 #define FVEC2 fastgltf::math::fvec2
 #define FVEC3 fastgltf::math::fvec3

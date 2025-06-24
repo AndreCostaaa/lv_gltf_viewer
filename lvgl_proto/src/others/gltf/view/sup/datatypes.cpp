@@ -3,6 +3,7 @@
 #include "../../data/sup/include/lv_gltf_data_datatypes.h"
 #include "include/lv_gltf_view_datatypes.h"
 #include "../lv_gltf_view_internal.h"
+#include <lvgl.h>
 #include <algorithm>
 
 typedef lv_gltf_view_t *    _VIEW;

@@ -1,4 +1,6 @@
 
+#include "include/shader_includes.h"
+#include <cstdint>
 #include <lvgl.h>
 #include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
 
@@ -10,7 +12,6 @@
 #include "../../../../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
 
 #include <unistd.h> /* usleep */
-#include <vector>
 #include <string>
 #include <iostream>
 #include <algorithm>
@@ -114,7 +115,7 @@ iblSampler::t_texture iblSampler::prepareTextureData(t_image* image)
             std::cout << " [!]-> Environment light intensity cannot be displayed correctly on this device \n"; }
         
         //texture.data = new Uint8Array(numPixels * 4);
-        texture.data = (char *)malloc(numPixels * 4);
+        texture.data = (uint8_t *)malloc(numPixels * 4);
         src = 0;
         dst = 0;
         for(uint32_t i = 0; i < numPixels; ++i) {
@@ -123,7 +124,7 @@ iblSampler::t_texture iblSampler::prepareTextureData(t_image* image)
             texture.data[dst+1] = std::min(int((image->dataFloat[src+1])*255), 255);
             texture.data[dst+2] = std::min(int((image->dataFloat[src+2])*255), 255);
             // unused
-            texture.data[dst+3] = 255; 
+            texture.data[dst+3] = -1; 
             src += 3;
             dst += 4;
         }
@@ -231,7 +232,7 @@ void iblSampler::doinit( const char* env_filename)
     inputTextureID = loadTextureHDR(&panoramaImage);
     free(panoramaImage.dataFloat);
 
-    GL_CALL(glCreateFramebuffers(1, {&framebuffer}));
+    GL_CALL(glCreateFramebuffers(1, &framebuffer));
     cubemapTextureID = createCubemapTexture(true);
     lambertianTextureID = createCubemapTexture(false);
     ggxTextureID = createCubemapTexture(true);

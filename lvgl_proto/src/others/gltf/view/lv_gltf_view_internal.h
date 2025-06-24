@@ -1,13 +1,12 @@
 #ifndef LV_GLTFVIEW_PRIVATE_H
 #define LV_GLTFVIEW_PRIVATE_H
 
-#ifdef __cplusplus
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "sup/include/lv_gltf_view_datatypes.h"
 #include "../data/lv_gltf_data_internal.h"
-#include "../data/lv_gltf_override.h"
-
-#endif
+#include "../data/lv_gltf_data_internal.h"
 
 typedef struct {
     bool overrideBaseColor;

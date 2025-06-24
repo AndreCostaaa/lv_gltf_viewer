@@ -37,7 +37,7 @@ struct lv_gltf_override_struct {
     float data2;
     float data3;
     float data4;
-    lv_gltf_override_t* nextOverride; // Pointer to the next override
+    struct lv_gltf_override_struct * nextOverride; // Pointer to the next override
 } ;
 
 typedef struct lv_gltf_override_struct lv_gltf_override_t;

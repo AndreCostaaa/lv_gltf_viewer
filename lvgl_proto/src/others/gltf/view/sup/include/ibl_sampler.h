@@ -36,7 +36,7 @@ class iblSampler
         uint32_t internalFormat;
         uint32_t format;
         uint32_t type;
-        char* data; };
+        uint8_t* data; };
 
     struct t_image {
         uint32_t width;

@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 #include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 #ifndef LV_SHADER_CACHE_KEYVAL
 #define LV_SHADER_CACHE_KEYVAL

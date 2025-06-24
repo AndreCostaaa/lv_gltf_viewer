@@ -166,11 +166,9 @@ void lv_gltf_data_utils_texture_to_image_dsc(lv_image_dsc_t * new_image_dsc, lv_
     uint32_t source_pixel_width = 0;
     uint32_t source_pixel_height = 0;
     bool has_alpha = false;
-    bool temp_got_valid_texture = false;
     uint8_t * pixel_buffer;
     if (lv_gltf_data_utils_get_texture_info( data_obj, model_texture_index, 0, &byte_total_count, &source_pixel_width, &source_pixel_height, &has_alpha )) {
         pixel_buffer = (uint8_t*)lv_malloc(byte_total_count);
-        temp_got_valid_texture = true;
         if (lv_gltf_data_utils_get_texture_pixels(pixel_buffer, data_obj, model_texture_index, 0, source_pixel_width, source_pixel_height, has_alpha )) {
             if (pixel_buffer == NULL || byte_total_count == 0 || source_pixel_width == 0) return; 
 

@@ -1,5 +1,9 @@
+#include "misc/lv_types.h"
 #include <string>
 #include <iostream>
+#include <lvgl.h>
+#include "include/lv_gltf_view_datatypes.h"
+#include "../lv_gltf_view_internal.h"
 
 #include <GL/glew.h>
 #include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
@@ -7,9 +11,7 @@
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wredundant-move"
-#include "../../data/deps/fastgltf/include/fastgltf/core.hpp"
 #include "../../data/deps/fastgltf/include/fastgltf/types.hpp"
-#include "../../data/deps/fastgltf/include/fastgltf/tools.hpp"
 #pragma GCC diagnostic pop
 #include "../lv_gltf_view_internal.h"
 #include "../../data/deps/mathc/mathc.h"
@@ -111,7 +113,7 @@ void lv_gltf_get_isolated_filename(const char* filename, char* out_buffer, uint3
 void lv_gltf_debug_print_node(ASSET& asset, fastgltf::Node node, std::size_t depth) {
     std::size_t _tabwidth = 4;
     std::size_t _insetspaces = _tabwidth * depth;
-    char _tabstr[_insetspaces + 1];
+    char* _tabstr = new char[_insetspaces + 1];
     memset(_tabstr, ' ', _insetspaces);
     _tabstr[_insetspaces] = '\0';
 
@@ -139,12 +141,11 @@ void lv_gltf_debug_print_node(ASSET& asset, fastgltf::Node node, std::size_t dep
     }
     if (node.children.size() > 0) {
         std::cout << _tabstr << "+ ("<< node.children.size() << ") children\n"; 
-        std::size_t cnum = 1;
         for (auto& child : node.children) {
             lv_gltf_debug_print_node(asset, asset.nodes[child], depth + 1);
-            cnum++;
         }
     } 
+    delete[] _tabstr;
 }
 
 void lv_gltf_copy_viewer_desc(gl_viewer_desc_t* from, gl_viewer_desc_t* to) {
@@ -319,6 +320,8 @@ void lv_gltf_view_utils_save_pixelbuffer_to_png( char * pixels, const char * fil
 }
 
 void lv_gltf_view_utils_get_texture_pixels( char * pixels, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
+    LV_UNUSED(width);
+    LV_UNUSED(height);
     GL_CALL(glBindTexture(GL_TEXTURE_2D, tex_id));
     glGetTexImage(GL_TEXTURE_2D, mipmapnum, alpha_enabled?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE, pixels);
 }
