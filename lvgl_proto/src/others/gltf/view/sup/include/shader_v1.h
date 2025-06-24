@@ -789,6 +789,7 @@ static const char *src_fragmentShader = R"(
     }
 )";
 
+#include <stdio.h>
 inline static char* src_vertex(void) { 
     printf("Requesting vertex shader. Override: %s\n", shader_vertex_is_overridden() ? "true" : "false"); 
     return PREPROCESS(shader_vertex_is_overridden() ? get_shader_vertex_override() : src_vertexShader); 

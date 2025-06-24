@@ -1,6 +1,7 @@
 #include "lv_gltf_view.h"
 #include "../data/lv_gltf_data_internal.h"
 #include "lv_gltf_view_internal.h"
+#include <stdlib.h>
 
 gl_viewer_desc_t* lv_gltf_view_get_desc(lv_gltf_view_t * view);
 

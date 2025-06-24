@@ -129,6 +129,10 @@ if(DEFINED LVGL_ENABLE_WEBP_IMAGES AND LVGL_ENABLE_WEBP_IMAGES)
     target_compile_definitions(lvgl_gltfdata PRIVATE LVGL_ENABLE_WEBP_IMAGES=${LVGL_ENABLE_WEBP_IMAGES})
 endif()
 
+target_include_directories(
+  lvgl_gltfdata
+  PRIVATE
+    ${CMAKE_SOURCE_DIR}/lvgl_proto/src/others/gltf/data/deps/fastgltf/include/)
 target_link_libraries(lvgl_gltfview lvgl_gltfdata)
 
 target_link_libraries(gltf_view lvgl_gltfview)
@@ -138,6 +142,7 @@ target_link_libraries(gltf_view m)
 target_link_libraries(gltf_view GL)
 target_link_libraries(gltf_view GLEW)
 target_link_libraries(gltf_view glfw)
+target_link_libraries(gltf_view webp)
 
 # These seem necessary in certain build targets like RELEASE, where compilation produces a large 
 # flood of warnings within the standard library without them.  Eventually we'll get them isolated to 
