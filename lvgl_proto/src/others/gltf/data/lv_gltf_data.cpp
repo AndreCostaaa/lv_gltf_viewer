@@ -2,12 +2,22 @@
 #include <functional>
 #include <vector>
 #include <map>
+
+#ifdef __EMSCRIPTEN__ 
+#include <GLES3/gl3.h>
+#else
+//#include <GL/glew.h>
+#endif
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <cstddef>
 
 #include <lvgl.h>
 #include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
+#ifndef GL_CALL
+#define GL_CALL(x) x
+#endif
 
 #ifdef LVGL_ENABLE_WEBP_IMAGES
     #if LVGL_ENABLE_WEBP_IMAGES

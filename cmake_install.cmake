@@ -1,4 +1,4 @@
-# Install script for directory: /home/pi/Desktop/lv_gltf_viewer
+# Install script for directory: /home/pi/Desktop/andre_edits/lv_gltf_viewer
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -12,7 +12,7 @@ if(NOT DEFINED CMAKE_INSTALL_CONFIG_NAME)
     string(REGEX REPLACE "^[^A-Za-z0-9_]+" ""
            CMAKE_INSTALL_CONFIG_NAME "${BUILD_TYPE}")
   else()
-    set(CMAKE_INSTALL_CONFIG_NAME "Release")
+    set(CMAKE_INSTALL_CONFIG_NAME "")
   endif()
   message(STATUS "Install configuration: \"${CMAKE_INSTALL_CONFIG_NAME}\"")
 endif()
@@ -42,55 +42,9 @@ if(NOT DEFINED CMAKE_OBJDUMP)
   set(CMAKE_OBJDUMP "/usr/bin/objdump")
 endif()
 
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE DIRECTORY FILES "/home/pi/Desktop/lv_gltf_viewer/lvgl/src" FILES_MATCHING REGEX "/[^/]*\\.h$" REGEX "/[^/]*\\_private\\.h$" EXCLUDE)
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE FILE FILES
-    "/home/pi/Desktop/lv_gltf_viewer/demo.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lv_conf.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lv_version.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lvgl/lv_version.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lvgl/lvgl.h"
-    )
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/pi/Desktop/lv_gltf_viewer/lib/liblvgl.a")
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE FILE FILES
-    "/home/pi/Desktop/lv_gltf_viewer/demo.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lv_conf.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lv_version.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lvgl/lv_version.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lvgl/lvgl.h"
-    )
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" TYPE FILE FILES "/home/pi/Desktop/lv_gltf_viewer/lvgl.pc")
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/pi/Desktop/lv_gltf_viewer/lib/liblvgl_thorvg.a")
-endif()
-
-if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lvgl" TYPE FILE FILES
-    "/home/pi/Desktop/lv_gltf_viewer/demo.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lv_conf.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lv_version.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lvgl/lv_version.h"
-    "/home/pi/Desktop/lv_gltf_viewer/lvgl/lvgl.h"
-    )
-endif()
-
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/pi/Desktop/lv_gltf_viewer/lib/fastgltf/cmake_install.cmake")
+  include("/home/pi/Desktop/andre_edits/lv_gltf_viewer/lvgl/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -101,5 +55,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/pi/Desktop/lv_gltf_viewer/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/pi/Desktop/andre_edits/lv_gltf_viewer/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

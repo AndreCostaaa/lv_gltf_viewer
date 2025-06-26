@@ -1,13 +1,3 @@
-/*
-#include <string>
-#include <iostream>
-
-#include <GL/glew.h>
-#include "lvgl/src/drivers/glfw/lv_opengles_debug.h" // GL_CALL //
-#include "include/lv_gltf_data_datatypes.h"
-#include "../lv_gltf_data_internal.h"
-#include "../../../../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
-*/
 #include "../../view/sup/include/shader_includes.h"
 
 #ifndef __MESH_DATA_DEFINED
@@ -363,6 +353,7 @@ int32_t injest_get_any_image_index(std::optional<fastgltf::Texture> tex){
  * @param functor Functor to process the vec2 data.
  * @return The number of attributes ingested.
  */
+
 std::size_t injest_vec2_attribute(
     int32_t current_attrib_index,
     lv_gltf_data_t * data,
@@ -376,13 +367,20 @@ std::size_t injest_vec2_attribute(
     if (const auto* _attrib = prim->findAttribute(std::string(attrib_id)); _attrib != prim->attributes.end()) {
         auto& _accessor = asset->accessors[_attrib->accessorIndex];
         if (_accessor.bufferViewIndex.has_value()) {
+            glBindBuffer(GL_ARRAY_BUFFER, primitive_vertex_buffer);
             fastgltf::iterateAccessorWithIndex<FVEC2>(*asset, _accessor, functor);
-            glEnableVertexArrayAttrib(vao, current_attrib_index);
-            glVertexArrayAttribFormat(vao, current_attrib_index, 2, GL_FLOAT, GL_FALSE, 0);
-            glVertexArrayAttribBinding(vao, current_attrib_index, current_attrib_index);
-            glVertexArrayVertexBuffer(vao, current_attrib_index, primitive_vertex_buffer, offset, sizeof(Vertex));
-            current_attrib_index++;
+            // Specify the layout of the vertex data
+            glVertexAttribPointer(current_attrib_index, // Attribute index
+                                2,                      // Number of components per vertex (e.g., 3 for vec3)
+                                GL_FLOAT,               // Data type
+                                GL_FALSE,               // Normalized
+                                sizeof(Vertex),         // Stride (size of one vertex)
+                                (void *)offset);        // Offset in the buffer
+            glEnableVertexAttribArray(current_attrib_index);
+        } else {
+            glDisableVertexAttribArray(current_attrib_index);
         }
+        current_attrib_index++;
     }
     return current_attrib_index;
 }
@@ -401,12 +399,19 @@ std::size_t injest_vec3_attribute(
         auto& _accessor = asset->accessors[_attrib->accessorIndex];
         if (_accessor.bufferViewIndex.has_value()) {
             fastgltf::iterateAccessorWithIndex<FVEC3>(*asset, _accessor, functor);
-            glEnableVertexArrayAttrib(vao, current_attrib_index);
-            glVertexArrayAttribFormat(vao, current_attrib_index, 3, GL_FLOAT, GL_FALSE, 0);
-            glVertexArrayAttribBinding(vao, current_attrib_index, current_attrib_index);
-            glVertexArrayVertexBuffer(vao, current_attrib_index, primitive_vertex_buffer, offset, sizeof(Vertex));
-            current_attrib_index++;
+            glBindBuffer(GL_ARRAY_BUFFER, primitive_vertex_buffer);
+            // Specify the layout of the vertex data
+            glVertexAttribPointer(current_attrib_index, // Attribute index
+                                3,                      // Number of components per vertex (e.g., 3 for vec3)
+                                GL_FLOAT,               // Data type
+                                GL_FALSE,               // Normalized
+                                sizeof(Vertex),         // Stride (size of one vertex)
+                                (void *)offset);        // Offset in the buffer
+            glEnableVertexAttribArray(current_attrib_index);
+        } else {
+            glDisableVertexAttribArray(current_attrib_index);
         }
+        current_attrib_index++;
     }
     return current_attrib_index;
 }
@@ -425,12 +430,19 @@ std::size_t injest_vec4_attribute(
         auto& _accessor = asset->accessors[_attrib->accessorIndex];
         if (_accessor.bufferViewIndex.has_value()) {
             fastgltf::iterateAccessorWithIndex<FVEC4>(*asset, _accessor, functor);
-            glEnableVertexArrayAttrib(vao, current_attrib_index);
-            glVertexArrayAttribFormat(vao, current_attrib_index, 4, GL_FLOAT, GL_FALSE, 0);
-            glVertexArrayAttribBinding(vao, current_attrib_index, current_attrib_index);
-            glVertexArrayVertexBuffer(vao, current_attrib_index, primitive_vertex_buffer, offset, sizeof(Vertex));
-            current_attrib_index++;
+            // Specify the layout of the vertex data
+            glBindBuffer(GL_ARRAY_BUFFER, primitive_vertex_buffer);
+            glVertexAttribPointer(current_attrib_index, // Attribute index
+                                4,                      // Number of components per vertex (e.g., 3 for vec3)
+                                GL_FLOAT,               // Data type
+                                GL_FALSE,               // Normalized
+                                sizeof(Vertex),         // Stride (size of one vertex)
+                                (void *)offset);        // Offset in the buffer
+            glEnableVertexAttribArray(current_attrib_index);
+        } else {
+            glDisableVertexAttribArray(current_attrib_index);
         }
+        current_attrib_index++;
     }
     return current_attrib_index;
 }
@@ -484,8 +496,8 @@ bool injest_mesh(lv_gltf_data_t * data_obj, fastgltf::Mesh& mesh) {
 
         // Generate the VAO
         GLuint vao;
-        glCreateVertexArrays(1, &vao);
-		
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
         primitive.primitiveType = fastgltf::to_underlying(it->type);
         primitive.vertexArray = vao;
         
@@ -519,11 +531,13 @@ bool injest_mesh(lv_gltf_data_t * data_obj, fastgltf::Mesh& mesh) {
             continue;
 
         // Create the vertex buffer for this primitive, and use the accessor tools to copy directly into the mapped buffer.
-        glCreateBuffers(1, &primitive.vertexBuffer);
-        glNamedBufferData(primitive.vertexBuffer, positionAccessor.count * sizeof(Vertex), nullptr, GL_STATIC_DRAW);
+        glGenBuffers(1, &primitive.vertexBuffer); // This works for both Desktop OpenGL and WebGL2
+        glBindBuffer(GL_ARRAY_BUFFER, primitive.vertexBuffer);
+        std::vector<Vertex> vertices_vec(positionAccessor.count);
+        auto* vertices = static_cast<Vertex*>(vertices_vec.data());
+        glBufferData(GL_ARRAY_BUFFER, positionAccessor.count * sizeof(Vertex), nullptr, GL_STATIC_DRAW);
         {
             int32_t _AN = 0;
-            auto* vertices = static_cast<Vertex*>(glMapNamedBuffer(primitive.vertexBuffer, GL_WRITE_ONLY));
             _AN = injest_vec3_attribute( _AN, data_obj, &(*it), "POSITION",   vao, primitive.vertexBuffer, offsetof(Vertex, position), [&](FVEC3 V, std::size_t idx) { vertices[idx].position = FVEC3(V.x(), V.y(), V.z()); });
             _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "JOINTS_0",   vao, primitive.vertexBuffer, offsetof(Vertex, joints),   [&](FVEC4 V, std::size_t idx) { vertices[idx].joints   = FVEC4(V.x(), V.y(), V.z(), V.w()); });
             _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "JOINTS_1",   vao, primitive.vertexBuffer, offsetof(Vertex, joints2),  [&](FVEC4 V, std::size_t idx) { vertices[idx].joints2  = FVEC4(V.x(), V.y(), V.z(), V.w()); });
@@ -533,8 +547,10 @@ bool injest_mesh(lv_gltf_data_t * data_obj, fastgltf::Mesh& mesh) {
             _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "TANGENT",    vao, primitive.vertexBuffer, offsetof(Vertex, tangent),  [&](FVEC4 V, std::size_t idx) { vertices[idx].tangent  = FVEC4(V.x(), V.y(), V.z(), V.w()); });
             _AN = injest_vec2_attribute( _AN, data_obj, &(*it), "TEXCOORD_0", vao, primitive.vertexBuffer, offsetof(Vertex, uv),       [&](FVEC2 V, std::size_t idx) { vertices[idx].uv       = FVEC2(V.x(), V.y()); });
             _AN = injest_vec2_attribute( _AN, data_obj, &(*it), "TEXCOORD_1", vao, primitive.vertexBuffer, offsetof(Vertex, uv2),      [&](FVEC2 V, std::size_t idx) { vertices[idx].uv2      = FVEC2(V.x(), V.y()); });
-            glUnmapNamedBuffer(primitive.vertexBuffer);
         }
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, primitive.vertexBuffer);
+        glBufferData(GL_ARRAY_BUFFER, positionAccessor.count * sizeof(Vertex), vertices_vec.data(), GL_STATIC_DRAW);
 
         // Generate the indirect draw command
         auto& draw = primitive.draw;
@@ -549,26 +565,22 @@ bool injest_mesh(lv_gltf_data_t * data_obj, fastgltf::Mesh& mesh) {
         draw.count = static_cast<std::uint32_t>(indexAccessor.count);
 
 		// Create the index buffer and copy the indices into it.
-		glCreateBuffers(1, &primitive.indexBuffer);
-		if (indexAccessor.componentType == fastgltf::ComponentType::UnsignedByte || indexAccessor.componentType == fastgltf::ComponentType::UnsignedShort) {
-        	primitive.indexType = GL_UNSIGNED_SHORT;
-			glNamedBufferData(primitive.indexBuffer, static_cast<GLsizeiptr>(indexAccessor.count * sizeof(std::uint16_t)), nullptr, GL_STATIC_DRAW);
-			auto* indices = static_cast<std::uint16_t*>(glMapNamedBuffer(primitive.indexBuffer, GL_WRITE_ONLY));
-			fastgltf::copyFromAccessor<std::uint16_t>(*asset, indexAccessor, indices);
-			glUnmapNamedBuffer(primitive.indexBuffer);
-		} else {
-        	primitive.indexType = GL_UNSIGNED_INT;
-			glNamedBufferData(primitive.indexBuffer, static_cast<GLsizeiptr>(indexAccessor.count * sizeof(std::uint32_t)), nullptr, GL_STATIC_DRAW);
-			auto* indices = static_cast<std::uint32_t*>(glMapNamedBuffer(primitive.indexBuffer, GL_WRITE_ONLY));
-			fastgltf::copyFromAccessor<std::uint32_t>(*asset, indexAccessor, indices);
-			glUnmapNamedBuffer(primitive.indexBuffer);
-		}
-        glVertexArrayElementBuffer(vao, primitive.indexBuffer);
+		glGenBuffers(1, &primitive.indexBuffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitive.indexBuffer);
+        if (indexAccessor.componentType == fastgltf::ComponentType::UnsignedByte || indexAccessor.componentType == fastgltf::ComponentType::UnsignedShort) {
+            primitive.indexType = GL_UNSIGNED_SHORT;
+            std::uint16_t tempIndices[indexAccessor.count];
+            fastgltf::copyFromAccessor<std::uint16_t>(*asset, indexAccessor, tempIndices);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(indexAccessor.count * sizeof(std::uint16_t)), tempIndices, GL_STATIC_DRAW);
+        } else {
+            primitive.indexType = GL_UNSIGNED_INT;
+            std::uint32_t tempIndices[indexAccessor.count];
+            fastgltf::copyFromAccessor<std::uint32_t>(*asset, indexAccessor, tempIndices);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(indexAccessor.count * sizeof(std::uint32_t)), tempIndices, GL_STATIC_DRAW);
+        }
     }
 
-    // Create the buffer holding all of our primitive structs.
-    glCreateBuffers(1, &outMesh->drawsBuffer);
-    glNamedBufferData(outMesh->drawsBuffer, static_cast<GLsizeiptr>(outMesh->primitives.size() * get_primitive_datasize()), outMesh->primitives.data(), GL_STATIC_DRAW);
+    glBindVertexArray(0);
     return true;
 }
 
@@ -608,7 +620,7 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, lv_gltf_data_t * data_obj,
     if (texture == GL_NONE) {
         std::cout << "Image: (" << image.name << ") [" << _tex_id << "] -> " << std::to_string(hash) << "\n";
         // ----
-        glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+        glGenTextures(1, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
         
         //GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
@@ -626,8 +638,8 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, lv_gltf_data_t * data_obj,
                 std::cout << "Loading image: " << image.name << "\n";
                 const std::string path(filePath.uri.path().begin(), filePath.uri.path().end()); // Thanks C++.
                 unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 4);
-                glTextureStorage2D(texture, getLevelCount(width, height), GL_RGBA8, width, height);
-                glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                glTexStorage2D(GL_TEXTURE_2D, getLevelCount(width, height), GL_RGBA8, width, height);
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
                 stbi_image_free(data);
             },
             [&](fastgltf::sources::Array& vector) {
@@ -639,8 +651,8 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, lv_gltf_data_t * data_obj,
                 //    std::cout << "  TO-DO: FIX THIS (EMBEDDED) WEBP IMAGE DETECTED ||  WEBP IMAGE DETECTED ||  WEBP IMAGE DETECTED ||  WEBP IMAGE DETECTED ||  WEBP IMAGE DETECTED\n";
                 //}
                 unsigned char *data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(vector.bytes.data()), static_cast<int32_t>(vector.bytes.size()), &width, &height, &nrChannels, 4);
-                glTextureStorage2D(texture, getLevelCount(width, height), GL_RGBA8, width, height);
-                glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                glTexStorage2D(GL_TEXTURE_2D, getLevelCount(width, height), GL_RGBA8, width, height);
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
                 stbi_image_free(data);
             },
             [&](fastgltf::sources::BufferView& view) {
@@ -658,7 +670,6 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, lv_gltf_data_t * data_obj,
                         int32_t width, height, nrChannels;
                     #ifdef LVGL_ENABLE_WEBP_IMAGES
                         #if LVGL_ENABLE_WEBP_IMAGES
-                        //if (tex->webpImageIndex.has_value()) return tex->webpImageIndex.value();
                         int32_t webpRes = WebPGetInfo(reinterpret_cast<const uint8_t*>(vector.bytes.data() + bufferView.byteOffset), static_cast<std::size_t>(bufferView.byteLength), &width, &height);
                         if (webpRes) {
                             WebPBitstreamFeatures features = WebPBitstreamFeatures();
@@ -666,13 +677,13 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, lv_gltf_data_t * data_obj,
                             if (statusCode == VP8_STATUS_OK) {
                                 if (features.has_alpha) {
                                     uint8_t* unpacked = WebPDecodeRGBA(reinterpret_cast<const uint8_t*>(vector.bytes.data() + bufferView.byteOffset), static_cast<std::size_t>(bufferView.byteLength), &width, &height);
-                                    glTextureStorage2D(texture, getLevelCount(width, height), GL_RGBA8, width, height);
-                                    glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, unpacked);
+                                    glTexStorage2D(GL_TEXTURE_2D, getLevelCount(width, height), GL_RGBA8, width, height);
+                                    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, unpacked);
                                     WebPFree(unpacked);
                                 } else {
                                     uint8_t* unpacked = WebPDecodeRGB(reinterpret_cast<const uint8_t*>(vector.bytes.data() + bufferView.byteOffset), static_cast<std::size_t>(bufferView.byteLength), &width, &height);
-                                    glTextureStorage2D(texture, getLevelCount(width, height), GL_RGB8, width, height);
-                                    glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, unpacked);
+                                    glTexStorage2D(GL_TEXTURE_2D, getLevelCount(width, height), GL_RGB8, width, height);
+                                    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, unpacked);
                                     WebPFree(unpacked);
                                 }
                                 std::cout << "[WEBP] width / height: " << width << ", " << height << "\n";
@@ -693,8 +704,8 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, lv_gltf_data_t * data_obj,
                                 std::cout << "[Image format unsupported] To enable WEBP image decoding, rebuild with LVGL_ENABLE_WEBP_IMAGES 1\n";
                             } else {
                                 std::cout << "width / height: " << width << ", " << height << "\n";
-                                glTextureStorage2D(texture, getLevelCount(width, height), GL_RGBA8, width, height);
-                                glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                                glTexStorage2D(GL_TEXTURE_2D, getLevelCount(width, height), GL_RGBA8, width, height);
+                                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
                                 stbi_image_free(data);
                             }
                         }
@@ -703,13 +714,11 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, lv_gltf_data_t * data_obj,
             },
         }, image.data);
 
-        if ( !image_invalidated ) { glGenerateTextureMipmap(texture); }
+        if ( !image_invalidated ) {  glGenerateMipmap(GL_TEXTURE_2D); }
         shaders->set_texture_cache_item(shaders, hash, texture);
         GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
     }
-    // ----
     data_obj->textures->emplace_back(Texture { texture });
-    //TEXDSET(data_obj)->emplace_back(Texture { texture });
     return true;
 }
 
@@ -783,6 +792,43 @@ bool lv_gltf_view_set_loadphase_callback(void (*_load_progress_callback)(const c
     return true;
 }
 
+char* fallback_load_file_to_buffer(const char* filename, size_t* outSize) {
+    // Open the file in binary read mode
+    FILE* file = fopen(filename, "rb");
+    if (!file) {
+        printf("Failed to open file: %s\n", filename);
+        return NULL;
+    }
+
+    // Seek to the end of the file to determine its size
+    fseek(file, 0, SEEK_END);
+    long fileSize = ftell(file);
+    fseek(file, 0, SEEK_SET); // Reset to the beginning of the file
+
+    // Allocate memory for the buffer
+    char* buffer = (char*)malloc(fileSize);
+    if (!buffer) {
+        printf("Failed to allocate memory for buffer\n");
+        fclose(file);
+        return NULL;
+    }
+
+    // Read the file into the buffer
+    size_t bytesRead = fread(buffer, 1, fileSize, file);
+    fclose(file);
+
+    // Check if the entire file was read
+    if (bytesRead != fileSize) {
+        printf("Error reading file: %s\n", filename);
+        free(buffer);
+        return NULL;
+    }
+
+    // Set the output size
+    *outSize = (size_t)fileSize;
+    return buffer;
+}
+
 void data_load_file_or_bytes(const char * gltf_path_or_bytes, size_t size_if_path_is_data, lv_gltf_data_t * _retdata, lv_opengl_shader_cache_t * shaders) {
 
     static constexpr auto supportedExtensions =
@@ -838,19 +884,48 @@ void data_load_file_or_bytes(const char * gltf_path_or_bytes, size_t size_if_pat
         __init_gltf_datastruct(_retdata, "from_bytes");
         set_asset(_retdata, std::move(__asset.get()));
     } else {
-        std::filesystem::path gltfFilePath = std::string_view { gltf_path_or_bytes };
-        auto gltfFile = fastgltf::MappedGltfFile::FromPath(gltfFilePath);
-        if (!bool(gltfFile)) {
-            std::cerr << "Failed to open glTF file: " << gltfFilePath << " -> " << fastgltf::getErrorMessage(gltfFile.error()) << '\n';
-            return; 
-        }
-        auto __asset = parser.loadGltf(gltfFile.get(), gltfFilePath.parent_path(), gltfOptions);
-        if (__asset.error() != fastgltf::Error::None) {
-            std::cerr << "Failed to decode glTF file: " << fastgltf::getErrorMessage(__asset.error()) << '\n';
-            return; }
-        __init_gltf_datastruct(_retdata, gltf_path_or_bytes );
-        set_asset(_retdata, std::move(__asset.get()));
-        std::cout << "[ Opened glTF file: " << gltfFilePath << " ]\n";
+        #ifndef FASTGLTF_HAS_MEMORY_MAPPED_FILE
+            #if 1
+                size_t dataSize;
+                char* dataBuffer = fallback_load_file_to_buffer(gltf_path_or_bytes, &dataSize);
+                if (dataBuffer) {
+                    if (dataSize > 0) {
+                        std::cout << "[ This build does not have access to memory mapped file functions - trying to use fallback functions... ]\n";
+                        data_load_file_or_bytes(dataBuffer, dataSize, _retdata, shaders);
+                        // Free the allocated buffer after use
+                    }
+                    free(dataBuffer);
+                    return;
+                }
+            #else
+                std::cout << "[ This build can not open GLTF files from filesystems, use GLB's encoded into .h files instead with 'xxd -i myModel.glb > myModel.h' and call this function with the const char * that creates for the filename parameter, and the size of the array it created below the array as the size parameter of this GLTF load function. ]\n";
+                __init_gltf_datastruct(_retdata, "no_file");
+                _retdata->load_success = false;
+
+            #endif
+            return;
+        #else
+            #if FASTGLTF_HAS_MEMORY_MAPPED_FILE
+                std::filesystem::path gltfFilePath = std::string_view { gltf_path_or_bytes };
+                auto gltfFile = fastgltf::MappedGltfFile::FromPath(gltfFilePath);
+                if (!bool(gltfFile)) {
+                    std::cerr << "Failed to open glTF file: " << gltfFilePath << " -> " << fastgltf::getErrorMessage(gltfFile.error()) << '\n';
+                    return; 
+                }
+                auto __asset = parser.loadGltf(gltfFile.get(), gltfFilePath.parent_path(), gltfOptions);
+                if (__asset.error() != fastgltf::Error::None) {
+                    std::cerr << "Failed to decode glTF file: " << fastgltf::getErrorMessage(__asset.error()) << '\n';
+                    return; }
+                __init_gltf_datastruct(_retdata, gltf_path_or_bytes );
+                set_asset(_retdata, std::move(__asset.get()));
+                std::cout << "[ Opened glTF file: " << gltfFilePath << " ]\n";
+            #else
+                std::cout << "[ This build can not open GLTF files from filesystems, you should use GLB's encoded into .h files instead with 'xxd -i myModel.glb > myModel.h' and call this function with the const char * that creates for the filename parameter, and the size of the array it created below the array as the size parameter of this GLTF load function. ]\n";
+                __init_gltf_datastruct(_retdata, "no_file");
+                _retdata->load_success = false;
+                return;
+            #endif
+        #endif
     }
 
 

@@ -1,7 +1,14 @@
 #include <string>
 #include <iostream>
 
+
+#ifdef __EMSCRIPTEN__ 
 #include <GL/glew.h>
+#include <GLES3/gl3.h>
+#else
+#include <GL/glew.h>
+#endif
+
 #include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
 
 //#include <memory> // Include necessary headers for std::unique_ptr
@@ -221,17 +228,15 @@ void setup_background_environment(GLuint program, GLuint* vao, GLuint* indexBuff
         -1.0f,  1.0f,  1.0f
     };
     GL_CALL(glUseProgram(program));
-	// Create and bind the VAO
-    GL_CALL(glCreateVertexArrays(1, vao));
+    GL_CALL(glGenVertexArrays(1, vao));
     GL_CALL(glBindVertexArray(*vao));
+    GL_CALL(glGenBuffers(1, indexBuffer));
+    GL_CALL(glGenBuffers(1, vertexBuffer));    
 
-    GL_CALL(glCreateBuffers(1, indexBuffer));
-    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *indexBuffer));
-    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW));
-
-    GL_CALL(glCreateBuffers(1, vertexBuffer));
     GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, *vertexBuffer));
     GL_CALL(glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW));
+    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *indexBuffer));
+    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW));
 
     GLint positionAttributeLocation = glGetAttribLocation( program, "a_position");
 
@@ -323,8 +328,8 @@ void setup_uniform_color_alpha(GLint uniform_loc, fastgltf::math::nvec4 color){
  * texture unit, texture coordinate index, and transformation settings. It prepares the texture for
  * use in rendering operations.
  *
- * @param tex_num The texture number to be set up.
  * @param tex_unit The texture unit to which the texture will be bound.
+ * @param tex_num The texture number to be set up.
  * @param tex_coord_index The index of the texture coordinates to be used.
  * @param tex_transform A unique pointer to a TextureTransform object that defines the texture transformation.
  * @param sampler The sampler object to be used for sampling the texture.
@@ -332,15 +337,16 @@ void setup_uniform_color_alpha(GLint uniform_loc, fastgltf::math::nvec4 color){
  * @param uv_transform The transformation to be applied to the UV coordinates.
  * @return The texture ID generated for the setup texture.
  */
-uint32_t setup_texture(uint32_t tex_num, uint32_t tex_unit, int32_t tex_coord_index, 
+uint32_t setup_texture( uint32_t tex_unit, uint32_t tex_name, int32_t tex_coord_index, 
                                     std::unique_ptr<fastgltf::TextureTransform>& tex_transform, 
                                     GLint sampler, GLint uv_set, GLint uv_transform) {
-    GL_CALL(glBindTextureUnit(tex_num, tex_unit));
-    GL_CALL(glUniform1i(sampler, tex_num));
-    GL_CALL(glUniform1i(uv_set, tex_coord_index));
+    GL_CALL(glActiveTexture(GL_TEXTURE0 + tex_unit));   // Activate the texture unit
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, tex_name));    // Bind the texture (assuming 2D texture)
+    GL_CALL(glUniform1i(sampler, tex_unit));            // Set the sampler to use the texture unit
+    GL_CALL(glUniform1i(uv_set, tex_coord_index));      // Set the UV set index
     if (tex_transform != NULL) GL_CALL(glUniformMatrix3fv(uv_transform, 1, GL_FALSE, &(setup_texture_transform_matrix(*tex_transform)[0][0])));
-    tex_num++;
-    return tex_num;
+    tex_unit++;
+    return tex_unit;
 }
 
 /**
@@ -439,7 +445,13 @@ gl_renwin_state_t setup_opaque_output(uint32_t texture_width, uint32_t texture_h
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, texture_width, texture_height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL));
+#ifdef __EMSCRIPTEN__ // Check if compiling for Emscripten (WebGL)
+    // For WebGL2
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, texture_width, texture_height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL));
+#else
+    // For Desktop OpenGL
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, texture_width, texture_height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL));
+#endif
     GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
 
     GL_CALL(glGenFramebuffers(1, &_ret.framebuffer));
@@ -488,7 +500,13 @@ gl_renwin_state_t setup_primary_output(uint32_t texture_width, uint32_t texture_
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1));
+#ifdef __EMSCRIPTEN__ // Check if compiling for Emscripten (WebGL)
+    // For WebGL2
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, texture_width, texture_height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL));
+#else
+    // For Desktop OpenGL
     GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, texture_width, texture_height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL));
+#endif
     GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
 
     GL_CALL(glGenFramebuffers(1, &_ret.framebuffer));
@@ -845,7 +863,12 @@ void setup_draw_environment_background(lv_opengl_shader_cache_t * shaders, lv_gl
     GL_CALL(glDisable(GL_BLEND));
     GL_CALL(glDisable(GL_DEPTH_TEST));
     GL_CALL(glUniformMatrix4fv(glGetUniformLocation(shaders->bg_program, "u_ViewProjectionMatrix"), 1, false, GET_VIEWPROJ_MAT(viewer)->data() ));
-    GL_CALL(glBindTextureUnit(0, shaders->lastEnv->specular));
+    //GL_CALL(glBindTextureUnit(0, shaders->lastEnv->specular));
+    
+    // Bind the texture to the specified texture unit
+    GL_CALL(glActiveTexture(GL_TEXTURE0 + 0)); // Activate the texture unit
+    GL_CALL(glBindTexture(GL_TEXTURE_CUBE_MAP, shaders->lastEnv->specular));   // Bind the texture (assuming 2D texture)
+
     GL_CALL(glUniform1i(glGetUniformLocation(shaders->bg_program, "u_GGXEnvSampler"), 0));
     
     GL_CALL(glUniform1i(glGetUniformLocation(shaders->bg_program, "u_MipCount"), shaders->lastEnv->mipCount));

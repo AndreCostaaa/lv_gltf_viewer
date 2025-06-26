@@ -319,11 +319,36 @@ void lv_gltf_view_utils_save_pixelbuffer_to_png( char * pixels, const char * fil
     stbi_write_png(filename, width, height, (alpha_enabled ? 4 : 3), pixels, width * (alpha_enabled ? 4 : 3));
 }
 
+void es3_compat_get_texture_data(uint32_t tex_num, uint32_t mipmapnum, bool alpha_enabled, char* pixels, uint32_t width, uint32_t height) {
+    GLuint framebuffer;
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    // Attach the texture to the framebuffer
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_num, mipmapnum);
+
+    // Check if the framebuffer is complete
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        // Handle framebuffer not complete error
+    }
+
+    // Read the pixels from the framebuffer
+    glReadPixels(0, 0, width, height, alpha_enabled ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, pixels);
+
+    // Unbind the framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Delete the framebuffer
+    glDeleteFramebuffers(1, &framebuffer);
+}
+
 void lv_gltf_view_utils_get_texture_pixels( char * pixels, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
-    LV_UNUSED(width);
-    LV_UNUSED(height);
     GL_CALL(glBindTexture(GL_TEXTURE_2D, tex_id));
-    glGetTexImage(GL_TEXTURE_2D, mipmapnum, alpha_enabled?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    #ifdef __EMSCRIPTEN__
+        es3_compat_get_texture_data(tex_id, mipmapnum, alpha_enabled, pixels, width, height);
+    #else
+        glGetTexImage(GL_TEXTURE_2D, mipmapnum, alpha_enabled?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    #endif
 }
 void lv_gltf_view_utils_save_texture_to_png( uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
     char * pixels =(char *)lv_malloc(height * width * 4);

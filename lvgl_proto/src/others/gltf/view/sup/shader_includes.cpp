@@ -137,7 +137,7 @@ char* get_defines_str(void) {
 }
 
 char* process_defines( const lv_shader_key_value_t* __define_set, size_t _num_items){
-    uint _reqlength = strlen(GLSL_VERSION_PREFIX) + 1;
+    uint32_t _reqlength = strlen(GLSL_VERSION_PREFIX) + 1;
     for (size_t i=0; i<_num_items; i++) {
         _reqlength += strlen("#define ");
         _reqlength += strlen(__define_set[i].key);

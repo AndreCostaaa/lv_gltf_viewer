@@ -25,9 +25,9 @@
  */
 
 //#include <simdjson.h>
-#include "../../simdjson/simdjson.h"
+#include <simdjson/simdjson.h>
 
-#include "../include/fastgltf/core.hpp"
+#include <fastgltf/include/fastgltf/core.hpp>
 
 #if defined(__APPLE__) || defined(__linux__)
 #include <fcntl.h>

@@ -32,10 +32,11 @@
 #include <cmath>
 #include <functional>
 
-#include "../../simdjson/simdjson.h"
+#include <simdjson/simdjson.h>
+//#include "../../simdjson/simdjson.h"
 
 //#include <fastgltf/base64.hpp>
-#include "../include/fastgltf/base64.hpp"
+#include <fastgltf/include/fastgltf/base64.hpp>
 
 #if defined(FASTGLTF_IS_X86)
 #if defined(__clang__) || defined(__GNUC__)

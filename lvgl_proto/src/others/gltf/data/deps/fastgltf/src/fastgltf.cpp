@@ -24,7 +24,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "fastgltf/types.hpp"
+#include <fastgltf/include/fastgltf/types.hpp>
 #if !defined(__cplusplus) || (!defined(_MSVC_LANG) && __cplusplus < 201703L) || (defined(_MSVC_LANG) && _MSVC_LANG < 201703L)
 #error "fastgltf requires C++17"
 #endif
@@ -41,7 +41,8 @@
 #pragma warning(disable : 4710) // function not inlined
 #endif
 
-#include "../../simdjson/simdjson.h"
+#include <simdjson/simdjson.h>
+//#include "../../simdjson/simdjson.h"
 //#include <simdjson.h>
 
 #ifdef SIMDJSON_TARGET_VERSION
@@ -49,8 +50,8 @@
 static_assert(std::string_view { SIMDJSON_TARGET_VERSION } == SIMDJSON_VERSION, "Outdated version of simdjson. Reconfigure project to update.");
 #endif
 
-#include <fastgltf/core.hpp>
-#include <fastgltf/base64.hpp>
+#include <fastgltf/include/fastgltf/core.hpp>
+#include <fastgltf/include/fastgltf/base64.hpp>
 
 #if defined(FASTGLTF_IS_X86)
 #include <nmmintrin.h> // SSE4.2 for the CRC-32C instructions

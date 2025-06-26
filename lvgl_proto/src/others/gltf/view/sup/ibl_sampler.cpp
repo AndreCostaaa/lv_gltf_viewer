@@ -27,7 +27,20 @@
 #pragma GCC diagnostic pop
 #endif
 
+#ifndef STB_RESIZE_HAS_BEEN_INCLUDED
+#define STB_RESIZE_HAS_BEEN_INCLUDED
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "../../data/deps/stb_image/stb_image_resize.h"
+#pragma GCC diagnostic pop
+#endif
+
 void (*callback)(const char *, float, float);
+
+uint8_t min(uint8_t a, uint8_t b) { return (a < b) ? a : b; }
+
+#include "include/00_chromatic.h"
 
 iblSampler::iblSampler(void) {
     //textureSize = 256;
@@ -138,7 +151,7 @@ uint32_t iblSampler::loadTextureHDR(t_image* image)
 {
     t_texture texture = prepareTextureData(image);
     uint32_t textureID;
-    GL_CALL(glCreateTextures(GL_TEXTURE_2D, 1, &textureID));
+    GL_CALL(glGenTextures(1, &textureID));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, textureID));
     GL_CALL(glTexImage2D(
         GL_TEXTURE_2D, // target
@@ -161,7 +174,7 @@ uint32_t iblSampler::loadTextureHDR(t_image* image)
 uint32_t iblSampler::createCubemapTexture(bool withMipmaps)
 {
     uint32_t targetTexture;
-    GL_CALL(glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &targetTexture));
+    GL_CALL(glGenTextures(1, &targetTexture));
     GL_CALL(glBindTexture(GL_TEXTURE_CUBE_MAP, targetTexture));
     for(int32_t i = 0; i < 6; ++i) {
         GL_CALL(glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat(), textureSize, textureSize, 0, GL_RGBA, textureTargetType(), NULL )); }
@@ -178,7 +191,7 @@ uint32_t iblSampler::createCubemapTexture(bool withMipmaps)
 uint32_t iblSampler::createLutTexture( void )
 {
     uint32_t targetTexture;
-    GL_CALL(glCreateTextures(GL_TEXTURE_2D, 1, &targetTexture));
+    GL_CALL(glGenTextures(1, &targetTexture));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, targetTexture));
     GL_CALL(glTexImage2D( GL_TEXTURE_2D, 0, internalFormat(), lutResolution, lutResolution, 0, GL_RGBA, textureTargetType(), NULL ));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
@@ -201,6 +214,12 @@ bool getExtension(const char* _ext_name)
     return false;
 }    
 
+float* resizeImage(float* input, int inputWidth, int inputHeight, int newWidth, int newHeight) {
+    float* output = (float*)lv_malloc(inputWidth * inputHeight * 3); //new float[newWidth * newHeight * 3]; // Assuming 3 channels (RGB)
+    stbir_resize_float(input, inputWidth, inputHeight, 0, output, newWidth, newHeight, 0, 3);
+    return output;
+}
+
 void iblSampler::doinit( const char* env_filename)
 {
     // vv -- WebGL Naming
@@ -213,10 +232,20 @@ void iblSampler::doinit( const char* env_filename)
     }
 
     int32_t src_width, src_height, src_nrChannels;
-    #ifdef IBL_SAMPLER_VERBOSITY
-    if (IBL_SAMPLER_VERBOSITY >= VERBOSITY_MIN) std::cout << "Loading Environment Panorama/Equirectangular HDR: " << env_filename << "\n";
-    #endif
-    float *data = stbi_loadf(env_filename, &src_width, &src_height, &src_nrChannels, 3);
+
+    float *data;
+    if (env_filename != NULL) {
+        #ifdef IBL_SAMPLER_VERBOSITY
+        if (IBL_SAMPLER_VERBOSITY >= VERBOSITY_MIN) std::cout << "Loading Environment Panorama/Equirectangular HDR: " << env_filename << "\n";
+        #endif
+        data = stbi_loadf(env_filename, &src_width, &src_height, &src_nrChannels, 3);
+    } else {
+        #ifdef IBL_SAMPLER_VERBOSITY
+        if (IBL_SAMPLER_VERBOSITY >= VERBOSITY_MIN) std::cout << "Loading Fallback Environment HDR: " << env_filename << "\n";
+        #endif
+        data = stbi_loadf_from_memory(chromatic_jpg, chromatic_jpg_len, &src_width, &src_height, &src_nrChannels, 3);
+    }
+
     #ifdef IBL_SAMPLER_VERBOSITY
     if (IBL_SAMPLER_VERBOSITY >= VERBOSITY_MED) std::cout << "  +--> Width = " << src_width << " / Height = " << src_height << " / Channels = " << src_nrChannels << "\n";
     #endif
@@ -232,7 +261,10 @@ void iblSampler::doinit( const char* env_filename)
     inputTextureID = loadTextureHDR(&panoramaImage);
     free(panoramaImage.dataFloat);
 
-    GL_CALL(glCreateFramebuffers(1, &framebuffer));
+
+    GL_CALL(glGenFramebuffers(1, &framebuffer));
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, framebuffer));
+
     cubemapTextureID = createCubemapTexture(true);
     lambertianTextureID = createCubemapTexture(false);
     ggxTextureID = createCubemapTexture(true);

@@ -69,11 +69,18 @@ lv_shader_program_struct_t Program(GLuint _program, char* _hash) {
 
 void destroy_Program(pProgram This) {
     GLsizei _shaderCount;
-    GLuint shaderNames[2];
-    glGetAttachedShaders( This->program, 2, &_shaderCount, &shaderNames[0]);
-    glDetachShader(This->program, shaderNames[0]);
-    glDetachShader(This->program, shaderNames[1]);
+    GL_CALL(glGetAttachedShaders(This->program, 2, &_shaderCount, nullptr));
+    
+    // Allocate an array based on the actual shader count
+    GLuint* shaderNames = new GLuint[_shaderCount];
+    GL_CALL(glGetAttachedShaders(This->program, _shaderCount, nullptr, shaderNames));
 
+    // Detach and delete each shader
+    for (GLsizei i = 0; i < _shaderCount; ++i) {
+        //if (shaderNames[i] != 0) GL_CALL(glDetachShader(This->program, shaderNames[i]));
+    }
+
+    // Delete the program
     GL_CALL(glDeleteProgram (This->program));
     delete (std::map<std::string, GLuint>*)This->map_uniforms;
     delete (std::map<std::string, GLuint>*)This->map_attributes;

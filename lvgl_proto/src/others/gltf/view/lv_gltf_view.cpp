@@ -378,22 +378,24 @@ void draw_primitive(  int32_t prim_num,
         }
         const auto& vstate = get_viewer_state(viewer);
         if (!is_transmission_pass && vstate->renderOpaqueBuffer) {
-            GL_CALL(glBindTextureUnit(_texnum, vstate->opaque_render_state.texture));
+            GL_CALL(glActiveTexture(GL_TEXTURE0 + _texnum));
+            GL_CALL(glBindTexture(GL_TEXTURE_2D, vstate->opaque_render_state.texture));
             GL_CALL(glUniform1i(uniforms->transmissionFramebufferSampler, _texnum));
             GL_CALL(glUniform2i(uniforms->transmissionFramebufferSize, (int32_t)vstate->metrics.opaqueFramebufferWidth, (int32_t)vstate->metrics.opaqueFramebufferHeight));
             _texnum++;
         }
 
         if (node.skinIndex.has_value()) {
-            GL_CALL(glBindTextureUnit(_texnum, get_skintex_at(gltf_data, node.skinIndex.value())));
+            GL_CALL(glActiveTexture(GL_TEXTURE0 + _texnum));
+            GL_CALL(glBindTexture(GL_TEXTURE_2D, get_skintex_at(gltf_data, node.skinIndex.value())));
             GL_CALL(glUniform1i(uniforms->jointsSampler, _texnum));
             _texnum++;
         }
-        GL_CALL(glBindTextureUnit(_texnum, env_tex.diffuse));       GL_CALL(glUniform1i(uniforms->envDiffuseSampler, _texnum++));
-        GL_CALL(glBindTextureUnit(_texnum, env_tex.specular));      GL_CALL(glUniform1i(uniforms->envSpecularSampler, _texnum++));
-        GL_CALL(glBindTextureUnit(_texnum, env_tex.sheen));         GL_CALL(glUniform1i(uniforms->envSheenSampler, _texnum++));
-        GL_CALL(glBindTextureUnit(_texnum, env_tex.ggxLut));        GL_CALL(glUniform1i(uniforms->envGgxLutSampler, _texnum++));
-        GL_CALL(glBindTextureUnit(_texnum, env_tex.charlieLut));    GL_CALL(glUniform1i(uniforms->envCharlieLutSampler, _texnum++));
+        if (env_tex.diffuse != GL_NONE) {GL_CALL(glActiveTexture(GL_TEXTURE0 + _texnum)); GL_CALL(glBindTexture(GL_TEXTURE_CUBE_MAP, env_tex.diffuse));GL_CALL(glUniform1i(uniforms->envDiffuseSampler, _texnum++));}
+        if (env_tex.specular != GL_NONE) {GL_CALL(glActiveTexture(GL_TEXTURE0 + _texnum)); GL_CALL(glBindTexture(GL_TEXTURE_CUBE_MAP, env_tex.specular));GL_CALL(glUniform1i(uniforms->envSpecularSampler, _texnum++));}
+        if (env_tex.sheen != GL_NONE) {GL_CALL(glActiveTexture(GL_TEXTURE0 + _texnum)); GL_CALL(glBindTexture(GL_TEXTURE_CUBE_MAP, env_tex.sheen));GL_CALL(glUniform1i(uniforms->envSheenSampler, _texnum++));}
+        if (env_tex.ggxLut != GL_NONE) {GL_CALL(glActiveTexture(GL_TEXTURE0 + _texnum)); GL_CALL(glBindTexture(GL_TEXTURE_2D, env_tex.ggxLut));GL_CALL(glUniform1i(uniforms->envGgxLutSampler, _texnum++));}
+        if (env_tex.charlieLut != GL_NONE) {GL_CALL(glActiveTexture(GL_TEXTURE0 + _texnum)); GL_CALL(glBindTexture(GL_TEXTURE_2D, env_tex.charlieLut));GL_CALL(glUniform1i(uniforms->envCharlieLutSampler, _texnum++));}
 
     }
 
@@ -428,7 +430,7 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
     bool opt_draw_bg = prepare_bg && (view_desc->bg_mode == BG_ENVIRONMENT);
     bool opt_aa_this_frame = (view_desc->aa_mode == ANTIALIAS_CONSTANT) || ((view_desc->aa_mode == ANTIALIAS_NOT_MOVING) && (gltf_data->_lastFrameNoMotion == true) );//((_lastFrameNoMotion == true) && (_lastFrameWasAntialiased == false)));
     lv_gltf_opengl_state_push();
-    uint sceneIndex = 0;
+    uint32_t sceneIndex = 0;
     gl_renwin_state_t _output;
     gl_renwin_state_t _opaque;
     view_desc->frame_was_cached = true;
