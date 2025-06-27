@@ -437,6 +437,7 @@ static uint8x16_t NeedsFilter_NEON(const uint8x16_t p1, const uint8x16_t p0,
   return mask;
 }
 
+/*  revised below to fix ISO pedantic warning
 static int8x16_t FlipSign_NEON(const uint8x16_t v) {
   const uint8x16_t sign_bit = vdupq_n_u8(0x80);
   return vreinterpretq_s8_u8(veorq_u8(v, sign_bit));
@@ -445,6 +446,16 @@ static int8x16_t FlipSign_NEON(const uint8x16_t v) {
 static uint8x16_t FlipSignBack_NEON(const int8x16_t v) {
   const int8x16_t sign_bit = vdupq_n_s8(0x80);
   return vreinterpretq_u8_s8(veorq_s8(v, sign_bit));
+}
+*/
+static int8x16_t FlipSign_NEON(const uint8x16_t v) {
+  const uint8x16_t sign_bit = vdupq_n_u8(0x80);
+  return vreinterpretq_s8_u8(veorq_u8(v, sign_bit));
+}
+
+static uint8x16_t FlipSignBack_NEON(const int8x16_t v) {
+  const uint8x16_t sign_bit = vdupq_n_u8(0x80); // Change to uint8x16_t
+  return vreinterpretq_u8_s8(veorq_s8(v, vreinterpretq_s8_u8(sign_bit))); // Ensure proper type conversion
 }
 
 static int8x16_t GetBaseDelta_NEON(const int8x16_t p1, const int8x16_t p0,

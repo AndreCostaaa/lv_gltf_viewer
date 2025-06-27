@@ -189,13 +189,31 @@
 #endif
 #endif
 
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic ignored "-Wpedantic"
+
+typedef enum {
+  kSSE2,
+  kSSE3,
+  kSlowSSSE3,  // special feature for slow SSSE3 architectures
+  kSSE4_1,
+  kAVX,
+  kAVX2,
+  kNEON,
+  kMIPS32,
+  kMIPSdspR2,
+  kMSA
+} CPUFeature;
+
+// returns true if the CPU supports the feature.
+typedef int (*VP8CPUInfo)(CPUFeature feature);
+
 #if defined(WEBP_USE_THREAD) && !defined(_WIN32)
 #include <pthread.h>  // NOLINT
 
 #define WEBP_DSP_INIT(func)                                         \
   do {                                                              \
-    static volatile VP8CPUInfo func##_last_cpuinfo_used =           \
-        (VP8CPUInfo)&func##_last_cpuinfo_used;                      \
+    static volatile VP8CPUInfo func##_last_cpuinfo_used;  /* = (VP8CPUInfo)&func##_last_cpuinfo_used;  <- removed by MK 06.27.2025 to fix pedantic warning */\
     static pthread_mutex_t func##_lock = PTHREAD_MUTEX_INITIALIZER; \
     if (pthread_mutex_lock(&func##_lock)) break;                    \
     if (func##_last_cpuinfo_used != VP8GetCPUInfo) func();          \
@@ -205,14 +223,15 @@
 #else  // !(defined(WEBP_USE_THREAD) && !defined(_WIN32))
 #define WEBP_DSP_INIT(func)                               \
   do {                                                    \
-    static volatile VP8CPUInfo func##_last_cpuinfo_used = \
-        (VP8CPUInfo)&func##_last_cpuinfo_used;            \
+    static volatile VP8CPUInfo func##_last_cpuinfo_used;  /* = (VP8CPUInfo)&func##_last_cpuinfo_used;  <- removed by MK 06.27.2025 to fix pedantic warning */\
     if (func##_last_cpuinfo_used == VP8GetCPUInfo) break; \
     func();                                               \
     func##_last_cpuinfo_used = VP8GetCPUInfo;             \
   } while (0)
 #endif  // defined(WEBP_USE_THREAD) && !defined(_WIN32)
+//    //                   
 
+//#pragma GCC diagnostic pop
 // Defines an Init + helper function that control multiple initialization of
 // function pointers / tables.
 /* Usage:
@@ -262,20 +281,5 @@
 #define WORDS_BIGENDIAN
 #endif
 
-typedef enum {
-  kSSE2,
-  kSSE3,
-  kSlowSSSE3,  // special feature for slow SSSE3 architectures
-  kSSE4_1,
-  kAVX,
-  kAVX2,
-  kNEON,
-  kMIPS32,
-  kMIPSdspR2,
-  kMSA
-} CPUFeature;
-
-// returns true if the CPU supports the feature.
-typedef int (*VP8CPUInfo)(CPUFeature feature);
 
 #endif  // WEBP_DSP_CPU_H_
