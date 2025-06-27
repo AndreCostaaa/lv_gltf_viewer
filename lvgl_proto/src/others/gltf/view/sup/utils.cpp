@@ -21,6 +21,8 @@ GLboolean blendEnabled;
 GLint blendSrc;
 GLint blendDst;
 GLint blendEquation;
+GLfloat clearDepth;
+GLfloat clearColor[4];
 
 //_VEC3 get_cached_centerpoint(_DATA D, _UINT I, int32_t P, _MAT4 M);
 _VEC3 get_cam_pos(_VIEW V);
@@ -33,6 +35,10 @@ inline void lv_gltf_opengl_state_push(void) {
     GL_CALL(glGetIntegerv(GL_BLEND_DST_ALPHA, &blendDst));
     // retain blend equation
     GL_CALL(glGetIntegerv(GL_BLEND_EQUATION, &blendEquation));
+    // retain clear color
+    GL_CALL(glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor));
+    // retain clear depth
+    GL_CALL(glGetFloatv(GL_DEPTH_CLEAR_VALUE, &clearDepth));
 }
 
 inline void lv_gltf_opengl_state_pop(void) {
@@ -41,6 +47,8 @@ inline void lv_gltf_opengl_state_pop(void) {
     GL_CALL(glBlendFunc(blendSrc, blendDst));
     GL_CALL(glBlendEquation(blendEquation));
     GL_CALL(glDepthMask(GL_TRUE));    
+    GL_CALL(glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]));
+    GL_CALL(glClearDepth(clearDepth));
 }
 
 /*

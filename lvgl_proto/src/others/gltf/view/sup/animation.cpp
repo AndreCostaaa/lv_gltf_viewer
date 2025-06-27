@@ -37,22 +37,25 @@ FVEC3 animation_get_vec3_at_timestamp(pGltf_data_t _data, fastgltf::AnimationSam
     std::size_t _lowerIndex = 0;
     float _lowerTimestamp = 0.0f;
 
-    std::size_t _firstCheckOffset = 0;
-    std::size_t _lastCheckOffset = _inAccCount;
-    std::size_t _prepassLeft = TIME_LOC_PREPASS_COUNT;
-    while (_prepassLeft > 0) {
-        _prepassLeft -= 1;
-        if (_seconds >= fastgltf::getAccessorElement<float>(*asset, _inAcc, (_firstCheckOffset + _lastCheckOffset) >> 1) ) {
-            _firstCheckOffset = (_firstCheckOffset + _lastCheckOffset) >> 1; } 
-        else {
-            _lastCheckOffset = _lastCheckOffset >> 1; 
-            if (_lastCheckOffset >= _firstCheckOffset) { _prepassLeft = 0; } } }
-
+    if (_seconds < 0.001f) {
+        _lowerIndex = 0;
+    } else {
+        std::size_t _firstCheckOffset = 0;
+        std::size_t _lastCheckOffset = _inAccCount;
+        std::size_t _prepassLeft = TIME_LOC_PREPASS_COUNT;
+        while (_prepassLeft > 0) {
+            _prepassLeft -= 1;
+            if (_seconds >= fastgltf::getAccessorElement<float>(*asset, _inAcc, (_firstCheckOffset + _lastCheckOffset) >> 1) ) {
+                _firstCheckOffset = (_firstCheckOffset + _lastCheckOffset) >> 1; } 
+            else {
+                _lastCheckOffset = (_firstCheckOffset + _lastCheckOffset) >> 1; 
+                if (_lastCheckOffset <= _firstCheckOffset+1) { _prepassLeft = 0; } } }
     for (uint64_t ii=_firstCheckOffset; ii<_inAccCount; ii++) {
         float _stampTime = fastgltf::getAccessorElement<float>(*asset, _inAcc, ii);
         if (_stampTime > _seconds) {
             _lowerIndex = ii - 1; break; }
         _lowerTimestamp = _stampTime; }
+    }
 
     FVEC3 _lowerValue = fastgltf::getAccessorElement<FVEC3>(*asset, _outAcc, _lowerIndex);
     if (_seconds >= _maxTime || _seconds <= 0.0f ) { return _lowerValue; }
@@ -79,22 +82,25 @@ fastgltf::math::fquat animation_get_quat_at_timestamp(pGltf_data_t _data, fastgl
     std::size_t _lowerIndex = 0;
     float _lowerTimestamp = 0.0f;
 
-    std::size_t _firstCheckOffset = 0;
-    std::size_t _lastCheckOffset = _inAccCount;
-    std::size_t _prepassLeft = TIME_LOC_PREPASS_COUNT;
-    while (_prepassLeft > 0) {
-        _prepassLeft -= 1;
-        if (_seconds >= fastgltf::getAccessorElement<float>(*asset, _inAcc, (_firstCheckOffset + _lastCheckOffset) >> 1) ) {
-            _firstCheckOffset = (_firstCheckOffset + _lastCheckOffset) >> 1; } 
-        else {
-            _lastCheckOffset = _lastCheckOffset >> 1; 
-            if (_lastCheckOffset >= _firstCheckOffset) { _prepassLeft = 0; } } }
-
+    if (_seconds < 0.001f) {
+        _lowerIndex = 0;
+    } else {
+        std::size_t _firstCheckOffset = 0;
+        std::size_t _lastCheckOffset = _inAccCount;
+        std::size_t _prepassLeft = TIME_LOC_PREPASS_COUNT;
+        while (_prepassLeft > 0) {
+            _prepassLeft -= 1;
+            if (_seconds >= fastgltf::getAccessorElement<float>(*asset, _inAcc, (_firstCheckOffset + _lastCheckOffset) >> 1) ) {
+                _firstCheckOffset = (_firstCheckOffset + _lastCheckOffset) >> 1; } 
+            else {
+                _lastCheckOffset = (_firstCheckOffset + _lastCheckOffset) >> 1;
+                if (_lastCheckOffset <= _firstCheckOffset+1) { _prepassLeft = 0; } } }
     for (uint64_t ii=_firstCheckOffset; ii<_inAccCount; ii++) {
         float _stampTime = fastgltf::getAccessorElement<float>(*asset, _inAcc, ii);
         if (_stampTime > _seconds) {
             _lowerIndex = ii - 1; break; }
         _lowerTimestamp = _stampTime; }
+    }
 
     fastgltf::math::fquat _lowerValue = fastgltf::getAccessorElement<fastgltf::math::fquat>(*asset, _outAcc, _lowerIndex);
     if (_seconds >= _maxTime || _seconds <= 0.0f ) { return _lowerValue; }
@@ -110,7 +116,7 @@ fastgltf::math::fquat animation_get_quat_at_timestamp(pGltf_data_t _data, fastgl
  * @param _animNum The index of the animation to query.
  * @return The total duration of the animation in seconds.
  */
-float animation_get_total_time(pGltf_data_t _data, uint32_t _animNum) {
+float lv_gltf_animation_get_total_time(pGltf_data_t _data, uint32_t _animNum) {
     const auto& asset = GET_ASSET(_data);
     auto& animation = asset->animations[_animNum];
     float _maxTime = -1.0f;

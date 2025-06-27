@@ -55,22 +55,28 @@ namespace fastgltf {
     requires std::same_as<std::remove_cvref_t<AssetType>, Asset>
         && std::is_invocable_v<Callback, fastgltf::Node&, FMAT4&, FMAT4&>
     #endif
-    void custom_iterateSceneNodes(AssetType&& asset, std::size_t sceneIndex, math::fmat4x4* initial, Callback callback) {
+    inline void custom_iterateSceneNodes(AssetType&& asset, std::size_t sceneIndex, math::fmat4x4* initial, Callback callback) {
         auto& scene = asset.scenes[sceneIndex];
+        auto& nodes = asset.nodes;
         auto function = [&](std::size_t nodeIndex, math::fmat4x4& parentWorldMatrix, auto& self) -> void {
-            assert(asset.nodes.size() > nodeIndex);
-            auto& node = asset.nodes[nodeIndex];
+            //assert(asset.nodes.size() > nodeIndex);
+            auto& node = nodes[nodeIndex];
             auto _localMat = getTransformMatrix(node, math::fmat4x4());
             std::invoke(callback, node, parentWorldMatrix, _localMat);
-            for (auto& child : node.children) {
+            uint32_t num_children = node.children.size(); 
+            if (num_children > 0) {
                 math::fmat4x4 _parentWorldTemp = parentWorldMatrix * _localMat;
-                self(child, _parentWorldTemp,  self);
+                if (num_children > 1) {
+                    math::fmat4x4 per_child_copy = math::fmat4x4(_parentWorldTemp);
+                    for (auto& child : node.children) self(child, per_child_copy, self);
+                } else {
+                    self(node.children[0], _parentWorldTemp,  self);
+                }
             }
         };
-        for (auto& sceneNode : scene.nodeIndices) {
-            auto tmat2 = FMAT4(*initial);
-            function(sceneNode, tmat2, function);
-        }
+        // auto tempmat = FMAT4(*initial);
+        //for (auto& sceneNode : scene.nodeIndices) function(sceneNode, &tempmat, function);
+        for (auto& sceneNode : scene.nodeIndices) function(sceneNode, *initial, function);
     }
 }
 // It's simpler here to just declare the functions as part of the fastgltf::math namespace.
@@ -265,7 +271,8 @@ void draw_primitive(  int32_t prim_num,
                         glUniform3fv( glGetUniformLocation( program, _targ1), 1, &lightNodeMat[3][0]);
 
                         strncpy(_targ1, (_prefix + "direction").c_str(), sizeof(_targ1) - 1); _targ1[sizeof(_targ1) - 1] = '\0'; 
-                        glUniform3fv( glGetUniformLocation( program, _targ1), 1, &lightNodeMat[2][0]);
+                        FVEC3 tlight_dir = FVEC3(-lightNodeMat[2][0], -lightNodeMat[2][1], -lightNodeMat[2][2]);
+                        glUniform3fv( glGetUniformLocation( program, _targ1), 1, &tlight_dir[0]);
 
                         strncpy(_targ1, (_prefix + "range").c_str(), sizeof(_targ1) - 1); _targ1[sizeof(_targ1) - 1] = '\0'; 
                         if (asset->lights[ii].range.has_value()) {
@@ -545,7 +552,7 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
             _motionDirty = true;
         }
         if (gltf_data->last_anim_num != anim_num) {
-            gltf_data->cur_anim_maxtime = animation_get_total_time(gltf_data, anim_num);
+            gltf_data->cur_anim_maxtime = lv_gltf_animation_get_total_time(gltf_data, anim_num);
             gltf_data->last_anim_num = anim_num;
         }
         if (gltf_data->local_timestamp >= gltf_data->cur_anim_maxtime) gltf_data->local_timestamp = 0.05f;
@@ -582,7 +589,11 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
         auto tmat = FMAT4();
         auto cammat = FMAT4();
         fastgltf::custom_iterateSceneNodes(*asset, sceneIndex, &tmat, [&](fastgltf::Node& node, FMAT4& parentworldmatrix, FMAT4& localmatrix) {
-            animation_matrix_apply(gltf_data->local_timestamp, anim_num, gltf_data, node, localmatrix);
+            bool made_changes = false;
+            if (animation_get_channel_set(anim_num, gltf_data, node)->size() > 0) {
+                animation_matrix_apply(gltf_data->local_timestamp, anim_num, gltf_data, node, localmatrix);
+                made_changes = true;
+            }
             if (gltf_data->overrides->find(&node) != gltf_data->overrides->end()) {
                 lv_gltf_override_t * currentOverride = (*gltf_data->overrides)[&node];
                 FVEC3 _pos;
@@ -597,14 +608,17 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
                         if (currentOverride->dataMask & OMC_CHAN1) _rot[0] = currentOverride->data1;
                         if (currentOverride->dataMask & OMC_CHAN2) _rot[1] = currentOverride->data2;
                         if (currentOverride->dataMask & OMC_CHAN3) _rot[2] = currentOverride->data3;
+                        made_changes = true;
                     } else if (currentOverride->prop == OP_POSITION) {
                         if (currentOverride->dataMask & OMC_CHAN1) _pos[0] = currentOverride->data1;
                         if (currentOverride->dataMask & OMC_CHAN2) _pos[1] = currentOverride->data2;
                         if (currentOverride->dataMask & OMC_CHAN3) _pos[2] = currentOverride->data3;
+                        made_changes = true;
                     } else if (currentOverride->prop == OP_SCALE) {
                         if (currentOverride->dataMask & OMC_CHAN1) _scale[0] = currentOverride->data1;
                         if (currentOverride->dataMask & OMC_CHAN2) _scale[1] = currentOverride->data2;
                         if (currentOverride->dataMask & OMC_CHAN3) _scale[2] = currentOverride->data3;
+                        made_changes = true;
                     }
 
                     // Move to the next override in the linked list
@@ -622,43 +636,16 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
                         _scale);
             }
 
-
-/*            if (gltf_data->overrides->find(&node) != gltf_data->overrides->end() ) {
-                const auto& _override = (*gltf_data->overrides)[&node];
-                FVEC3 _pos;
-                fastgltf::math::fquat _quat;
-                FVEC3 _scale;
-                fastgltf::math::decomposeTransformMatrix(localmatrix, _scale, _quat, _pos);
-                FVEC3 _rot = quaternionToEuler(_quat);
-                if (_override.prop == OP_ROTATION) {
-                    if (_override.dataMask & OMC_CHAN1) _rot[0] = _override.data1;
-                    if (_override.dataMask & OMC_CHAN2) _rot[1] = _override.data2;
-                    if (_override.dataMask & OMC_CHAN3) _rot[2] = _override.data3;
-                } else if (_override.prop == OP_POSITION) {
-                    if (_override.dataMask & OMC_CHAN1) _pos[0] = _override.data1;
-                    if (_override.dataMask & OMC_CHAN2) _pos[1] = _override.data2;
-                    if (_override.dataMask & OMC_CHAN3) _pos[2] = _override.data3;
-                } else if (_override.prop == OP_SCALE) {
-                    if (_override.dataMask & OMC_CHAN1) _scale[0] = _override.data1;
-                    if (_override.dataMask & OMC_CHAN2) _scale[1] = _override.data2;
-                    if (_override.dataMask & OMC_CHAN3) _scale[2] = _override.data3;
-                }
-                localmatrix = 
-                    fastgltf::math::scale( 
-                        fastgltf::math::rotate(
-                            fastgltf::math::translate(
-                                FMAT4(), 
-                                _pos ), 
-                            fastgltf::math::eulerToQuaternion(_rot[0], _rot[1], _rot[2]) ),
-                            _scale);
+            if (made_changes || !has_cached_transform(gltf_data, &node)) {
+                set_cached_transform(gltf_data, &node, parentworldmatrix * localmatrix);
             }
-*/
-            set_cached_transform(gltf_data, &node, parentworldmatrix * localmatrix);
             if (node.cameraIndex.has_value() && (gltf_data->current_camera_index < PREF_CAM_NUM)) {
                 gltf_data->has_any_cameras = true; 
-                gltf_data->selected_camera_node = &node; 
-                cammat = (parentworldmatrix * localmatrix); 
                 gltf_data->current_camera_index += 1; 
+                if (gltf_data->current_camera_index == PREF_CAM_NUM) {
+                    gltf_data->selected_camera_node = &node; 
+                    cammat = (parentworldmatrix * localmatrix); 
+                }
             } 
         } ); 
         if (gltf_data->has_any_cameras) {
@@ -667,11 +654,6 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
             gltf_data->viewPos[2] = cammat[3][2];
             gltf_data->viewMat = fastgltf::math::invert(cammat); 
         } else gltf_data->current_camera_index = -1; 
-
-        //if (gltf_data->node_by_light_index->size() > 0) {
-        //    // Scene contains lights and they may have just moved so update their position within the current shaders
-        //    std::cout << "Updating "<< std::to_string(gltf_data->node_by_light_index->size()) <<" lights...\n";
-        //}
     } 
 
     if ((gltf_data->_lastFrameNoMotion == true) && (gltf_data->__lastFrameNoMotion == true) && (___lastFrameNoMotion == true)) {

@@ -162,6 +162,7 @@ void            lv_gltf_set_node_index      (_DATA D,_UINT I,_NODE N)   {(*D->no
 void*           get_prim_from_mesh          (MeshData* M, uint64_t I)   {_RET &(M->primitives[I]);}
 
 _MAT4           get_cached_transform        (_DATA D,_NODE N)           {_RET ((*D->node_transform_cache)[N]);}
+bool            has_cached_transform        (_DATA D,_NODE N)           {_RET (D->node_transform_cache->find(N) != D->node_transform_cache->end());}
 void            set_cached_transform        (_DATA D,_NODE N,_MAT4 M)   {(*D->node_transform_cache)[N] = M;}
 void            clear_transform_cache       (_DATA D)                   { D->node_transform_cache->clear();}
 bool            transform_cache_is_empty    (_DATA D)                   { _RET D->node_transform_cache->size() == 0;}

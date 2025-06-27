@@ -272,14 +272,22 @@ int main(int argc, char *argv[]) {
         unsigned long int usec_per_frame_optimal = 0;
         float seconds_this_second = 0.f;
         float total_seconds = 0.f;
-        float cycle_seconds = fabs(spin_rate) > 0 ? 360.f /  fabs(spin_rate) : 0.f;
         float goal_fps = 15.0f;
         float goal_fps_span = 1.0f / goal_fps;
         time_t last_poll = time(0);
         #ifdef EXPERIMENTAL_GROUNDCAST 
         float _groundpos[3] = {0.f, 0.f, 0.f};
         #endif /* EXPERIMENTAL_GROUNDCAST */
+        float cycle_seconds = fabs(spin_rate) > 0 ? 360.f /  fabs(spin_rate) : 0.f;
+        if (lv_gltf_view_get_probe(demo_gltfdata)->animationCount > 0) {
+            if (anim_enabled && (anim < lv_gltf_view_get_probe(demo_gltfdata)->animationCount)){
+                printf("USING ANIMATION FOR CYCLE TIMING\n");
+                float anim_total_time = lv_gltf_animation_get_total_time(demo_gltfdata, anim);
+                cycle_seconds = anim_total_time / anim_rate;
+            }
+        }
         cycle_frames = ui_max(1, (uint32_t)(cycle_seconds * goal_fps));
+        printf("CYCLE TIMING: Cycle Seconds = %.2f :: Frames = %d\n", cycle_seconds, cycle_frames);
         //printf ("With a spin rate of %.2f degrees per second, and an FPS of %.2f, it would take %d frames to complete one cycle.\n", spin_rate, goal_fps, cycle_frames);
 
         bool _timing_break_flag = false;
@@ -340,14 +348,19 @@ int main(int argc, char *argv[]) {
 
             demo_nav_gradual_to_goals( );
 
-            if (animate_spin) {
-                #ifdef ENABLE_DESKTOP_MODE
+            #ifdef ENABLE_DESKTOP_MODE
+                if (animate_spin) {
                     spin_counter_degrees += (spin_rate * (desktop_mode?goal_fps_span:sec_span));
-                #else
+                    lv_gltf_view_set_spin_degree_offset(demo_gltfview, spin_counter_degrees);
+                }
+                lv_gltf_view_set_timestep(demo_gltfview, anim_enabled ? anim_rate * (desktop_mode?goal_fps_span:sec_span): 0.f );
+            #else
+                if (animate_spin) {
                     spin_counter_degrees += (spin_rate * sec_span);
-                #endif
-                lv_gltf_view_set_spin_degree_offset(demo_gltfview, spin_counter_degrees);
-            }
+                    lv_gltf_view_set_spin_degree_offset(demo_gltfview, spin_counter_degrees);
+                }
+                lv_gltf_view_set_timestep(demo_gltfview, anim_enabled ? anim_rate * sec_span : 0.f );
+            #endif
 
             lv_indev_get_point(mouse, &_mousepoint);
             int mouse_delta_x = (_mousepoint.x - lastMouseX); mouse_delta_x *= mouse_delta_x;
@@ -407,7 +420,6 @@ int main(int argc, char *argv[]) {
                 frames_rendered_this_second = 0;
                 usec_per_frame_optimal = (int)(1000000.f / ROLLING_FPS);
             }
-            lv_gltf_view_set_timestep(demo_gltfview, anim_enabled ? sec_span * anim_rate : 0.f );
             
             lv_3dtexture_id_t gltf_texture = 0;
             #ifdef ENABLE_DESKTOP_MODE

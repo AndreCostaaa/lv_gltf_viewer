@@ -80,37 +80,41 @@ void lv_gltf_view_set_fov (lv_gltf_view_t * view, float vertical_fov ) {
     }
 }
 
-void lv_gltf_view_set_bgcolor_red (lv_gltf_view_t * view, uint32_t r ) {
+void lv_gltf_view_set_bg_r (lv_gltf_view_t * view, uint32_t r ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
     if (desc->bg_r != r) {
         desc->bg_r = r;
         desc->dirty = true;
     }
 }
+void lv_gltf_view_set_bgcolor_red (lv_gltf_view_t * view, uint32_t r ) { lv_gltf_view_set_bg_r (view, r ); }
 
-void lv_gltf_view_set_bgcolor_green (lv_gltf_view_t * view, uint32_t g ) {
+void lv_gltf_view_set_bg_g (lv_gltf_view_t * view, uint32_t g ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
     if (desc->bg_g != g) {
         desc->bg_g = g;
         desc->dirty = true;
     }
 }
+void lv_gltf_view_set_bgcolor_green (lv_gltf_view_t * view, uint32_t g ) { lv_gltf_view_set_bg_g (view, g ); }
 
-void lv_gltf_view_set_bgcolor_blue (lv_gltf_view_t * view, uint32_t b ) {
+void lv_gltf_view_set_bg_b (lv_gltf_view_t * view, uint32_t b ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
     if (desc->bg_b != b) {
         desc->bg_b = b;
         desc->dirty = true;
     }
 }
+void lv_gltf_view_set_bgcolor_blue (lv_gltf_view_t * view, uint32_t b ) { lv_gltf_view_set_bg_b (view, b ); }
 
-void lv_gltf_view_set_bg_opa (lv_gltf_view_t * view, uint32_t a ) {
+void lv_gltf_view_set_bg_a (lv_gltf_view_t * view, uint32_t a ) {
     gl_viewer_desc_t * desc = (gl_viewer_desc_t *)lv_gltf_view_get_desc(view);
     if (desc->bg_a != a) {
         desc->bg_a = a;
         desc->dirty = true;
     }
 }
+void lv_gltf_view_set_bg_opa (lv_gltf_view_t * view, uint32_t a ) { lv_gltf_view_set_bg_a (view, a ); }
 
 void lv_gltf_view_set_bgcolor_RGB (lv_gltf_view_t * view, uint32_t r, uint32_t g, uint32_t b) {
     lv_gltf_view_set_bgcolor_red(view, r);

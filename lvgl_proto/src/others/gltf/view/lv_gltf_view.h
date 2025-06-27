@@ -200,6 +200,7 @@ void lv_gltf_view_set_focal_z (lv_gltf_view_t * view, float focal_z);
  * @param r The red component value (0-255) as a uint32_t.
  */
 void lv_gltf_view_set_bgcolor_red (lv_gltf_view_t * view, uint32_t r );
+void lv_gltf_view_set_bg_r (lv_gltf_view_t * view, uint32_t r );
 
 /**
  * @brief Set the green component of the background color.
@@ -208,6 +209,7 @@ void lv_gltf_view_set_bgcolor_red (lv_gltf_view_t * view, uint32_t r );
  * @param g The green component value (0-255) as a uint32_t.
  */
 void lv_gltf_view_set_bgcolor_green (lv_gltf_view_t * view, uint32_t g );
+void lv_gltf_view_set_bg_g (lv_gltf_view_t * view, uint32_t g );
 
 /**
  * @brief Set the blue component of the background color.
@@ -216,6 +218,7 @@ void lv_gltf_view_set_bgcolor_green (lv_gltf_view_t * view, uint32_t g );
  * @param b The blue component value (0-255) as a uint32_t.
  */
 void lv_gltf_view_set_bgcolor_blue (lv_gltf_view_t * view, uint32_t b );
+void lv_gltf_view_set_bg_b (lv_gltf_view_t * view, uint32_t b );
 
 /**
  * @brief Set the opacity of the background color.
@@ -224,6 +227,7 @@ void lv_gltf_view_set_bgcolor_blue (lv_gltf_view_t * view, uint32_t b );
  * @param a The opacity value (0-255) as a uint32_t, where 0 is fully transparent and 255 is fully opaque.
  */
 void lv_gltf_view_set_bg_opa (lv_gltf_view_t * view, uint32_t a );
+void lv_gltf_view_set_bg_a (lv_gltf_view_t * view, uint32_t a );
 
 /**
  * @brief Set the background color using RGB components.
@@ -578,6 +582,8 @@ void lv_gltf_view_utils_save_texture_to_png( uint32_t tex_id, const char * filen
 
 // TO-DO: This should be in gltf_data, not view
 void lv_gltf_view_set_timestep (lv_gltf_view_t * view, float timestep );
+
+float lv_gltf_animation_get_total_time(lv_gltf_data_t * data, uint32_t animnum );
 
 
 #ifdef __cplusplus

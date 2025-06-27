@@ -462,6 +462,15 @@ void clear_transform_cache(lv_gltf_data_t * D);
 FMAT4 get_cached_transform(lv_gltf_data_t * D, NodePtr N);
 
 /**
+ * @brief Check if a cached transformation matrix exists for a given node.
+ *
+ * @param D Pointer to the lv_gltf_data_t object containing the model data.
+ * @param N Pointer to the NodePtr representing the node for which to retrieve the transformation.
+ * @return true if a cache item exists, false otherwise
+ */
+bool has_cached_transform(lv_gltf_data_t * D, NodePtr N);
+
+/**
  * @brief Check if the transformation cache is empty.
  *
  * @param D Pointer to the lv_gltf_data_t object containing the model data.

@@ -1,1 +1,1 @@
-cmake -DCMAKE_BUILD_TYPE=Release -B build -S .
+cmake -DCMAKE_BUILD_TYPE=Release -B . -S .
