@@ -9,3 +9,4 @@ CMakeCache.txt
 /lib/*.a
 /render_frames/*
 .cache
+gltf_view
