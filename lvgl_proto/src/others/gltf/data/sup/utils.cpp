@@ -120,6 +120,8 @@ bool lv_gltf_data_utils_get_texture_info( lv_gltf_data_t * data_obj, uint32_t mo
 }
 
 bool lv_gltf_data_utils_get_texture_pixels( void * pixels, lv_gltf_data_t * data_obj, uint32_t model_texture_index, uint32_t mipmapnum, uint32_t width, uint32_t height, bool has_alpha ) {
+    LV_UNUSED(width);  // This parameter is specified because WebGL can't read a texture's width from the GPU, however this isn't yet implemented so for now it either uses the GPU or it fails.
+    LV_UNUSED(height); // This parameter is specified because WebGL can't read a texture's width from the GPU, however this isn't yet implemented so for now it either uses the GPU or it fails.
     if (model_texture_index < data_obj->textures->size()) {
         uint32_t texid = (*data_obj->textures)[model_texture_index].texture;
         // Bind the texture

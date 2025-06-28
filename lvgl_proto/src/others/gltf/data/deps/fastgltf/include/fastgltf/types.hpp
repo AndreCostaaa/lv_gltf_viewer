@@ -114,7 +114,9 @@ namespace fastgltf {
 		FASTGLTF_EXPORT using nvec4 = math::vec<num, 4>;
 	}
 
+#ifdef _MSC_VER
 #pragma region Enums
+#endif
     // clang-format off
     FASTGLTF_EXPORT enum class PrimitiveType : std::uint8_t {
         Points = 0,
@@ -343,9 +345,10 @@ namespace fastgltf {
 	    Invalid
 	};
 #endif
+#ifdef _MSC_VER
 #pragma endregion
-
 #pragma region ConversionFunctions
+#endif
     /**
      * Gets the number of components for each element for the given accessor type. For example, with
      * a Vec3 accessor type this will return 3, as a Vec3 contains 3 components.
@@ -576,9 +579,11 @@ namespace fastgltf {
 	    }
 	}
 #endif
+#ifdef _MSC_VER
 #pragma endregion
 
 #pragma region Containers
+#endif
     /**
      * A static vector which cannot be resized freely. When constructed, the backing array is allocated once.
      */
@@ -1460,10 +1465,11 @@ namespace fastgltf {
 	bool operator>=(const OptionalWithFlagValue<T>& opt, const U& value) {
 		return opt.has_value() && *opt >= value;
 	}
-
+#ifdef _MSC_VER
 #pragma endregion
 
 #pragma region Structs
+#endif
 	FASTGLTF_EXPORT class URI;
 
 	/**
@@ -2895,9 +2901,10 @@ namespace fastgltf {
 			return *this;
 		}
     };
+#ifdef _MSC_VER
 #pragma endregion
+#endif
 } // namespace fastgltf
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif

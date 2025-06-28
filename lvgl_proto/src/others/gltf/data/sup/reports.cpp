@@ -37,6 +37,9 @@ size_t reports_get_mesh_total_vertex_count(ASSET* const asset, fastgltf::Mesh& m
 }
 
 std::string reports_make_mesh_summary( lv_gltf_data_t * data ) {
+    LV_UNUSED(data);
+    return std::string("[Mesh reports being revised check back soon.]\n");
+    /*
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);
     std::string _out = "";
@@ -54,7 +57,7 @@ std::string reports_make_mesh_summary( lv_gltf_data_t * data ) {
             //_out += std::string("   |     Type: ") +  std::string(_ptlbl) + " ( #" + std::to_string(data->__prim_type) + std::string(" )\n"); 
             _out += std::string("   |     Type: ") +  std::string(_ptlbl) + std::string("\n"); 
         }
-    return _out;
+    return _out; */
 }
 
 void lv_gltf_data_make_mesh_summary(lv_gltf_data_t * data, char *dest_buffer, uint32_t dest_buffer_size) {
@@ -65,6 +68,9 @@ void lv_gltf_data_make_mesh_summary(lv_gltf_data_t * data, char *dest_buffer, ui
 }
 
 std::string reports_make_material_summary(lv_gltf_data_t * data ) {
+    LV_UNUSED(data);
+    return std::string("[Material reports being revised check back soon.]\n");
+/*
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);    
     std::string _out = "";
@@ -72,6 +78,7 @@ std::string reports_make_material_summary(lv_gltf_data_t * data ) {
         for (auto& material : asset->materials) {
             _out += std::string("   |   + '") + std::string(material.name) + "'\n"; }
     return _out;
+*/
 }
 
 void lv_gltf_data_make_material_summary(lv_gltf_data_t * data, char *dest_buffer, uint32_t dest_buffer_size) {
@@ -81,6 +88,9 @@ void lv_gltf_data_make_material_summary(lv_gltf_data_t * data, char *dest_buffer
 }
 
 std::string reports_make_images_summary(lv_gltf_data_t * data ) {
+    LV_UNUSED(data);
+    return std::string("[Image reports being revised check back soon.]\n");
+    /*
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);
     int32_t _result;
@@ -134,6 +144,7 @@ std::string reports_make_images_summary(lv_gltf_data_t * data ) {
     
     }
     return _out;
+    */
 }
 
 void lv_gltf_data_make_images_summary(lv_gltf_data_t * data, char *dest_buffer, uint32_t dest_buffer_size){
@@ -162,6 +173,9 @@ void lv_gltf_data_make_scenes_summary(lv_gltf_data_t * data, char *dest_buffer, 
 
 
 std::string reports_make_animations_summary(lv_gltf_data_t * data ) {
+    LV_UNUSED(data);
+    return std::string("[Animations reports being revised check back soon.]\n");
+    /*
     //auto& asset = data->asset;
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);
@@ -224,6 +238,7 @@ std::string reports_make_animations_summary(lv_gltf_data_t * data ) {
             }
         }
     return _out;
+    */
 }
 
 void lv_gltf_data_make_animations_summary(lv_gltf_data_t * data, char *dest_buffer, uint32_t dest_buffer_size){

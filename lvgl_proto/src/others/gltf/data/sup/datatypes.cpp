@@ -73,6 +73,7 @@ void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
     _DataStructMem->all_overrides->reserve(MAX_OVERRIDES);
     _DataStructMem->all_override_count = 0;
     _DataStructMem->node_by_path = new StringNodeMap();
+    _DataStructMem->node_by_ip = new StringNodeMap();
     _DataStructMem->index_by_node = new NodeIntMap();
     _DataStructMem->node_by_index = new NodeVector();
     _DataStructMem->node_transform_cache = new NodeTransformMap();
@@ -101,6 +102,7 @@ void __free_data_struct(_DATA _data) {
     _data->all_overrides->clear(); delete _data->all_overrides; _data->all_overrides = nullptr; 
     _data->overrides->clear(); delete _data->overrides; _data->overrides = nullptr; 
     _data->node_by_path->clear(); delete _data->node_by_path; _data->node_by_path = nullptr; 
+    _data->node_by_ip->clear(); delete _data->node_by_ip; _data->node_by_ip = nullptr; 
     _data->index_by_node->clear(); delete _data->index_by_node; _data->index_by_node = nullptr;  
     _data->node_by_index->clear(); delete _data->node_by_index; _data->node_by_index = nullptr; 
     _data->node_transform_cache->clear(); delete _data->node_transform_cache;_data->node_transform_cache = nullptr; 
@@ -146,7 +148,7 @@ void set_asset(_DATA D, ASSET A) {
 _MESH*          get_meshdata_num            (_DATA D,_UINT I) {_RET &((*D->meshes)[I]);}
 void*           get_texdata_set             (_DATA D)         {_RET &(D->textures);}
 double          lv_gltf_data_get_radius     (_DATA D)         {_RET (double)D->bound_radius;}
-int64_t         lv_gltf_data_get_int_radiusX1000 (_DATA D)         {_RET (int64_t)(D->bound_radius * 1000);}
+int64_t         lv_gltf_data_get_int_radiusX1000 (_DATA D)    {_RET (int64_t)(D->bound_radius * 1000);}
 float*          lv_gltf_data_get_center     (_DATA D)         {_RET D->vertex_cen;}
 float*          get_bounds_min              (_DATA D)         {_RET D->vertex_min;}
 float*          get_bounds_max              (_DATA D)         {_RET D->vertex_max;}
@@ -157,9 +159,10 @@ Texture*        get_texdata                 (_DATA D,_UINT I) {_RET &((*D->textu
 UniformLocs*    get_uniform_ids             (_DATA D,_UINT I) {_RET &((*D->shaderUniforms)[I]);}
 uint64_t        get_texdata_glid            (_DATA D,_UINT I) {_RET get_texdata(D, I)->texture;}
 void            allocate_index              (_DATA D,_UINT I) {(*D->node_by_index).resize(I);}
-void            set_probe                   (_DATA D,gltf_probe_info _probe)    {D->probe = std::move(_probe);}
-void            lv_gltf_set_node_at_path    (_DATA D,std::string P,_NODE N)   {(*D->node_by_path)[P] = N; }
-void            lv_gltf_set_node_index      (_DATA D,_UINT I,_NODE N)   {(*D->node_by_index)[I] = N;  (*D->index_by_node)[N] = I;}
+void            set_probe                   (_DATA D,gltf_probe_info _probe) {D->probe = std::move(_probe);}
+void            set_node_at_path            (_DATA D,std::string P,_NODE N)  {(*D->node_by_path)[P] = N; }
+void            set_node_at_ip              (_DATA D,std::string I,_NODE N)  {(*D->node_by_ip)[I] = N; }
+void            set_node_index              (_DATA D,_UINT I,_NODE N)   {(*D->node_by_index)[I] = N;  (*D->index_by_node)[N] = I;}
 void*           get_prim_from_mesh          (MeshData* M, uint64_t I)   {_RET &(M->primitives[I]);}
 
 _MAT4           get_cached_transform        (_DATA D,_NODE N)           {_RET ((*D->node_transform_cache)[N]);}

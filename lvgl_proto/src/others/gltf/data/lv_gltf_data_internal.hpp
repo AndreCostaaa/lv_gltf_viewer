@@ -41,7 +41,7 @@
 #include <vector>
 #include <map>
 
-using UintVector = std::vector<uint32_t>;                         // Vector of int32_t's
+using UintVector = std::vector<uint32_t>;                       // Vector of int32_t's
 using IntVector = std::vector<int32_t>;                         // Vector of int32_t's
 using LongVector = std::vector<int64_t>;                        // Vector of int64_t's
 using NodePtr = fastgltf::Node*;                                // Pointer to fastgltf::Node
@@ -58,7 +58,7 @@ using NodeIntMap = std::map<NodePtr, uint32_t>;                 // Map of Nodes 
 using NodeVector = std::vector<NodePtr>;                        // Map of Nodes by string (name)
 using NodePrimCenterMap = std::map<uint32_t, std::map<uint32_t, fastgltf::math::fvec4>>; // Map of Node Index to Map of Prim Index to CenterXYZ+RadiusW Vec4
 #include "sup/include/lv_gltf_data_datatypes.h"
-using NodeOverrideMap = std::map<NodePtr, lv_gltf_override_t *>;           // Map of Overrides by Node
+using NodeOverrideMap = std::map<NodePtr, lv_gltf_override_t *>; // Map of Overrides by Node
 using OverrideVector= std::vector<lv_gltf_override_t>;           // Map of Overrides by Node
 
 
@@ -69,6 +69,7 @@ struct lv_gltf_data_struct {
     bool load_success;
     gltf_probe_info probe;
     StringNodeMap* node_by_path;
+    StringNodeMap* node_by_ip;
     NodeIntMap* index_by_node;
     NodeVector* node_by_index;
     NodeVector* node_by_light_index;

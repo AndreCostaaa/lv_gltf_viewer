@@ -359,7 +359,6 @@ std::size_t injest_vec2_attribute(
     lv_gltf_data_t * data,
     fastgltf::Primitive* prim,
     const char * attrib_id,
-    GLuint vao,
     GLuint primitive_vertex_buffer,
     std::size_t offset,
     const std::function<void(FVEC2, std::size_t)>& functor) {
@@ -390,7 +389,6 @@ std::size_t injest_vec3_attribute(
     lv_gltf_data_t * data,
     fastgltf::Primitive* prim,
     const char * attrib_id,
-    GLuint vao,
     GLuint primitive_vertex_buffer,
     std::size_t offset,
     const std::function<void(FVEC3, std::size_t)>& functor){
@@ -421,7 +419,6 @@ std::size_t injest_vec4_attribute(
     lv_gltf_data_t * data,
     fastgltf::Primitive* prim,
     const char * attrib_id,
-    GLuint vao,
     GLuint primitive_vertex_buffer,
     std::size_t offset,
     const std::function<void(FVEC4, std::size_t)>& functor) {
@@ -462,7 +459,11 @@ std::size_t injest_vec4_attribute(
  */
 void injest_light(fastgltf::Asset * asset, lv_gltf_data_t * data_obj, uint32_t light_index, fastgltf::Light& light, size_t sceneIndex) {
     FMAT4 tmat;
+    LV_UNUSED(light);  // It would seem like we'd need this info but not really, just the index will do at the loading phase, the rest is pulled during frame updates.
+
     fastgltf::findlight_iterateSceneNodes(*asset, sceneIndex, &tmat, [&](fastgltf::Node& node, FMAT4& parentworldmatrix, FMAT4& localmatrix) {
+        LV_UNUSED(parentworldmatrix);
+        LV_UNUSED(localmatrix);
         if (node.lightIndex.has_value()) {
             if (node.lightIndex.value() == light_index){
                 printf ("SCENE LIGHT BEING ADDED #%d\n", light_index);
@@ -538,15 +539,15 @@ bool injest_mesh(lv_gltf_data_t * data_obj, fastgltf::Mesh& mesh) {
         glBufferData(GL_ARRAY_BUFFER, positionAccessor.count * sizeof(Vertex), nullptr, GL_STATIC_DRAW);
         {
             int32_t _AN = 0;
-            _AN = injest_vec3_attribute( _AN, data_obj, &(*it), "POSITION",   vao, primitive.vertexBuffer, offsetof(Vertex, position), [&](FVEC3 V, std::size_t idx) { vertices[idx].position = FVEC3(V.x(), V.y(), V.z()); });
-            _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "JOINTS_0",   vao, primitive.vertexBuffer, offsetof(Vertex, joints),   [&](FVEC4 V, std::size_t idx) { vertices[idx].joints   = FVEC4(V.x(), V.y(), V.z(), V.w()); });
-            _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "JOINTS_1",   vao, primitive.vertexBuffer, offsetof(Vertex, joints2),  [&](FVEC4 V, std::size_t idx) { vertices[idx].joints2  = FVEC4(V.x(), V.y(), V.z(), V.w()); });
-            _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "WEIGHTS_0",  vao, primitive.vertexBuffer, offsetof(Vertex, weights),  [&](FVEC4 V, std::size_t idx) { vertices[idx].weights  = FVEC4(V.x(), V.y(), V.z(), V.w()); });
-            _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "WEIGHTS_1",  vao, primitive.vertexBuffer, offsetof(Vertex, weights2), [&](FVEC4 V, std::size_t idx) { vertices[idx].weights2 = FVEC4(V.x(), V.y(), V.z(), V.w()); });
-            _AN = injest_vec3_attribute( _AN, data_obj, &(*it), "NORMAL",     vao, primitive.vertexBuffer, offsetof(Vertex, normal),   [&](FVEC3 V, std::size_t idx) { vertices[idx].normal   = FVEC3(V.x(), V.y(), V.z()); });
-            _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "TANGENT",    vao, primitive.vertexBuffer, offsetof(Vertex, tangent),  [&](FVEC4 V, std::size_t idx) { vertices[idx].tangent  = FVEC4(V.x(), V.y(), V.z(), V.w()); });
-            _AN = injest_vec2_attribute( _AN, data_obj, &(*it), "TEXCOORD_0", vao, primitive.vertexBuffer, offsetof(Vertex, uv),       [&](FVEC2 V, std::size_t idx) { vertices[idx].uv       = FVEC2(V.x(), V.y()); });
-            _AN = injest_vec2_attribute( _AN, data_obj, &(*it), "TEXCOORD_1", vao, primitive.vertexBuffer, offsetof(Vertex, uv2),      [&](FVEC2 V, std::size_t idx) { vertices[idx].uv2      = FVEC2(V.x(), V.y()); });
+            _AN = injest_vec3_attribute( _AN, data_obj, &(*it), "POSITION",   primitive.vertexBuffer, offsetof(Vertex, position), [&](FVEC3 V, std::size_t idx) { vertices[idx].position = FVEC3(V.x(), V.y(), V.z()); });
+            _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "JOINTS_0",   primitive.vertexBuffer, offsetof(Vertex, joints),   [&](FVEC4 V, std::size_t idx) { vertices[idx].joints   = FVEC4(V.x(), V.y(), V.z(), V.w()); });
+            _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "JOINTS_1",   primitive.vertexBuffer, offsetof(Vertex, joints2),  [&](FVEC4 V, std::size_t idx) { vertices[idx].joints2  = FVEC4(V.x(), V.y(), V.z(), V.w()); });
+            _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "WEIGHTS_0",  primitive.vertexBuffer, offsetof(Vertex, weights),  [&](FVEC4 V, std::size_t idx) { vertices[idx].weights  = FVEC4(V.x(), V.y(), V.z(), V.w()); });
+            _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "WEIGHTS_1",  primitive.vertexBuffer, offsetof(Vertex, weights2), [&](FVEC4 V, std::size_t idx) { vertices[idx].weights2 = FVEC4(V.x(), V.y(), V.z(), V.w()); });
+            _AN = injest_vec3_attribute( _AN, data_obj, &(*it), "NORMAL",     primitive.vertexBuffer, offsetof(Vertex, normal),   [&](FVEC3 V, std::size_t idx) { vertices[idx].normal   = FVEC3(V.x(), V.y(), V.z()); });
+            _AN = injest_vec4_attribute( _AN, data_obj, &(*it), "TANGENT",    primitive.vertexBuffer, offsetof(Vertex, tangent),  [&](FVEC4 V, std::size_t idx) { vertices[idx].tangent  = FVEC4(V.x(), V.y(), V.z(), V.w()); });
+            _AN = injest_vec2_attribute( _AN, data_obj, &(*it), "TEXCOORD_0", primitive.vertexBuffer, offsetof(Vertex, uv),       [&](FVEC2 V, std::size_t idx) { vertices[idx].uv       = FVEC2(V.x(), V.y()); });
+            _AN = injest_vec2_attribute( _AN, data_obj, &(*it), "TEXCOORD_1", primitive.vertexBuffer, offsetof(Vertex, uv2),      [&](FVEC2 V, std::size_t idx) { vertices[idx].uv2      = FVEC2(V.x(), V.y()); });
         }
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, primitive.vertexBuffer);
@@ -633,7 +634,7 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, lv_gltf_data_t * data_obj,
         GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
         bool image_invalidated = false;
         std::visit(fastgltf::visitor {
-            [](auto& arg) {},
+            [](auto& arg) {LV_UNUSED(arg);},
             [&](fastgltf::sources::URI& filePath) {
                 assert(filePath.fileByteOffset == 0); // We don't support offsets with stbi.
                 assert(filePath.uri.isLocalPath()); // We're only capable of loading local files.
@@ -668,7 +669,7 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, lv_gltf_data_t * data_obj,
                 std::visit(fastgltf::visitor {
                     // We only care about VectorWithMime here, because we specify LoadExternalBuffers, meaning
                     // all buffers are already loaded into a vector.
-                    [](auto& arg) {},
+                    [](auto& arg) {LV_UNUSED(arg);},
                     [&](fastgltf::sources::Array& vector) {
                         int32_t width, height, nrChannels;
                     #ifdef LVGL_ENABLE_WEBP_IMAGES
@@ -965,8 +966,10 @@ void data_load_file_or_bytes(const char * gltf_path_or_bytes, size_t size_if_pat
 
     allocate_index(_retdata, asset->nodes.size());
     fastgltf::namegen_iterateSceneNodes(*asset, _sceneIndex, [&](fastgltf::Node& node, std::string& nodePath, std::string& nodeIp, std::size_t nodeIndex, std::size_t childIndex) {
-        lv_gltf_set_node_at_path(_retdata, nodePath, &node);
-        lv_gltf_set_node_index(_retdata, nodeIndex, &node);
+        LV_UNUSED(childIndex);
+        set_node_at_path(_retdata, nodePath, &node);
+        set_node_at_ip(_retdata, nodeIp, &node);
+        set_node_index(_retdata, nodeIndex, &node);
     } ); 
     // ---------
     
