@@ -23,7 +23,6 @@ typedef struct lv_gltf_data_struct lv_gltf_data_t;
 #ifndef LV_GLTFOVERRIDE_H
 #ifndef LV_GLTFOVERRIDE_PREDEFINED
 #define LV_GLTFOVERRIDE_PREDEFINED
-//struct lv_gltf_override_struct;
 typedef struct lv_gltf_override_struct lv_gltf_override_t;
 #endif
 #endif

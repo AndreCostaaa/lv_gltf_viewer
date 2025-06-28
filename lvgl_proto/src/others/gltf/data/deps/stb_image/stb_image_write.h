@@ -272,6 +272,12 @@ typedef struct
    int buf_used;
 } stbi__write_context;
 
+#define STBI_WRITE_CONTEXT_INIT(func_ptr, ctx_ptr) { \
+    (func_ptr),                                      \
+    (ctx_ptr),                                      \
+    {0},                                            \
+    0                                               \
+}
 // initialize a callback-based context
 static void stbi__start_write_callbacks(stbi__write_context *s, stbi_write_func *c, void *context)
 {
@@ -511,7 +517,9 @@ static int stbi_write_bmp_core(stbi__write_context *s, int x, int y, int comp, c
 
 STBIWDEF int stbi_write_bmp_to_func(stbi_write_func *func, void *context, int x, int y, int comp, const void *data)
 {
-   stbi__write_context s = { 0 };
+//   stbi__write_context s = { 0 };
+
+   stbi__write_context s = STBI_WRITE_CONTEXT_INIT(NULL, NULL);
    stbi__start_write_callbacks(&s, func, context);
    return stbi_write_bmp_core(&s, x, y, comp, data);
 }
@@ -519,7 +527,9 @@ STBIWDEF int stbi_write_bmp_to_func(stbi_write_func *func, void *context, int x,
 #ifndef STBI_WRITE_NO_STDIO
 STBIWDEF int stbi_write_bmp(char const *filename, int x, int y, int comp, const void *data)
 {
-   stbi__write_context s = { 0 };
+//   stbi__write_context s = { 0 };
+   stbi__write_context s = STBI_WRITE_CONTEXT_INIT(NULL, NULL);
+
    if (stbi__start_write_file(&s,filename)) {
       int r = stbi_write_bmp_core(&s, x, y, comp, data);
       stbi__end_write_file(&s);
@@ -610,7 +620,9 @@ static int stbi_write_tga_core(stbi__write_context *s, int x, int y, int comp, v
 
 STBIWDEF int stbi_write_tga_to_func(stbi_write_func *func, void *context, int x, int y, int comp, const void *data)
 {
-   stbi__write_context s = { 0 };
+//   stbi__write_context s = { 0 };
+   stbi__write_context s = STBI_WRITE_CONTEXT_INIT(NULL, NULL);
+
    stbi__start_write_callbacks(&s, func, context);
    return stbi_write_tga_core(&s, x, y, comp, (void *) data);
 }
@@ -618,7 +630,9 @@ STBIWDEF int stbi_write_tga_to_func(stbi_write_func *func, void *context, int x,
 #ifndef STBI_WRITE_NO_STDIO
 STBIWDEF int stbi_write_tga(char const *filename, int x, int y, int comp, const void *data)
 {
-   stbi__write_context s = { 0 };
+//   stbi__write_context s = { 0 };
+   stbi__write_context s = STBI_WRITE_CONTEXT_INIT(NULL, NULL);
+
    if (stbi__start_write_file(&s,filename)) {
       int r = stbi_write_tga_core(&s, x, y, comp, (void *) data);
       stbi__end_write_file(&s);
@@ -786,14 +800,18 @@ static int stbi_write_hdr_core(stbi__write_context *s, int x, int y, int comp, f
 
 STBIWDEF int stbi_write_hdr_to_func(stbi_write_func *func, void *context, int x, int y, int comp, const float *data)
 {
-   stbi__write_context s = { 0 };
+//   stbi__write_context s = { 0 };
+   stbi__write_context s = STBI_WRITE_CONTEXT_INIT(NULL, NULL);
+
    stbi__start_write_callbacks(&s, func, context);
    return stbi_write_hdr_core(&s, x, y, comp, (float *) data);
 }
 
 STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const float *data)
 {
-   stbi__write_context s = { 0 };
+//   stbi__write_context s = { 0 };
+   stbi__write_context s = STBI_WRITE_CONTEXT_INIT(NULL, NULL);
+
    if (stbi__start_write_file(&s,filename)) {
       int r = stbi_write_hdr_core(&s, x, y, comp, (float *) data);
       stbi__end_write_file(&s);
@@ -1606,7 +1624,8 @@ static int stbi_write_jpg_core(stbi__write_context *s, int width, int height, in
 
 STBIWDEF int stbi_write_jpg_to_func(stbi_write_func *func, void *context, int x, int y, int comp, const void *data, int quality)
 {
-   stbi__write_context s = { 0 };
+   //stbi__write_context s = { 0 };
+   stbi__write_context s = STBI_WRITE_CONTEXT_INIT(NULL, NULL);
    stbi__start_write_callbacks(&s, func, context);
    return stbi_write_jpg_core(&s, x, y, comp, (void *) data, quality);
 }
@@ -1615,7 +1634,9 @@ STBIWDEF int stbi_write_jpg_to_func(stbi_write_func *func, void *context, int x,
 #ifndef STBI_WRITE_NO_STDIO
 STBIWDEF int stbi_write_jpg(char const *filename, int x, int y, int comp, const void *data, int quality)
 {
-   stbi__write_context s = { 0 };
+//   stbi__write_context s = { 0 };
+   stbi__write_context s = STBI_WRITE_CONTEXT_INIT(NULL, NULL);
+
    if (stbi__start_write_file(&s,filename)) {
       int r = stbi_write_jpg_core(&s, x, y, comp, data, quality);
       stbi__end_write_file(&s);
