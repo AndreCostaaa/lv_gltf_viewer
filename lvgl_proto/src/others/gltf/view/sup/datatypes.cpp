@@ -42,8 +42,6 @@ uint32_t get_viewer_datasize(void) {
     return sizeof(lv_gltf_view_t);
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
 void init_viewer_struct(_VIEW _ViewerMem) {
     lv_gltf_view_t _newViewer;
     auto _newMetrics = &_newViewer.state.metrics;
@@ -80,9 +78,8 @@ void init_viewer_struct(_VIEW _ViewerMem) {
     _newViewer.state.renderOpaqueBuffer = false;
     _newViewer.cameraIndex = std::nullopt;
     _newViewer.envRotationAngle = 0.0f;
-    memcpy (_ViewerMem, &_newViewer, sizeof (lv_gltf_view_t));
+    *_ViewerMem = _newViewer;
 }
-#pragma GCC diagnostic pop
 
 void __free_viewer_struct(_VIEW V) {
     // Nothing to do here

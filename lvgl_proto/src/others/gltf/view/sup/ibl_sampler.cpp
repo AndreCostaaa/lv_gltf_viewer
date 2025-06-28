@@ -20,20 +20,14 @@
 
 #ifndef STB_HAS_BEEN_INCLUDED
 #define STB_HAS_BEEN_INCLUDED
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtype-limits"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
-#pragma GCC diagnostic pop
 #endif
 
 #ifndef STB_RESIZE_HAS_BEEN_INCLUDED
 #define STB_RESIZE_HAS_BEEN_INCLUDED
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtype-limits"
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "../../data/deps/stb_image/stb_image_resize.h"
-#pragma GCC diagnostic pop
 #endif
 
 void (*callback)(const char *, float, float);

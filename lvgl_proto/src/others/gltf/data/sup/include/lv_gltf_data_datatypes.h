@@ -17,9 +17,7 @@ extern "C" {
 
 #ifndef LVGL_GLTF_DATA_DEFINED
 #define LVGL_GLTF_DATA_DEFINED
-//struct lv_gltf_data_struct;
 typedef struct lv_gltf_data_struct lv_gltf_data_t;
-//typedef lv_gltf_data_t * pGltf_data_t;
 #endif
 
 #ifndef LV_GLTFOVERRIDE_H

@@ -11,22 +11,13 @@
 
 #include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
 
-//#include <memory> // Include necessary headers for std::unique_ptr
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wredundant-move"
 #include "../../data/deps/fastgltf/include/fastgltf/core.hpp"
 #include "../../data/deps/fastgltf/include/fastgltf/types.hpp"
 #include "../../data/deps/fastgltf/include/fastgltf/tools.hpp"
-#pragma GCC diagnostic pop
 
 #ifndef STB_HAS_BEEN_INCLUDED
 #define STB_HAS_BEEN_INCLUDED
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtype-limits"
-//#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
-#pragma GCC diagnostic pop
 #endif
 
 #include "../lv_gltf_view_internal.h"

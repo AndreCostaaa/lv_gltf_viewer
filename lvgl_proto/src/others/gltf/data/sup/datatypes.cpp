@@ -37,8 +37,6 @@ uint32_t get_primitive_datasize(void) {
     return sizeof(Primitive);
 }
 
-//#pragma GCC diagnostic push
-//#pragma GCC diagnostic ignored "-Wclass-memaccess"
 void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
     lv_gltf_data_t _newDataStruct;
     _newDataStruct.filename = gltf_path;
@@ -93,8 +91,6 @@ void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
     _DataStructMem->shaderUniforms = new std::vector<UniformLocs>();
     _DataStructMem->shaderSets = new std::vector<gl_renwin_shaderset_t>();
 }
-
-//#pragma GCC diagnostic pop
 
 void __free_data_struct(_DATA _data) {
 //    if (_data == NULL) return;

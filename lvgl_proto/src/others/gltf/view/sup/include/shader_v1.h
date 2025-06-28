@@ -7,9 +7,9 @@ extern "C" {
 
 #include "shader_includes.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-function"
-#pragma GCC diagnostic ignored "-Wunused-variable"
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic ignored "-Wunused-function"
+//#pragma GCC diagnostic ignored "-Wunused-variable"
 
 static const char *src_vertexShader = R"(
     uniform mat4 u_ViewProjectionMatrix;
@@ -110,7 +110,7 @@ inline static char* src_frag(void) {
     return PREPROCESS(shader_fragment_is_overridden() ? get_shader_fragment_override() : src_fragmentShader); 
 }
 
-#pragma GCC diagnostic pop
+//#pragma GCC diagnostic pop
 
 #ifdef __cplusplus
 } /*extern "C"*/

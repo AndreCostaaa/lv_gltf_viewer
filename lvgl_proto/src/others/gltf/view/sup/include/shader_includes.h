@@ -39,9 +39,6 @@ char* getDefineId(void);
 
 char* PREPROCESS(const char* x);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-variable"
-
 static lv_shader_key_value_t src_includes[] = {
     {"tonemapping.glsl", R"( 
 
@@ -3352,7 +3349,12 @@ static lv_shader_key_value_t env_src_includes[] = {
         }
     )"},        
 };
-#pragma GCC diagnostic pop
+
+// Suppress unused variable warning
+static inline void suppressUnusedWarning() {
+    (void)env_src_includes; 
+    (void)src_includes;
+}
 
 #ifdef __cplusplus
 } /*extern "C"*/

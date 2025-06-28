@@ -11,16 +11,11 @@
 
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #undef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT    // Talking withe fastgltf devs about getting this in there, should be merged in soon.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wredundant-move"
 #include "deps/fastgltf/include/fastgltf/core.hpp"
 #include "deps/fastgltf/include/fastgltf/types.hpp"
 #include "deps/fastgltf/include/fastgltf/tools.hpp"
-#pragma GCC diagnostic pop
 
 #include "lv_gltf_data.h"
-
-//static std::vector<lv_gltf_override_t> all_overrides;
 
 lv_gltf_override_t * add_by_node(lv_gltf_data_t * _data, _NODE node, OverrideProp whichProp, uint32_t dataMask) {
 

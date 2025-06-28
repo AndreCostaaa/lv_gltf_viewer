@@ -10,23 +10,15 @@
 
 #undef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT    // Talking withe fastgltf devs about getting this in there, should be merged in soon.
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wredundant-move"
 #include "../data/deps/fastgltf/include/fastgltf/core.hpp"
 #include "../data/deps/fastgltf/include/fastgltf/types.hpp"
 #include "../data/deps/fastgltf/include/fastgltf/tools.hpp"
-#pragma GCC diagnostic pop
 
 #ifndef STB_HAS_BEEN_INCLUDED
 #define STB_HAS_BEEN_INCLUDED
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtype-limits"
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-//#define STB_IMAGE_IMPLEMENTATION
 #include "../data/deps/stb_image/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../data/deps/stb_image/stb_image_write.h"
-#pragma GCC diagnostic pop
 #endif
 
 #include "../data/lv_gltf_data.h"

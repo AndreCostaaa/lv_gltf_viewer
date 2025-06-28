@@ -5,12 +5,9 @@
 #include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
 
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wredundant-move"
 #include "../../data/deps/fastgltf/include/fastgltf/core.hpp"
 #include "../../data/deps/fastgltf/include/fastgltf/types.hpp"
 #include "../../data/deps/fastgltf/include/fastgltf/tools.hpp"
-#pragma GCC diagnostic pop
 #include "../lv_gltf_data_internal.h"
 #include "../../data/deps/mathc/mathc.h"
 
