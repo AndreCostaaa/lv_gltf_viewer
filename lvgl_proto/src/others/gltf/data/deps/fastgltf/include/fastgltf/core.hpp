@@ -621,7 +621,7 @@ namespace fastgltf {
 			if (buffer.error != fastgltf::Error::None) {
 				return buffer.error;
 			}
-			return std::move(buffer);
+			return buffer; // -> was std::move(buffer)
 		}
 
 		static Expected<GltfDataBuffer> FromBytes(const std::byte* bytes, std::size_t count) noexcept {
@@ -629,7 +629,7 @@ namespace fastgltf {
 			if (buffer.error != fastgltf::Error::None) {
 				return buffer.error;
 			}
-			return std::move(buffer);
+			return buffer; // -> was std::move(buffer)
 		}
 
 #if FASTGLTF_CPP_20
@@ -696,7 +696,7 @@ namespace fastgltf {
 			if (buffer.error != fastgltf::Error::None) {
 				return buffer.error;
 			}
-			return std::move(buffer);
+			return buffer; // -> was std::move(buffer)
 		}
 
 		void read(void* ptr, std::size_t count) override;
