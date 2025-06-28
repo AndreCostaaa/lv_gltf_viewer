@@ -715,11 +715,12 @@ void setup_view_proj_matrix_from_camera(lv_gltf_view_t *viewer, int32_t _cur_cam
     }
     mfloat_t viewProj[MAT4_SIZE];
     mat4_multiply(viewProj, projection, view);
+    FMAT4 tm = FMAT4(); std::size_t tm_size = MAT4_SIZE * sizeof(mfloat_t);
 
-    { auto _t = view;         set_matrix_view(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
-    { auto _t = projection;  set_matrix_proj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
-    { auto _t = viewProj; set_matrix_viewproj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
-    set_cam_pos(viewer, view_pos[0], view_pos[1], view_pos[2]);
+    { std::memcpy(tm.data(), view,          tm_size); set_matrix_view(      viewer, FMAT4(tm)); }
+    { std::memcpy(tm.data(), projection,    tm_size); set_matrix_proj(      viewer, FMAT4(tm)); }
+    { std::memcpy(tm.data(), viewProj,      tm_size); set_matrix_viewproj(  viewer, FMAT4(tm)); }
+    set_cam_pos(viewer, view_pos[0], view_pos[1], view_pos[2]);   
 }
 
 /**
@@ -798,12 +799,12 @@ void setup_view_proj_matrix(lv_gltf_view_t *viewer, gl_viewer_desc_t *view_desc,
 
     mfloat_t viewProj[MAT4_SIZE];
     mat4_multiply(viewProj, projection, view);
+    FMAT4 tm = FMAT4(); std::size_t tm_size = MAT4_SIZE * sizeof(mfloat_t);
 
-    { auto _t = view;         set_matrix_view(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
-    { auto _t = projection;   set_matrix_proj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
-    { auto _t = viewProj; set_matrix_viewproj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
+    { std::memcpy(tm.data(), view,          tm_size); set_matrix_view(      viewer, FMAT4(tm)); }
+    { std::memcpy(tm.data(), projection,    tm_size); set_matrix_proj(      viewer, FMAT4(tm)); }
+    { std::memcpy(tm.data(), viewProj,      tm_size); set_matrix_viewproj(  viewer, FMAT4(tm)); }
     set_cam_pos(viewer, cam_position[0], cam_position[1], cam_position[2]);
-
 }
 
 /**

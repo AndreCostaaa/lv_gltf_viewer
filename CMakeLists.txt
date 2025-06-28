@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wpedantic")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -flax-vector-conversions")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wpedantic -flax-vector-conversions")
 
 # LVGL build settings
 set(CONFIG_LV_BUILD_EXAMPLES OFF CACHE BOOL "disable lvgl examples" FORCE)
@@ -150,11 +150,4 @@ target_include_directories(gltf_view PRIVATE lvgl_proto/src/others lvgl lvgl/src
 set_target_properties(gltf_view PROPERTIES COMPILE_DEFINITIONS
                                             "${LVGL_COMPILER_DEFINES}")
 
-# These seem necessary in certain build targets like RELEASE, where compilation produces a large 
-# flood of warnings within the standard library without them.  Eventually we'll get them isolated to 
-# just one target so we can still catch helpful warnings elsewhere.
 
-target_compile_options(lvgl_gltfdata PRIVATE -Wno-unknown-pragmas)
-target_compile_options(lvgl_gltfview PRIVATE -Wno-maybe-uninitialized)
-target_compile_options(lvgl_gltfview PRIVATE -Wno-array-bounds)
-target_compile_options(gltf_view PRIVATE -Wno-array-bounds)
