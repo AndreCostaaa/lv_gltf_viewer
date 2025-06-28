@@ -47,7 +47,7 @@
 
 static MapofTransformMap _ibmBySkinThenNode;
 
-gltf_probe_info*        lv_gltf_view_get_probe(pGltf_data_t D){return ((gltf_probe_info*)(&(D->probe)));}
+gltf_probe_info*        lv_gltf_view_get_probe(lv_gltf_data_t * D){return ((gltf_probe_info*)(&(D->probe)));}
 
 namespace fastgltf {
     FASTGLTF_EXPORT template <typename AssetType, typename Callback>
@@ -174,7 +174,7 @@ void lv_gltf_view_destroy(lv_gltf_view_t * _viewer){
 void draw_primitive(  int32_t prim_num,
                 gl_viewer_desc_t * view_desc,
                 lv_gltf_view_t * viewer,
-                pGltf_data_t gltf_data,
+                lv_gltf_data_t * gltf_data,
                 fastgltf::Node& node,
                 std::size_t mesh_index,
                 const FMAT4& matrix,
@@ -426,7 +426,7 @@ void lv_gltf_view_reset_between_models( lv_gltf_view_t * viewer ){
     _ibmBySkinThenNode.clear();
 }
 
-uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t * viewer, pGltf_data_t gltf_data, bool prepare_bg, uint32_t crop_left,  uint32_t crop_right,  uint32_t crop_top,  uint32_t crop_bottom ) {
+uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t * viewer, lv_gltf_data_t * gltf_data, bool prepare_bg, uint32_t crop_left,  uint32_t crop_right,  uint32_t crop_top,  uint32_t crop_bottom ) {
 
     const auto& asset =     GET_ASSET(gltf_data);
     const auto& probe =     PROBE(gltf_data);
@@ -474,6 +474,8 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
         std::vector<int64_t> _used = std::vector<int64_t>();
         int64_t _max_index = 0;
         fastgltf::iterateSceneNodes(*asset, sceneIndex, FMAT4(), [&](fastgltf::Node& node, FMAT4 matrix) {
+            // TO-DO: replace this iterate with one that doesn't bother with any matrix math.  Since this is a one time loop at start up, it's ok for now.
+            LV_UNUSED(matrix);
             if (node.meshIndex) {
                 auto& mesh_index = node.meshIndex.value();
                 if (node.skinIndex) {
@@ -508,6 +510,7 @@ uint32_t lv_gltf_view_render( lv_opengl_shader_cache_t * shaders, lv_gltf_view_t
         init_shaders(gltf_data, _max_index);
         setup_compile_and_load_bg_shader(shaders);
         fastgltf::iterateSceneNodes(*asset, sceneIndex, FMAT4(), [&](fastgltf::Node& node, FMAT4 matrix) {
+            LV_UNUSED(matrix);
             if (node.meshIndex) { 
                 auto& mesh_index = node.meshIndex.value();
                 for (uint64_t mp = 0; mp < asset->meshes[mesh_index].primitives.size(); mp++){

@@ -52,7 +52,7 @@ inline void lv_gltf_opengl_state_pop(void) {
 }
 
 /*
-FVEC4 lv_gltf_get_primitive_centerpoint(pGltf_data_t ret_data, fastgltf::Mesh& mesh, uint32_t prim_num){
+FVEC4 lv_gltf_get_primitive_centerpoint(lv_gltf_data_t * ret_data, fastgltf::Mesh& mesh, uint32_t prim_num){
     FVEC4 _retval = FVEC4(0.0f);
     FVEC3 _vmin = FVEC3(999999999.f);
     FVEC3 _vmax = FVEC3(-999999999.f);
@@ -314,7 +314,7 @@ bool lv_gltf_view_raycast_ground_position( lv_gltf_view_t * viewer, int32_t _mou
     return validres;
 }
 
-void lv_gltf_view_recenter_view_on_model( lv_gltf_view_t * viewer, pGltf_data_t gltf_data) {
+void lv_gltf_view_recenter_view_on_model( lv_gltf_view_t * viewer, lv_gltf_data_t * gltf_data) {
     const auto& _autocenpos = lv_gltf_data_get_center(gltf_data);
     lv_gltf_view_set_focal_x(viewer, _autocenpos[0]);
     lv_gltf_view_set_focal_y(viewer, _autocenpos[1]);
@@ -352,6 +352,8 @@ void es3_compat_get_texture_data(uint32_t tex_num, uint32_t mipmapnum, bool alph
 
 void lv_gltf_view_utils_get_texture_pixels( char * pixels, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
     GL_CALL(glBindTexture(GL_TEXTURE_2D, tex_id));
+    LV_UNUSED(width);
+    LV_UNUSED(height);
     #ifdef __EMSCRIPTEN__
         es3_compat_get_texture_data(tex_id, mipmapnum, alpha_enabled, pixels, width, height);
     #else

@@ -15,12 +15,20 @@
 extern "C" {
 #endif
 
-struct lv_gltf_data_struct;
+#ifndef LVGL_GLTF_DATA_DEFINED
+#define LVGL_GLTF_DATA_DEFINED
+//struct lv_gltf_data_struct;
 typedef struct lv_gltf_data_struct lv_gltf_data_t;
-typedef lv_gltf_data_t * pGltf_data_t;
+//typedef lv_gltf_data_t * pGltf_data_t;
+#endif
 
-struct lv_gltf_override_struct;
+#ifndef LV_GLTFOVERRIDE_H
+#ifndef LV_GLTFOVERRIDE_PREDEFINED
+#define LV_GLTFOVERRIDE_PREDEFINED
+//struct lv_gltf_override_struct;
 typedef struct lv_gltf_override_struct lv_gltf_override_t;
+#endif
+#endif
 
 typedef struct {
     uint32_t imageCount;

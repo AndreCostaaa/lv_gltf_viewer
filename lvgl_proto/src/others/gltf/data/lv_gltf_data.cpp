@@ -100,7 +100,7 @@ namespace fastgltf {
 
 #define __GLFW_SAMPLES 0x0002100D
 
-void lv_gltf_data_destroy(pGltf_data_t _data){
+void lv_gltf_data_destroy(lv_gltf_data_t * _data){
     __free_data_struct(_data);
 }
 

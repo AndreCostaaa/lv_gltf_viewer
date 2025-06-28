@@ -280,7 +280,7 @@ int main(int argc, char *argv[]) {
         #endif /* EXPERIMENTAL_GROUNDCAST */
         float cycle_seconds = fabs(spin_rate) > 0 ? 360.f /  fabs(spin_rate) : 0.f;
         if (lv_gltf_view_get_probe(demo_gltfdata)->animationCount > 0) {
-            if (anim_enabled && (anim < lv_gltf_view_get_probe(demo_gltfdata)->animationCount)){
+            if (anim_enabled && (anim < (int32_t)lv_gltf_view_get_probe(demo_gltfdata)->animationCount)){
                 printf("USING ANIMATION FOR CYCLE TIMING\n");
                 float anim_total_time = lv_gltf_animation_get_total_time(demo_gltfdata, anim);
                 cycle_seconds = anim_total_time / anim_rate;

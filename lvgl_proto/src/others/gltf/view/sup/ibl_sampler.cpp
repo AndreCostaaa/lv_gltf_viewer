@@ -293,7 +293,7 @@ void iblSampler::panoramaToCubeMap(void)
         GL_CALL(glViewport(0, 0, textureSize, textureSize));
         GL_CALL(glClearColor(1.0, 0.0, 0.0, 0.0));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT));
-        pProgram shader = shaderCache->get_shader_program( shaderCache, 
+        lv_shader_program_t * shader = shaderCache->get_shader_program( shaderCache, 
             shaderCache->select_shader ( shaderCache, "panorama_to_cubemap.frag", nullptr, 0 ), 
             shaderCache->select_shader ( shaderCache, "fullscreen.vert", nullptr, 0 ) );
         GLint success;
@@ -344,7 +344,7 @@ void iblSampler::applyFilter(
         GL_CALL(glViewport(0, 0, currentTextureSize, currentTextureSize));
         GL_CALL(glClearColor(0.0, 1.0, 0.0, 0.0));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT));
-        pProgram shader = shaderCache->get_shader_program( shaderCache, 
+        lv_shader_program_t * shader = shaderCache->get_shader_program( shaderCache, 
             shaderCache->select_shader ( shaderCache, "ibl_filtering.frag", nullptr, 0 ), 
             shaderCache->select_shader ( shaderCache, "fullscreen.vert", nullptr, 0 ) );                
         GL_CALL(glUseProgram(shader->program));
@@ -430,7 +430,7 @@ void iblSampler::sampleLut(uint32_t distribution, uint32_t targetTexture, uint32
     GL_CALL(glViewport(0, 0, currentTextureSize, currentTextureSize));
     GL_CALL(glClearColor(0.0, 1.0, 1.0, 0.0));
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT));
-    pProgram shader = shaderCache->get_shader_program( shaderCache, 
+    lv_shader_program_t* shader = shaderCache->get_shader_program( shaderCache, 
         shaderCache->select_shader ( shaderCache, "ibl_filtering.frag", nullptr, 0 ), 
         shaderCache->select_shader ( shaderCache, "fullscreen.vert", nullptr, 0 ) );   
         

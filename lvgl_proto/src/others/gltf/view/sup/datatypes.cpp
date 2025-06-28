@@ -7,7 +7,7 @@
 #include <algorithm>
 
 typedef lv_gltf_view_t *    _VIEW;
-typedef pGltf_data_t        _DATA;
+typedef lv_gltf_data_t *    _DATA;
 typedef FVEC3               _VEC3;
 typedef FVEC4               _VEC4;
 typedef FMAT4               _MAT4;

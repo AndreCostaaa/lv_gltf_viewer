@@ -15,9 +15,12 @@
 
 std::map<std::string, std::string>* _getSetAsMap(lv_shader_key_value_t* _set, unsigned int _count) {
     std::map<std::string, std::string>* _ret = new std::map<std::string, std::string>();
-    for (unsigned int i = 0; i < _count; i++) {
-        auto _kv = *( _set + i );
-        (*_ret)[std::string(_kv.key)] = std::string(_kv.value);  }
+    if (_set != nullptr) {
+        for (unsigned int i = 0; i < _count; i++) {
+            auto _kv = *( _set + i );
+            (*_ret)[std::string(_kv.key)] = std::string(_kv.value);  
+        }
+    }
     return _ret;
 }
 
@@ -46,18 +49,18 @@ bool string_ends_with (std::string const &fullString, std::string const &ending)
 
 // [ Program Class ] ///////////////////////////////////////////////////////////////////
 
-void  __update_uniform_1i(pProgram This, const char* _propStr, int _newValue) {
+void  __update_uniform_1i(lv_shader_program_t * This, const char* _propStr, int _newValue) {
     unsigned int location = glGetUniformLocation(This->program, _propStr);
     GL_CALL(glUniform1i(location, _newValue));
 }
 
-void  __update_uniform_1f(pProgram This, const char* _propStr, float _newValue) {
+void  __update_uniform_1f(lv_shader_program_t * This, const char* _propStr, float _newValue) {
     unsigned int location = glGetUniformLocation(This->program, _propStr);
     GL_CALL(glUniform1f(location, _newValue));
 }
         
-lv_shader_program_struct_t Program(GLuint _program, char* _hash) {
-    struct lv_shader_program_struct_t aProgram;
+lv_shader_program_t Program(GLuint _program, char* _hash) {
+    lv_shader_program_t aProgram;
     aProgram.update_uniform_1i = &__update_uniform_1i;
     aProgram.update_uniform_1f = &__update_uniform_1f;
     aProgram.program = _program;
@@ -67,7 +70,7 @@ lv_shader_program_struct_t Program(GLuint _program, char* _hash) {
     return aProgram;
 }
 
-void destroy_Program(pProgram This) {
+void destroy_Program(lv_shader_program_t * This) {
     #ifndef __EMSCRIPTEN__
         GLsizei _shaderCount;
         GL_CALL(glGetAttachedShaders(This->program, 2, &_shaderCount, nullptr));
@@ -158,8 +161,8 @@ long unsigned int __select_shader(lv_opengl_shader_cache_t * This, const char* s
     return hash;
 }
 
-pProgram __get_shader_program(lv_opengl_shader_cache_t * This, unsigned long int vertexShaderHash, unsigned long int fragmentShaderHash) {
-    auto programs = (std::map<std::string, lv_shader_program_struct_t>*)(This->map_programs);
+lv_shader_program_t * __get_shader_program(lv_opengl_shader_cache_t * This, unsigned long int vertexShaderHash, unsigned long int fragmentShaderHash) {
+    auto programs = (std::map<std::string, lv_shader_program_t>*)(This->map_programs);
     auto shaders = (std::map<unsigned long int, GLuint>*)(This->map_shaders);
     std::string hash = std::string(std::to_string(vertexShaderHash)) + "," + std::string(std::to_string(fragmentShaderHash));
     if (programs->count(hash)) { // program already linked
@@ -188,7 +191,7 @@ unsigned int __getCachedTexture( lv_opengl_shader_cache_t * This, long unsigned 
 void __ShaderCache_initCommon( lv_opengl_shader_cache_t * This ) {
     This->map_textures = new std::map<unsigned long int, GLuint>();              // texture_id hashed -> loaded texture id
     This->map_shaders = new std::map<unsigned long int, GLuint>();              // name & permutations hashed -> compiled shader
-    This->map_programs = new std::map<std::string, lv_shader_program_struct_t>();           // (vertex shader, fragment shader) -> program
+    This->map_programs = new std::map<std::string, lv_shader_program_t>();           // (vertex shader, fragment shader) -> program
     auto sources = (std::map<std::string, std::string>*)(This->map_sources);
     std::map<std::string, std::string>::iterator it;
     for (it = sources->begin(); it != sources->end(); it++) {
@@ -215,7 +218,7 @@ void __ShaderCache_initCommon( lv_opengl_shader_cache_t * This ) {
 }
 
 lv_opengl_shader_cache_t lv_opengl_shader_cache_create(lv_shader_key_value_t* _sources, unsigned int _count, char* _vertSrc, char* _fragSrc) {
-    struct lv_opengl_shader_cache_t aShaderCache;
+    lv_opengl_shader_cache_t aShaderCache;
     aShaderCache.select_shader = &__select_shader;
     aShaderCache.get_shader_program = &__get_shader_program;
     aShaderCache.set_texture_cache_item = &__set_texture_cache_item;
@@ -253,12 +256,12 @@ void lv_opengl_shader_cache_destroy(lv_opengl_shader_cache_t * This) {
     delete (std::map<std::string, std::string>*)This->map_sources;
     This->map_sources = nullptr;
 
-    auto programs = (std::map<std::string, lv_shader_program_struct_t>*)This->map_programs;
+    auto programs = (std::map<std::string, lv_shader_program_t>*)This->map_programs;
     for (const auto& [hashstr, program] : (*programs)) {
         destroy_Program(&((*programs)[hashstr]));
     }
     programs->clear();
-    delete (std::map<std::string, lv_shader_program_struct_t>*)This->map_programs;
+    delete (std::map<std::string, lv_shader_program_t>*)This->map_programs;
     This->map_programs = nullptr;
     programs = nullptr;
     if (This->lastEnv && (This->lastEnv->loaded)) {

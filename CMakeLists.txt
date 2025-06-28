@@ -154,7 +154,7 @@ set_target_properties(gltf_view PROPERTIES COMPILE_DEFINITIONS
 # flood of warnings within the standard library without them.  Eventually we'll get them isolated to 
 # just one target so we can still catch helpful warnings elsewhere.
 
-target_compile_options(lvgl_gltfdata PRIVATE -Wno-redundant-move)
+#target_compile_options(lvgl_gltfdata PRIVATE -Wno-redundant-move)
 target_compile_options(lvgl_gltfdata PRIVATE -Wno-unknown-pragmas)
 target_compile_options(lvgl_gltfdata PRIVATE -Wno-unused-parameter)
 target_compile_options(lvgl_gltfview PRIVATE -Wno-unknown-pragmas)

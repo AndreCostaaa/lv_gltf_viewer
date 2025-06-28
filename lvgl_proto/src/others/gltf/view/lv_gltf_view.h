@@ -6,16 +6,19 @@ extern "C" {
 #endif
 
 #include "../data/sup/include/lv_gltf_data_datatypes.h"
+#include "../data/lv_gltf_override.h"
 #include "sup/include/lv_gltf_view_datatypes.h"
 #include "sup/include/ibl_sampler.h"
 #include "sup/include/shader_includes.h"
 //#include "sup/include/shader_wireframe_v1.h"
 #include "sup/include/shader_v1.h"
 
+#ifndef SHADER_CACHE_H
 ////////////////////////////////////////////////////////////////////////////////////////
-typedef struct lv_opengl_shader_cache_t lv_opengl_shader_cache_t;
-typedef struct lv_shader_program_struct_t lv_shader_program_struct_t, *pProgram;
+typedef struct lv_opengl_shader_cache_struct lv_opengl_shader_cache_t;
+typedef struct lv_shader_program_struct lv_shader_program_t;//, *pProgram;
 ////////////////////////////////////////////////////////////////////////////////////////
+#endif
 
 /**
  * @brief Get the isolated filename from a full path.
@@ -392,7 +395,7 @@ bool lv_gltf_view_check_frame_was_antialiased(lv_gltf_view_t * view);
  * @param viewer Pointer to the lv_gltf_view.
  * @param gltf_data Pointer to the GLTF data for the model.
  */
-void lv_gltf_view_recenter_view_on_model(lv_gltf_view_t * viewer, pGltf_data_t gltf_data);
+void lv_gltf_view_recenter_view_on_model(lv_gltf_view_t * viewer, lv_gltf_data_t * gltf_data);
 
 /**
  * @brief Reset the viewer settings between models.

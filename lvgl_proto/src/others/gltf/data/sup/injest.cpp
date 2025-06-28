@@ -569,14 +569,17 @@ bool injest_mesh(lv_gltf_data_t * data_obj, fastgltf::Mesh& mesh) {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitive.indexBuffer);
         if (indexAccessor.componentType == fastgltf::ComponentType::UnsignedByte || indexAccessor.componentType == fastgltf::ComponentType::UnsignedShort) {
             primitive.indexType = GL_UNSIGNED_SHORT;
-            std::uint16_t tempIndices[indexAccessor.count];
+            std::uint16_t * tempIndices = new std::uint16_t[indexAccessor.count];
             fastgltf::copyFromAccessor<std::uint16_t>(*asset, indexAccessor, tempIndices);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(indexAccessor.count * sizeof(std::uint16_t)), tempIndices, GL_STATIC_DRAW);
+            delete[] tempIndices;
         } else {
             primitive.indexType = GL_UNSIGNED_INT;
-            std::uint32_t tempIndices[indexAccessor.count];
+            //std::uint32_t tempIndices[indexAccessor.count];
+            std::uint32_t * tempIndices = new std::uint32_t[indexAccessor.count];
             fastgltf::copyFromAccessor<std::uint32_t>(*asset, indexAccessor, tempIndices);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(indexAccessor.count * sizeof(std::uint32_t)), tempIndices, GL_STATIC_DRAW);
+            delete[] tempIndices;
         }
     }
 
@@ -802,7 +805,7 @@ char* fallback_load_file_to_buffer(const char* filename, size_t* outSize) {
 
     // Seek to the end of the file to determine its size
     fseek(file, 0, SEEK_END);
-    long fileSize = ftell(file);
+    size_t fileSize = ftell(file);
     fseek(file, 0, SEEK_SET); // Reset to the beginning of the file
 
     // Allocate memory for the buffer

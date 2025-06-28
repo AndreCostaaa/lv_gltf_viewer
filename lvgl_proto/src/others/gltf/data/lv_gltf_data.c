@@ -1,1 +1,3 @@
-// This file is deliberately empty, for now
+void placeholder_null_op( ) {
+
+}

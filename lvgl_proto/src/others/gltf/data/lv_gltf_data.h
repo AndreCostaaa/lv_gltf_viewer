@@ -64,7 +64,7 @@ void lv_gltf_data_make_animations_summary(lv_gltf_data_t * data, char *dest_buff
  * @param ret_data Pointer to the data container that will be populated.
  * @param shaders Pointer to the shader cache object this file uses.
  */
-void lv_gltf_data_load_bytes(const void * gltf_bytes, size_t gltf_data_size, pGltf_data_t ret_data, lv_opengl_shader_cache_t * shaders);
+void lv_gltf_data_load_bytes(const void * gltf_bytes, size_t gltf_data_size, lv_gltf_data_t * ret_data, lv_opengl_shader_cache_t * shaders);
 
 /**
  * @brief Load the gltf file at the specified filepath
@@ -73,7 +73,7 @@ void lv_gltf_data_load_bytes(const void * gltf_bytes, size_t gltf_data_size, pGl
  * @param ret_data Pointer to the data container that will be populated.
  * @param shaders Pointer to the shader cache object this file uses.
  */
-void lv_gltf_data_load_file(const char * gltf_path, pGltf_data_t ret_data, lv_opengl_shader_cache_t * shaders);
+void lv_gltf_data_load_file(const char * gltf_path, lv_gltf_data_t * ret_data, lv_opengl_shader_cache_t * shaders);
 
 /**
  * @brief Set the callback function that is called when loading increments.

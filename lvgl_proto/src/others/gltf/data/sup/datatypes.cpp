@@ -1,3 +1,4 @@
+#define LVGL_GLTF_DATA_DEFINED
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #include "../deps/fastgltf/include/fastgltf/types.hpp"
 
@@ -13,7 +14,7 @@ struct MeshData {
 #endif /* __MESH_DATA_DEFINED */
 #define MAX_OVERRIDES 128
 
-typedef pGltf_data_t        _DATA;
+typedef lv_gltf_data_t *    _DATA;
 typedef FVEC3               _VEC3;
 typedef FVEC4               _VEC4;
 typedef FMAT4               _MAT4;
@@ -36,8 +37,8 @@ uint32_t get_primitive_datasize(void) {
     return sizeof(Primitive);
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic ignored "-Wclass-memaccess"
 void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
     lv_gltf_data_t _newDataStruct;
     _newDataStruct.filename = gltf_path;
@@ -92,7 +93,7 @@ void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path) {
     _DataStructMem->shaderSets = new std::vector<gl_renwin_shaderset_t>();
 }
 
-#pragma GCC diagnostic pop
+//#pragma GCC diagnostic pop
 
 void __free_data_struct(_DATA _data) {
 //    if (_data == NULL) return;

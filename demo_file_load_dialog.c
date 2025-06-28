@@ -315,9 +315,10 @@ void parent_folder_event_handler(lv_event_t *e) {
 void file_button_event_handler(lv_event_t *e) {
     lv_obj_t *btn = lv_event_get_target(e);
     const char *file_name = lv_list_get_button_text(file_list, btn);
-    char full_file_path[MAX_PATH_LENGTH];
+    char full_file_path[MAX_PATH_LENGTH+1];
     snprintf(full_file_path, sizeof(full_file_path), "%s/%s", base_path, file_name);
     strncpy(selected_file, full_file_path, MAX_PATH_LENGTH);
+    selected_file[MAX_PATH_LENGTH-1] = '\0';
     lv_textarea_set_text(selected_file_input, file_name);
 }
 

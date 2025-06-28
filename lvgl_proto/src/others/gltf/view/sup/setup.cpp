@@ -629,7 +629,7 @@ void setup_finish_frame(void) {
     GL_CALL(glUseProgram(0));
 }
 
-//void setup_view_proj_matrix_from_link(lv_gltf_view_t * viewer, pGltf_data_t link_data){
+//void setup_view_proj_matrix_from_link(lv_gltf_view_t * viewer, lv_gltf_data_t * link_data){
 //    { auto _t = view;         set_matrix_view(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
 //    { auto _t = perspective;  set_matrix_proj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
 //   { auto _t = viewProj; set_matrix_viewproj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
@@ -654,7 +654,7 @@ void setup_finish_frame(void) {
  */
 void setup_view_proj_matrix_from_camera(lv_gltf_view_t *viewer, int32_t _cur_cam_num, 
                                          gl_viewer_desc_t *view_desc, const FMAT4 view_mat, 
-                                         const FVEC3 view_pos, pGltf_data_t gltf_data, 
+                                         const FVEC3 view_pos, lv_gltf_data_t * gltf_data, 
                                          bool transmission_pass) {
 
     mfloat_t view[MAT4_SIZE];
@@ -736,7 +736,7 @@ void setup_view_proj_matrix_from_camera(lv_gltf_view_t *viewer, int32_t _cur_cam
  * @param transmission_pass A boolean indicating whether this setup is for the transmission pass.
  */
 void setup_view_proj_matrix(lv_gltf_view_t *viewer, gl_viewer_desc_t *view_desc, 
-                            pGltf_data_t gltf_data, bool transmission_pass) {
+                            lv_gltf_data_t * gltf_data, bool transmission_pass) {
     // Create Look-At Matrix
     const auto& _cenpos = FVEC3(view_desc->focal_x, view_desc->focal_y, view_desc->focal_z);
     float cen_x = _cenpos[0];
@@ -837,7 +837,8 @@ gl_renwin_shaderset_t setup_compile_and_load_shaders(lv_opengl_shader_cache_t * 
  * @param shaders Pointer to the lv_opengl_shader_cache_t structure containing the shader cache.
  */
 void setup_compile_and_load_bg_shader(lv_opengl_shader_cache_t * shaders) {
-    lv_shader_key_value_t empty_defs[0] = {};
+    lv_shader_key_value_t * empty_defs = nullptr;//{};
+    //lv_shader_key_value_t empty_defs[0] = {};
     lv_shader_key_value_t frag_defs[1] = {{"TONEMAP_KHR_PBR_NEUTRAL", NULL}};
     auto bg_program = shaders->get_shader_program(shaders, 
         shaders->select_shader(shaders, "cubemap.frag", frag_defs, 1), 

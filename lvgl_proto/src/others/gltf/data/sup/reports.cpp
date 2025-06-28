@@ -36,7 +36,7 @@ size_t reports_get_mesh_total_vertex_count(ASSET* const asset, fastgltf::Mesh& m
     return _outcount;
 }
 
-std::string reports_make_mesh_summary( pGltf_data_t data ) {
+std::string reports_make_mesh_summary( lv_gltf_data_t * data ) {
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);
     std::string _out = "";
@@ -57,14 +57,14 @@ std::string reports_make_mesh_summary( pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltf_data_make_mesh_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
+void lv_gltf_data_make_mesh_summary(lv_gltf_data_t * data, char *dest_buffer, uint32_t dest_buffer_size) {
     dest_buffer[0] = '\0';
     strncpy(dest_buffer, reports_make_mesh_summary( data ).c_str(), dest_buffer_size);
     dest_buffer[dest_buffer_size-1] = '\0';
 
 }
 
-std::string reports_make_material_summary(pGltf_data_t data ) {
+std::string reports_make_material_summary(lv_gltf_data_t * data ) {
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);    
     std::string _out = "";
@@ -74,13 +74,13 @@ std::string reports_make_material_summary(pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltf_data_make_material_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
+void lv_gltf_data_make_material_summary(lv_gltf_data_t * data, char *dest_buffer, uint32_t dest_buffer_size) {
     dest_buffer[0] = '\0';
     strncpy(dest_buffer, reports_make_material_summary( data ).c_str(), dest_buffer_size);
     dest_buffer[dest_buffer_size-1] = '\0';
 }
 
-std::string reports_make_images_summary(pGltf_data_t data ) {
+std::string reports_make_images_summary(lv_gltf_data_t * data ) {
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);
     int32_t _result;
@@ -136,14 +136,14 @@ std::string reports_make_images_summary(pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltf_data_make_images_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size){
+void lv_gltf_data_make_images_summary(lv_gltf_data_t * data, char *dest_buffer, uint32_t dest_buffer_size){
     dest_buffer[0] = '\0';
     strncpy(dest_buffer, reports_make_images_summary( data ).c_str(), dest_buffer_size);
     dest_buffer[dest_buffer_size-1] = '\0';
 
 }
 
-std::string reports_make_scenes_summary(pGltf_data_t data ) {
+std::string reports_make_scenes_summary(lv_gltf_data_t * data ) {
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);
     std::string _out = "";
@@ -153,7 +153,7 @@ std::string reports_make_scenes_summary(pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltf_data_make_scenes_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size) {
+void lv_gltf_data_make_scenes_summary(lv_gltf_data_t * data, char *dest_buffer, uint32_t dest_buffer_size) {
     dest_buffer[0] = '\0';
     strncpy(dest_buffer, reports_make_scenes_summary( data ).c_str(), dest_buffer_size);
     dest_buffer[dest_buffer_size-1] = '\0';
@@ -161,7 +161,7 @@ void lv_gltf_data_make_scenes_summary(pGltf_data_t data, char *dest_buffer, uint
 }
 
 
-std::string reports_make_animations_summary(pGltf_data_t data ) {
+std::string reports_make_animations_summary(lv_gltf_data_t * data ) {
     //auto& asset = data->asset;
     const auto& asset = GET_ASSET(data);
     const auto& probe = PROBE(data);
@@ -226,7 +226,7 @@ std::string reports_make_animations_summary(pGltf_data_t data ) {
     return _out;
 }
 
-void lv_gltf_data_make_animations_summary(pGltf_data_t data, char *dest_buffer, uint32_t dest_buffer_size){
+void lv_gltf_data_make_animations_summary(lv_gltf_data_t * data, char *dest_buffer, uint32_t dest_buffer_size){
     dest_buffer[0] = '\0';
     strncpy(dest_buffer, reports_make_animations_summary( data ).c_str(), dest_buffer_size);
 }

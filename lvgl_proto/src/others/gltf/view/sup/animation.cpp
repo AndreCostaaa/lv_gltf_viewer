@@ -28,7 +28,7 @@ std::map<fastgltf::Node *, std::vector<uint32_t>> __channel_set_cache;
  * @param _seconds The timestamp in seconds at which to retrieve the Vec3 value.
  * @return The Vec3 value at the specified timestamp.
  */
-FVEC3 animation_get_vec3_at_timestamp(pGltf_data_t _data, fastgltf::AnimationSampler * sampler, float _seconds) {
+FVEC3 animation_get_vec3_at_timestamp(lv_gltf_data_t * _data, fastgltf::AnimationSampler * sampler, float _seconds) {
     const auto& asset = GET_ASSET(_data);
     auto& _inAcc = asset->accessors[sampler->inputAccessor];
     auto& _outAcc = asset->accessors[sampler->outputAccessor];
@@ -73,7 +73,7 @@ FVEC3 animation_get_vec3_at_timestamp(pGltf_data_t _data, fastgltf::AnimationSam
  * @param _seconds The timestamp in seconds at which to retrieve the Quaternion value.
  * @return The Quaternion value at the specified timestamp.
  */
-fastgltf::math::fquat animation_get_quat_at_timestamp(pGltf_data_t _data, fastgltf::AnimationSampler * sampler, float _seconds) {
+fastgltf::math::fquat animation_get_quat_at_timestamp(lv_gltf_data_t * _data, fastgltf::AnimationSampler * sampler, float _seconds) {
     const auto& asset = GET_ASSET(_data);
     auto& _inAcc = asset->accessors[sampler->inputAccessor];
     auto& _outAcc = asset->accessors[sampler->outputAccessor];
@@ -116,7 +116,7 @@ fastgltf::math::fquat animation_get_quat_at_timestamp(pGltf_data_t _data, fastgl
  * @param _animNum The index of the animation to query.
  * @return The total duration of the animation in seconds.
  */
-float lv_gltf_animation_get_total_time(pGltf_data_t _data, uint32_t _animNum) {
+float lv_gltf_animation_get_total_time(lv_gltf_data_t * _data, uint32_t _animNum) {
     const auto& asset = GET_ASSET(_data);
     auto& animation = asset->animations[_animNum];
     float _maxTime = -1.0f;
@@ -135,7 +135,7 @@ float lv_gltf_animation_get_total_time(pGltf_data_t _data, uint32_t _animNum) {
  * @param node Reference to the node associated with the animation.
  * @return Pointer to a UintVector containing the channel indices for the animation.
  */
-UintVector * animation_get_channel_set(std::size_t anim_num, pGltf_data_t gltf_data,  fastgltf::Node& node) {
+UintVector * animation_get_channel_set(std::size_t anim_num, lv_gltf_data_t * gltf_data,  fastgltf::Node& node) {
     const auto& asset = GET_ASSET(gltf_data);    
     const auto& probe = PROBE(gltf_data);  
     if (__channel_set_cache.find(&node) == __channel_set_cache.end())
@@ -165,7 +165,7 @@ UintVector * animation_get_channel_set(std::size_t anim_num, pGltf_data_t gltf_d
  * @param node Reference to the node to which the transformation will be applied.
  * @param matrix Reference to the transformation matrix to update.
  */
-void animation_matrix_apply(float timestamp, std::size_t anim_num, pGltf_data_t gltf_data,  fastgltf::Node& node, FMAT4& matrix) {
+void animation_matrix_apply(float timestamp, std::size_t anim_num, lv_gltf_data_t * gltf_data,  fastgltf::Node& node, FMAT4& matrix) {
     const auto& asset = GET_ASSET(gltf_data);  
     const auto& probe = PROBE(gltf_data);  
     auto _channel_set = animation_get_channel_set(anim_num, gltf_data, node);

@@ -10,8 +10,11 @@
 
 extern "C" {
 #endif
+#ifndef LVGL_GLTF_DATA_DEFINED
+#define LVGL_GLTF_DATA_DEFINED
 struct lv_gltf_data_struct;
 typedef struct lv_gltf_data_struct lv_gltf_data_t;
+#endif
 
 typedef enum  {
     OP_VISIBILITY,
@@ -40,7 +43,10 @@ struct lv_gltf_override_struct {
     struct lv_gltf_override_struct * nextOverride; // Pointer to the next override
 } ;
 
+#ifndef LV_GLTFOVERRIDE_PREDEFINED
+#define LV_GLTFOVERRIDE_PREDEFINED
 typedef struct lv_gltf_override_struct lv_gltf_override_t;
+#endif
 
 /**
  * @brief Add an override to a GLTF data object by node index.

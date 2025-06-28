@@ -300,7 +300,7 @@ static void tab_clicked_event_cb(lv_event_t * e){
 
 }
 
-void demo_ui_apply_camera_button_visibility(pGltf_data_t _data){
+void demo_ui_apply_camera_button_visibility(lv_gltf_data_t * _data){
     gltf_probe_info * probe = lv_gltf_view_get_probe(_data);
     for (unsigned int i=0; i<MAX_CAM_BUTTONS; i++)
         if (use_scenecam && (i < probe->cameraCount)) lv_obj_clear_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
@@ -309,7 +309,7 @@ void demo_ui_apply_camera_button_visibility(pGltf_data_t _data){
         else lv_obj_add_flag(use_scenecam_checkbox, LV_OBJ_FLAG_HIDDEN);
 }
 
-void demo_ui_apply_anim_button_visibility(pGltf_data_t _data){
+void demo_ui_apply_anim_button_visibility(lv_gltf_data_t * _data){
     gltf_probe_info * probe = lv_gltf_view_get_probe(_data);
     for (unsigned int i=0; i<MAX_ANIM_BUTTONS; i++)
         if (anim_enabled && i < probe->animationCount) lv_obj_clear_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
@@ -472,7 +472,7 @@ void demo_ui_loading_info_objects(void){
 }
 
 #define TBUF_SIZE 32768
-void demo_ui_fill_in_InfoTab( pGltf_data_t _data ) {
+void demo_ui_fill_in_InfoTab( lv_gltf_data_t * _data ) {
     int _cury = 40;
     const int LABEL_HEIGHT = 16;
     int _ll = 0;
