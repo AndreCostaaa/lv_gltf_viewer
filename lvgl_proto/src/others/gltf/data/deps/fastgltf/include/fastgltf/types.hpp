@@ -754,17 +754,17 @@ namespace fastgltf {
 
         SmallVector() : _data(reinterpret_cast<T*>(storage.data())) {}
 
-		explicit SmallVector(const Allocator& allocator) noexcept : allocator(allocator), _data(reinterpret_cast<T*>(storage.data())) {}
+		explicit SmallVector(const Allocator& small_allocator) noexcept : allocator(small_allocator), _data(reinterpret_cast<T*>(storage.data())) {}
 
-        explicit SmallVector(std::size_t size, const Allocator& allocator = Allocator()) : allocator(allocator), _data(reinterpret_cast<T*>(storage.data())) {
+        explicit SmallVector(std::size_t size, const Allocator& small_allocator = Allocator()) : allocator(small_allocator), _data(reinterpret_cast<T*>(storage.data())) {
             resize(size);
         }
 
-        SmallVector(std::size_t size, const T& value, const Allocator& allocator = Allocator()) : allocator(allocator), _data(reinterpret_cast<T*>(storage.data())) {
+        SmallVector(std::size_t size, const T& value, const Allocator& small_allocator = Allocator()) : allocator(small_allocator), _data(reinterpret_cast<T*>(storage.data())) {
             assign(size, value);
         }
 
-        SmallVector(std::initializer_list<T> init, const Allocator& allocator = Allocator()) : allocator(allocator), _data(reinterpret_cast<T*>(storage.data())) {
+        SmallVector(std::initializer_list<T> init, const Allocator& small_allocator = Allocator()) : allocator(small_allocator), _data(reinterpret_cast<T*>(storage.data())) {
             assign(init);
         }
 
@@ -1607,13 +1607,13 @@ namespace fastgltf {
 		};
 
 	public:
-		explicit AccessorBoundsArray(const std::size_t len, const BoundsType type) : len(len), dataType(type) {
+		explicit AccessorBoundsArray(const std::size_t stlen, const BoundsType type) : len(stlen), dataType(type) {
 			switch (dataType) {
 				case BoundsType::int64:
-					new (&int64_buffer) std::unique_ptr<std::int64_t[]>(new std::int64_t[len]());
+					new (&int64_buffer) std::unique_ptr<std::int64_t[]>(new std::int64_t[stlen]());
 					break;
 				case BoundsType::float64:
-					new (&float64_buffer) std::unique_ptr<double[]>(new double[len]());
+					new (&float64_buffer) std::unique_ptr<double[]>(new double[stlen]());
 					break;
 				default:
 					FASTGLTF_UNREACHABLE

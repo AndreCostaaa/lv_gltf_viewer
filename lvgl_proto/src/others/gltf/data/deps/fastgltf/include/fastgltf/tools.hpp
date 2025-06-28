@@ -490,12 +490,12 @@ public:
 
 	AccessorIterator() = default;
 
-	AccessorIterator(const IterableAccessor<ElementType, BufferDataAdapter>* accessor, std::size_t idx = 0)
-			: accessor(accessor), idx(idx) {
-		if (accessor->accessor.sparse.has_value()) {
+	AccessorIterator(const IterableAccessor<ElementType, BufferDataAdapter>* it_accessor, std::size_t it_idx = 0)
+			: accessor(accessor), idx(it_idx) {
+		if (it_accessor->accessor.sparse.has_value()) {
 			// Get the first sparse index.
-			nextSparseIndex = internal::getAccessorElementAt<std::uint32_t>(accessor->indexComponentType,
-			                                                                &accessor->indicesBytes[accessor->indexStride * sparseIdx]);
+			nextSparseIndex = internal::getAccessorElementAt<std::uint32_t>(it_accessor->indexComponentType,
+			                                                                &it_accessor->indicesBytes[it_accessor->indexStride * sparseIdx]);
 		}
 	}
 
@@ -577,28 +577,28 @@ class IterableAccessor {
 public:
 	using iterator = AccessorIterator<ElementType, BufferDataAdapter>;
 
-	explicit IterableAccessor(const Asset& asset, const Accessor& accessor, const BufferDataAdapter& adapter) : asset(asset), accessor(accessor) {
-		assert(accessor.type == ElementTraits<ElementType>::type && "The destination type needs to have the same AccessorType as the accessor.");
-		componentType = accessor.componentType;
+	explicit IterableAccessor(const Asset& it_asset, const Accessor& it_accessor, const BufferDataAdapter& adapter) : asset(it_asset), accessor(it_accessor) {
+		assert(it_accessor.type == ElementTraits<ElementType>::type && "The destination type needs to have the same AccessorType as the accessor.");
+		componentType = it_accessor.componentType;
 
-		const auto& view = asset.bufferViews[*accessor.bufferViewIndex];
-		stride = view.byteStride ? *view.byteStride : getElementByteSize(accessor.type, accessor.componentType);
+		const auto& view = it_asset.bufferViews[*it_accessor.bufferViewIndex];
+		stride = view.byteStride ? *view.byteStride : getElementByteSize(it_accessor.type, it_accessor.componentType);
 
-		bufferBytes = adapter(asset, *accessor.bufferViewIndex).subspan(accessor.byteOffset);
+		bufferBytes = adapter(it_asset, *it_accessor.bufferViewIndex).subspan(it_accessor.byteOffset);
 
-		if (accessor.sparse.has_value()) {
-			indicesBytes = adapter(asset, accessor.sparse->indicesBufferView).subspan(accessor.sparse->indicesByteOffset);
+		if (it_accessor.sparse.has_value()) {
+			indicesBytes = adapter(it_asset, it_accessor.sparse->indicesBufferView).subspan(it_accessor.sparse->indicesByteOffset);
 
-			indexStride = getElementByteSize(AccessorType::Scalar, accessor.sparse->indexComponentType);
+			indexStride = getElementByteSize(AccessorType::Scalar, it_accessor.sparse->indexComponentType);
 
-			valuesBytes = adapter(asset, accessor.sparse->valuesBufferView).subspan(accessor.sparse->valuesByteOffset);
+			valuesBytes = adapter(it_asset, it_accessor.sparse->valuesBufferView).subspan(it_accessor.sparse->valuesByteOffset);
 
 			// "The index of the bufferView with sparse values. The referenced buffer view MUST NOT
 			// have its target or byteStride properties defined."
-			valueStride = getElementByteSize(accessor.type, accessor.componentType);
+			valueStride = getElementByteSize(it_accessor.type, it_accessor.componentType);
 
-			indexComponentType = accessor.sparse->indexComponentType;
-			sparseCount = accessor.sparse->count;
+			indexComponentType = it_accessor.sparse->indexComponentType;
+			sparseCount = it_accessor.sparse->count;
 		}
 	}
 
@@ -619,7 +619,7 @@ FASTGLTF_EXPORT template <typename ElementType, typename BufferDataAdapter = Def
 #if FASTGLTF_HAS_CONCEPTS
 requires Element<ElementType>
 #endif
-ElementType getAccessorElement(const Asset& asset, const Accessor& accessor, size_t index,
+ElementType getAccessorElement(const Asset& asset, const Accessor& src_accessor, size_t index,
 		const BufferDataAdapter& adapter = {}) {
 	using Traits = ElementTraits<ElementType>;
 	static_assert(Traits::type != AccessorType::Invalid, "Accessor traits must provide a valid Accessor Type");
@@ -627,29 +627,29 @@ ElementType getAccessorElement(const Asset& asset, const Accessor& accessor, siz
 	static_assert(std::is_constructible_v<ElementType>, "Element type must be constructible");
 	static_assert(std::is_move_assignable_v<ElementType>, "Element type must be move-assignable");
 
-	assert(accessor.type == Traits::type && "The destination type needs to have the same AccessorType as the accessor.");
+	assert(src_accessor.type == Traits::type && "The destination type needs to have the same AccessorType as the accessor.");
 
-	if (accessor.sparse) {
-		auto indicesBytes = adapter(asset, accessor.sparse->indicesBufferView).subspan(accessor.sparse->indicesByteOffset);
+	if (src_accessor.sparse) {
+		auto indicesBytes = adapter(asset, src_accessor.sparse->indicesBufferView).subspan(src_accessor.sparse->indicesByteOffset);
 
-		auto valuesBytes = adapter(asset, accessor.sparse->valuesBufferView).subspan(accessor.sparse->valuesByteOffset);
+		auto valuesBytes = adapter(asset, src_accessor.sparse->valuesBufferView).subspan(src_accessor.sparse->valuesByteOffset);
 		// "The index of the bufferView with sparse values. The referenced buffer view MUST NOT
 		// have its target or byteStride properties defined."
-		auto valueStride = getElementByteSize(accessor.type, accessor.componentType);
+		auto valueStride = getElementByteSize(src_accessor.type, src_accessor.componentType);
 
 		std::size_t sparseIndex{};
-		if (internal::findSparseIndex(accessor.sparse->indexComponentType, indicesBytes.data(), accessor.sparse->count,
+		if (internal::findSparseIndex(src_accessor.sparse->indexComponentType, indicesBytes.data(), src_accessor.sparse->count,
 				index, sparseIndex)) {
-			return internal::getAccessorElementAt<ElementType>(accessor.componentType,
+			return internal::getAccessorElementAt<ElementType>(src_accessor.componentType,
 					&valuesBytes[valueStride * sparseIndex],
-					accessor.normalized);
+					src_accessor.normalized);
 		}
 	}
 
 	// 5.1.1. accessor.bufferView
 	// The index of the buffer view. When undefined, the accessor MUST be initialized with zeros; sparse
 	// property or extensions MAY override zeros with actual values.
-	if (!accessor.bufferViewIndex) {
+	if (!src_accessor.bufferViewIndex) {
 		if constexpr (std::is_aggregate_v<ElementType>) {
 			return ElementType{};
 		} else {
@@ -657,13 +657,13 @@ ElementType getAccessorElement(const Asset& asset, const Accessor& accessor, siz
 		}
 	}
 
-	const auto& view = asset.bufferViews[*accessor.bufferViewIndex];
-    auto stride = view.byteStride.value_or(getElementByteSize(accessor.type, accessor.componentType));
+	const auto& view = asset.bufferViews[*src_accessor.bufferViewIndex];
+    auto stride = view.byteStride.value_or(getElementByteSize(src_accessor.type, src_accessor.componentType));
 
-	auto bytes = adapter(asset, *accessor.bufferViewIndex).subspan(accessor.byteOffset);
+	auto bytes = adapter(asset, *src_accessor.bufferViewIndex).subspan(src_accessor.byteOffset);
 
 	return internal::getAccessorElementAt<ElementType>(
-            accessor.componentType, &bytes[index * stride], accessor.normalized);
+            src_accessor.componentType, &bytes[index * stride], src_accessor.normalized);
 }
 
 FASTGLTF_EXPORT template<typename ElementType, typename BufferDataAdapter = DefaultBufferDataAdapter>

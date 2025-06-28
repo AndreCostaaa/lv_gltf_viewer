@@ -42,7 +42,9 @@
 namespace fs = std::filesystem;
 namespace fg = fastgltf;
 
+#ifdef _MSC_VER
 #pragma region glTF file loading
+#endif
 fg::GltfDataBuffer::GltfDataBuffer(const fs::path& path) noexcept {
 	std::error_code ec;
 	dataSize = static_cast<std::streamsize>(fs::file_size(path, ec));
@@ -315,8 +317,9 @@ std::size_t fg::MappedGltfFile::totalSize() {
 	return fileSize;
 }
 #endif // FASTGLTF_HAS_MEMORY_MAPPED_FILE
-
+#ifdef _MSC_VER
 #pragma region AndroidGltfDataBuffer
+#endif
 #if defined(__ANDROID__)
 #include <android/asset_manager.h>
 
@@ -368,10 +371,13 @@ fg::AndroidGltfDataBuffer::AndroidGltfDataBuffer(const fs::path& path, std::uint
 	}
 }
 #endif
+#ifdef _MSC_VER
 #pragma endregion
 #pragma endregion
 
 #pragma region Parser I/O
+#endif
+
 #if defined(__ANDROID__)
 fg::Expected<fg::DataSource> fg::Parser::loadFileFromApk(const fs::path& path) const noexcept {
 	auto file = deletable_unique_ptr<AAsset, AAsset_close>(
@@ -469,4 +475,6 @@ fg::Expected<fg::DataSource> fg::Parser::loadFileFromUri(URIView& uri) const noe
 	};
 	return { std::move(arraySource) };
 }
+#ifdef _MSC_VER
 #pragma endregion
+#endif

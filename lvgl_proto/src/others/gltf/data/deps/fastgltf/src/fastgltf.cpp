@@ -391,8 +391,9 @@ namespace fastgltf {
 		return Error::None;
 	}
 } // namespace fastgltf
-
+#ifdef _MSC_VER
 #pragma region URI
+#endif
 fg::URIView::URIView() noexcept = default;
 
 fg::URIView::URIView(std::string_view uri) noexcept : view(uri) {
@@ -544,17 +545,17 @@ bool fg::URIView::isDataUri() const noexcept {
 
 fg::URI::URI() noexcept = default;
 
-fg::URI::URI(std::string uri) noexcept : uri(std::move(uri)) {
+fg::URI::URI(std::string init_uri) noexcept : uri(std::move(init_uri)) {
 	decodePercents(this->uri);
 	view = this->uri; // Also parses.
 }
 
-fg::URI::URI(std::string_view uri) noexcept : uri(uri) {
+fg::URI::URI(std::string_view init_uri_sv) noexcept : uri(init_uri_sv) {
 	decodePercents(this->uri);
 	view = this->uri; // Also parses.
 }
 
-fg::URI::URI(const URIView& view) noexcept : uri(view.view) {
+fg::URI::URI(const URIView& init_uri_view) noexcept : uri(init_uri_view.view) {
 	auto oldSize = uri.size();
 	decodePercents(uri);
 	if (uri.size() == oldSize) {
@@ -668,9 +669,11 @@ bool fg::URI::isLocalPath() const noexcept {
 bool fg::URI::isDataUri() const noexcept {
 	return view.isDataUri();
 }
+#ifdef _MSC_VER
 #pragma endregion
 
 #pragma region glTF parsing
+#endif
 fg::Expected<fg::DataSource> fg::Parser::decodeDataUri(URIView& uri) const noexcept {
     auto path = uri.path();
     auto mimeEnd = path.find(';');
@@ -4725,10 +4728,11 @@ fg::Error fg::Parser::parsePhysicsRigidBody(simdjson::dom::object& khr_physics_r
 	return Error::None;
 }
 #endif
-
+#ifdef _MSC_VER
 #pragma endregion
 
 #pragma region Parser
+#endif
 fg::GltfType fg::determineGltfFileType(GltfDataGetter& data) {
 	// We'll try and read a BinaryGltfHeader from the buffer to see if the magic is correct.
 	auto header = readBinaryHeader(data);
@@ -4908,9 +4912,11 @@ void fg::Parser::setExtrasParseCallback(ExtrasParseCallback *extrasCallback) noe
 void fg::Parser::setUserPointer(void* pointer) noexcept {
     config.userPointer = pointer;
 }
+#ifdef _MSC_VER
 #pragma endregion
 
 #pragma region Exporter
+#endif
 void fg::prettyPrintJson(std::string& json) {
     std::size_t i = 0;
     std::size_t depth = 0;
@@ -7182,8 +7188,7 @@ fg::Error fg::FileExporter::writeGltfBinary(const Asset& asset, fs::path target,
 	}
     return Error::None;
 }
-#pragma endregion
-
 #ifdef _MSC_VER
+#pragma endregion
 #pragma warning(pop)
 #endif
