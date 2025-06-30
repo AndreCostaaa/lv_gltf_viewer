@@ -11,8 +11,8 @@
 #define FASTGLTF_ENABLE_DEPRECATED_EXT 1
 #include "../../data/deps/fastgltf/include/fastgltf/types.hpp"
 #include "../lv_gltf_view_internal.h"
-#include "../../data/deps/mathc/mathc.h"
-#include "../../data/deps/mathc/mathc.c"
+//#include "../../data/deps/mathc/mathc.h"
+//#include "../../data/deps/mathc/mathc.c"
 
 GLboolean blendEnabled;
 GLint blendSrc;
@@ -245,7 +245,7 @@ FVEC3 __multiplyMatrixByVector(const FMAT4 mat, const FVEC3 vec) {
 bool __computeRayToGround( lv_gltf_view_t * viewer, float norm_mouseX, float norm_mouseY, double groundHeight, float aspectRatio, FVEC3* collisionPoint) {
     const auto& _viewmat = GET_VIEW_MAT(viewer);
     //const auto& _desc = lv_gltf_view_get_desc(viewer);
-    FMAT4 __projmat;
+    _MAT4 __projmat;
     //float aspectRatio = 256.0f / 192.0f;
     float nearPlane = 0.1f;
     float farPlane = 100.0f;
@@ -260,17 +260,18 @@ bool __computeRayToGround( lv_gltf_view_t * viewer, float norm_mouseX, float nor
     __projmat[3][2] = -1.0f;
     __projmat[3][3] = 0.0f;
 
-    mfloat_t _projmat[MAT4_SIZE];
-    for (int32_t i=0; i<16; i++) {
-        _projmat[i] = __projmat.data()[i];
-    }
-    mfloat_t _invprojmat[MAT4_SIZE];
-    mat4_inverse(_invprojmat, _projmat);
-    __projmat = FMAT4( 
-        _invprojmat[0], _invprojmat[1], _invprojmat[2], _invprojmat[3],  
-        _invprojmat[4], _invprojmat[5], _invprojmat[6], _invprojmat[7],  
-        _invprojmat[8], _invprojmat[9], _invprojmat[10], _invprojmat[11],  
-        _invprojmat[12], _invprojmat[13], _invprojmat[14], _invprojmat[15]);
+//    mfloat_t _projmat[MAT4_SIZE];
+//    for (int32_t i=0; i<16; i++) {
+//        _projmat[i] = __projmat.data()[i];
+//    }
+//    mfloat_t _invprojmat[MAT4_SIZE];
+    //mat4_inverse(_invprojmat, _projmat);
+    __projmat = fastgltf::math::invert(_MAT4(__projmat));
+//    __projmat = FMAT4( 
+//        _invprojmat[0], _invprojmat[1], _invprojmat[2], _invprojmat[3],  
+//        _invprojmat[4], _invprojmat[5], _invprojmat[6], _invprojmat[7],  
+//        _invprojmat[8], _invprojmat[9], _invprojmat[10], _invprojmat[11],  
+//        _invprojmat[12], _invprojmat[13], _invprojmat[14], _invprojmat[15]);
 
     // Step 1: Convert mouse coordinates to normalized device coordinates (NDC)
     float _x = norm_mouseX * 2.0f - 1.0f;

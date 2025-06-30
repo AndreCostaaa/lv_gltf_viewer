@@ -23,7 +23,7 @@
 #include "../lv_gltf_view_internal.h"
 #include "../../data/lv_gltf_data_internal.h"
 #include "../../../../../../lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.h"
-#include "../../data/deps/mathc/mathc.h"
+//#include "../../data/deps/mathc/mathc.h"
 
 void set_matrix_view(_VIEW _viewer, FMAT4 _mat);
 void set_matrix_proj(_VIEW _viewer, FMAT4 _mat);
@@ -268,7 +268,25 @@ FMAT3 setup_tangent_bitangent_normal_matrix(FVEC3 normal, FVEC4 tangent_and_w){
  * @param env_rotation_angle The angle of rotation for the environment in radians.
  * @param shader_program The shader program to which the rotation matrix will be applied.
  */
+
+namespace fastgltf::math {
+    template <typename T>
+    [[nodiscard]] fastgltf::math::quat<T> eulerToQuaternion(T P, T Y, T R);
+}
+
 void setup_environment_rotation_matrix(float env_rotation_angle, uint32_t shader_program) {
+    
+    fastgltf::math::fmat3x3 rotmat = fastgltf::math::asMatrix(fastgltf::math::eulerToQuaternion( env_rotation_angle, 0.f, 3.14159f));
+
+    // Get the uniform location and set the uniform
+    int32_t u_loc;
+    GL_CALL(u_loc = glGetUniformLocation(shader_program, "u_EnvRotation"));
+    GL_CALL(glUniformMatrix3fv(u_loc, 1, GL_FALSE, (const GLfloat*)rotmat.data()));
+}
+/*
+void old_mathc_based_setup_environment_rotation_matrix(float env_rotation_angle, uint32_t shader_program) {
+    _MAT4 fgrot;
+
     mfloat_t rot[MAT4_SIZE];
     mat4_identity(rot);
     mat4_rotation_z(rot, to_radians(180.0));
@@ -284,6 +302,7 @@ void setup_environment_rotation_matrix(float env_rotation_angle, uint32_t shader
     GL_CALL(u_loc = glGetUniformLocation(shader_program, "u_EnvRotation"));
     GL_CALL(glUniformMatrix3fv(u_loc, 1, false, ret ));
 }
+*/
 
 /**
  * @brief Set a uniform color in the shader.
@@ -647,71 +666,51 @@ void setup_view_proj_matrix_from_camera(lv_gltf_view_t *viewer, int32_t _cur_cam
                                          gl_viewer_desc_t *view_desc, const FMAT4 view_mat, 
                                          const FVEC3 view_pos, lv_gltf_data_t * gltf_data, 
                                          bool transmission_pass) {
+    // The following matrix math is for the projection matrices as defined by the glTF spec:
+    // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#projection-matrices
 
-    mfloat_t view[MAT4_SIZE];
-
-    view[0] = view_mat[0][0];
-    view[1] = view_mat[0][1];
-    view[2] = view_mat[0][2];
-    view[3] = view_mat[0][3];
-
-    view[4] = view_mat[1][0];
-    view[5] = view_mat[1][1];
-    view[6] = view_mat[1][2];
-    view[7] = view_mat[1][3];
-
-    view[8] = view_mat[2][0];
-    view[9] = view_mat[2][1];
-    view[10] = view_mat[2][2];
-    view[11] = view_mat[2][3];
-
-    view[12] = view_mat[3][0];
-    view[13] = view_mat[3][1];
-    view[14] = view_mat[3][2];
-    view[15] = view_mat[3][3];
-    
-    // Create Perspective Matrix
-    mfloat_t projection[MAT4_SIZE];
-    auto _bradius = lv_gltf_data_get_radius(gltf_data);
-    float _mindist = _bradius * 0.05f;
-    float _maxdist = _bradius * std::max(2.0, 4.0 * view_desc->distance);
-    const auto& asset = GET_ASSET(gltf_data);   
-    float fov = view_desc->fov; 
-    if (_cur_cam_num > -1) {
-        const fastgltf::Camera::Perspective * _perspcam = std::get_if<fastgltf::Camera::Perspective> (&(asset->cameras[_cur_cam_num].camera));
-        if (_perspcam != NULL) {
-            _mindist = _perspcam->znear;
-            fov = _perspcam->yfov;
-            if ( _perspcam->zfar.has_value()) {
-                _maxdist = _perspcam->zfar.value();
-            } else {
-                _maxdist = 5000.0f; } 
-            if (transmission_pass) {
-                mat4_perspective_fov(projection,(fov), 256, 256, _mindist, _maxdist);
-            } else {
-                mat4_perspective_fov(projection,(fov), view_desc->render_width, view_desc->render_height, _mindist, _maxdist);
-            }
-        } else {
-            const fastgltf::Camera::Orthographic * _orthocam = std::get_if<fastgltf::Camera::Orthographic> (&(asset->cameras[_cur_cam_num].camera));
-            if (_orthocam != NULL) {
-                fov = 0;
-                _mindist = _orthocam->znear;
-                _maxdist = _orthocam->zfar;
-                // Isometric view: create an orthographic projection
-                float orthoSize = _orthocam->ymag; 
-                float aspect = (float)view_desc->render_width / (float)view_desc->render_height;
-                mat4_ortho(projection, -(orthoSize * aspect), (orthoSize * aspect), -orthoSize, orthoSize, _bradius * 0.05f, _bradius * std::max(4.0, 8.0 * view_desc->distance));
-            }
-        }
+    _MAT4 projection;
+    const auto& asset = GET_ASSET(gltf_data);
+    auto width = view_desc->render_width;
+    auto height = view_desc->render_height;
+    // It's possible the transmission pass should simply use the regular passes aspect despite having different metrics itself.  Testing both ways to see which has less distortion
+    float aspect = (float)width / (float)height;
+    if (transmission_pass) {
+        width = 256;
+        height = 256;
     }
-    mfloat_t viewProj[MAT4_SIZE];
-    mat4_multiply(viewProj, projection, view);
-    FMAT4 tm = FMAT4(); std::size_t tm_size = MAT4_SIZE * sizeof(mfloat_t);
 
-    { std::memcpy(tm.data(), view,          tm_size); set_matrix_view(      viewer, FMAT4(tm)); }
-    { std::memcpy(tm.data(), projection,    tm_size); set_matrix_proj(      viewer, FMAT4(tm)); }
-    { std::memcpy(tm.data(), viewProj,      tm_size); set_matrix_viewproj(  viewer, FMAT4(tm)); }
-    set_cam_pos(viewer, view_pos[0], view_pos[1], view_pos[2]);   
+    std::visit(fastgltf::visitor {
+        [&](fastgltf::Camera::Perspective& perspective) {
+			projection = _MAT4(0.0f);
+			projection[0][0] = 1.f / (aspect * tan(0.5f * perspective.yfov));
+			projection[1][1] = 1.f / (tan(0.5f * perspective.yfov));
+			projection[2][3] = -1;
+
+			if (perspective.zfar.has_value()) {
+				// Finite projection matrix
+				projection[2][2] = (*perspective.zfar + perspective.znear) / (perspective.znear - *perspective.zfar);
+				projection[3][2] = (2 * *perspective.zfar * perspective.znear) / (perspective.znear - *perspective.zfar);
+			} else {
+				// Infinite projection matrix
+				projection[2][2] = -1;
+				projection[3][2] = -2 * perspective.znear;
+			}
+		},
+		[&](fastgltf::Camera::Orthographic& orthographic) {
+			projection = _MAT4(1.0f);
+			projection[0][0] = (1.f / orthographic.xmag) * aspect;
+			projection[1][1] = 1.f / orthographic.ymag;
+			projection[2][2] = 2.f / (orthographic.znear - orthographic.zfar);
+			projection[3][2] = (orthographic.zfar + orthographic.znear) / (orthographic.znear - orthographic.zfar);
+		},
+	}, asset->cameras[_cur_cam_num].camera);
+
+    set_matrix_view( viewer, view_mat);
+    set_matrix_proj( viewer, projection);
+    set_matrix_viewproj( viewer, projection * view_mat);
+    set_cam_pos(viewer, view_pos[0], view_pos[1], view_pos[2]); 
+
 }
 
 /**
@@ -727,75 +726,93 @@ void setup_view_proj_matrix_from_camera(lv_gltf_view_t *viewer, int32_t _cur_cam
  * @param gltf_data Pointer to the GLTF data structure containing scene information.
  * @param transmission_pass A boolean indicating whether this setup is for the transmission pass.
  */
+
+ namespace fastgltf::math {
+	/** Creates a right-handed view matrix */
+	[[nodiscard]] _MAT4 lookAtRH(const fvec3& eye, const fvec3& center, const fvec3& up) noexcept;
+}
+
 void setup_view_proj_matrix(lv_gltf_view_t *viewer, gl_viewer_desc_t *view_desc, 
                             lv_gltf_data_t * gltf_data, bool transmission_pass) {
     // Create Look-At Matrix
-    const auto& _cenpos = FVEC3(view_desc->focal_x, view_desc->focal_y, view_desc->focal_z);
-    float cen_x = _cenpos[0];
-    float cen_y = _cenpos[1];
-    float cen_z = _cenpos[2];
+
     if (view_desc->recenter_flag) {
         view_desc->recenter_flag = false;
         const auto& _autocenpos = lv_gltf_data_get_center(gltf_data);
-        view_desc->focal_x = cen_x = _autocenpos[0];
-        view_desc->focal_y = cen_y = _autocenpos[1];
-        view_desc->focal_z = cen_z = _autocenpos[2];
+        view_desc->focal_x = _autocenpos[0];
+        view_desc->focal_y = _autocenpos[1];
+        view_desc->focal_z = _autocenpos[2];
     }
+
 
     auto _bradius = lv_gltf_data_get_radius(gltf_data);
     float radius = _bradius * 2.5;
     radius *= view_desc->distance;
 
-    mfloat_t cam_position[VEC3_SIZE];
-    mfloat_t cam_target[VEC3_SIZE];
-    mfloat_t up[VEC3_SIZE];
-    mfloat_t view[MAT4_SIZE];
+    _VEC3 rcam_dir = _VEC3(0.0f, 0.0f, 1.0f);
 
-    mfloat_t rcam_dir[VEC3_SIZE];
-    vec3(rcam_dir, 0.0, 0.0, 1.0);
+    // Note because we switched over to fastgltf math and it's right-hand focused, z axis is actually pitch (instead of x-axis), and x axis is yaw, instead of y-axis
+    fastgltf::math::fmat3x3 rotation1 = fastgltf::math::asMatrix(fastgltf::math::eulerToQuaternion(0.f, 0.f, fastgltf::math::radians(view_desc->pitch)));
+    fastgltf::math::fmat3x3 rotation2 = fastgltf::math::asMatrix(fastgltf::math::eulerToQuaternion(fastgltf::math::radians(view_desc->yaw + view_desc->spin_degree_offset), 0.f, 0.f));
 
-    mfloat_t rotation1[MAT3_SIZE];
-    mfloat_t rotation2[MAT3_SIZE];
-    mat3_identity(rotation1);
-    mat3_identity(rotation2);
-    mat3_rotation_x(rotation1, to_radians(view_desc->pitch));
-    mat3_rotation_y(rotation2, to_radians(view_desc->yaw + view_desc->spin_degree_offset));
-    vec3_multiply_mat3(rcam_dir, rcam_dir, rotation1);
-    vec3_multiply_mat3(rcam_dir, rcam_dir, rotation2);
+    rcam_dir = rotation1 * rcam_dir;
+    rcam_dir = rotation2 * rcam_dir;
 
-    mfloat_t ncam_dir[VEC3_SIZE];
-    vec3_normalize(ncam_dir, rcam_dir);
+    _VEC3 ncam_dir = fastgltf::math::normalize(rcam_dir);
+    _VEC3 cam_target = _VEC3( view_desc->focal_x, view_desc->focal_y, view_desc->focal_z );
+    _VEC3 cam_position = _VEC3( cam_target[0] + (ncam_dir[0]*radius), cam_target[1] + (ncam_dir[1]*radius) , cam_target[2] + (ncam_dir[2]*radius));
 
-    mat4_look_at(view,
-        vec3(cam_position, cen_x + (ncam_dir[0]*radius), cen_y + (ncam_dir[1]*radius) , cen_z + (ncam_dir[2]*radius)),
-        vec3(cam_target, cen_x, cen_y, cen_z),
-        vec3(up, 0.0, 1.0, 0.0));
+    _MAT4 view_mat = fastgltf::math::lookAtRH( cam_position, cam_target, _VEC3( 0.0f, 1.0f, 0.0f ) );
 
     // Create Projection Matrix
-    mfloat_t projection[MAT4_SIZE];
+    _MAT4 projection;
     float fov = view_desc->fov;
+
+    float znear = _bradius * 0.05f;
+    float zfar = _bradius * std::max(4.0, 8.0 * view_desc->distance);
+    auto width = view_desc->render_width;
+    auto height = view_desc->render_height;
+    // It's possible the transmission pass should simply use the regular passes aspect despite having different metrics itself.  Testing both ways to see which has less distortion
+    float aspect = (float)width / (float)height;
+    if (transmission_pass) {
+        width = 256;
+        height = 256;
+    }
+
     if (fov <= 0.0f) {
         // Isometric view: create an orthographic projection
         float orthoSize =  view_desc->distance * _bradius; // Adjust as needed
-        float aspect = (float)view_desc->render_width / (float)view_desc->render_height;
-        mat4_ortho(projection, -(orthoSize * aspect), (orthoSize * aspect), -orthoSize, orthoSize, _bradius * 0.05f, _bradius * std::max(4.0, 8.0 * view_desc->distance));
+
+        projection = _MAT4(1.0f);
+        projection[0][0] = -(orthoSize * aspect);
+        projection[1][1] = (orthoSize );
+        projection[2][2] = 2.f / (znear - zfar);
+        projection[3][2] = (zfar + znear) / (znear - zfar);
+
     } else {
         // Perspective view
-        if (transmission_pass) {
-            mat4_perspective_fov(projection, to_radians(fov), 256, 256, _bradius * 0.05f, _bradius * std::max(4.0, 8.0 * view_desc->distance));
-        } else {
-            mat4_perspective_fov(projection, to_radians(fov), view_desc->render_width, view_desc->render_height, _bradius * 0.05f, _bradius * std::max(4.0, 8.0 * view_desc->distance));
-        }
+        projection = _MAT4(0.0f);
+        assert(width != 0 && height != 0);
+        projection[0][0] = 1.f / (aspect * tan(0.5f * fastgltf::math::radians(fov)));
+        projection[1][1] = 1.f / (tan(0.5f * fastgltf::math::radians(fov)));
+        projection[2][3] = -1;
+
+        //if (perspective.zfar.has_value()) {
+            // Finite projection matrix
+            projection[2][2] = (zfar + znear) / (znear - zfar);
+            projection[3][2] = (2.f * zfar * znear) / (znear - zfar);
+        //} else {
+        //    // Infinite projection matrix
+        //    projection[2][2] = -1.f;
+        //    projection[3][2] = -2.f * znear;
+        //}
+
     }
 
-    mfloat_t viewProj[MAT4_SIZE];
-    mat4_multiply(viewProj, projection, view);
-    FMAT4 tm = FMAT4(); std::size_t tm_size = MAT4_SIZE * sizeof(mfloat_t);
-
-    { std::memcpy(tm.data(), view,          tm_size); set_matrix_view(      viewer, FMAT4(tm)); }
-    { std::memcpy(tm.data(), projection,    tm_size); set_matrix_proj(      viewer, FMAT4(tm)); }
-    { std::memcpy(tm.data(), viewProj,      tm_size); set_matrix_viewproj(  viewer, FMAT4(tm)); }
-    set_cam_pos(viewer, cam_position[0], cam_position[1], cam_position[2]);
+    set_matrix_view( viewer, view_mat);
+    set_matrix_proj( viewer, projection);
+    set_matrix_viewproj( viewer, projection * view_mat);
+    set_cam_pos(viewer, cam_position[0], cam_position[1], cam_position[2]); 
 }
 
 /**

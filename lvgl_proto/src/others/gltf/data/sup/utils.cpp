@@ -9,7 +9,7 @@
 #include "../../data/deps/fastgltf/include/fastgltf/types.hpp"
 #include "../../data/deps/fastgltf/include/fastgltf/tools.hpp"
 #include "../lv_gltf_data_internal.h"
-#include "../../data/deps/mathc/mathc.h"
+//#include "../../data/deps/mathc/mathc.h"
 
 _VEC3 get_cached_centerpoint(_DATA D, _UINT I, int32_t P, _MAT4 M);
 

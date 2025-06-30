@@ -7,10 +7,6 @@ extern "C" {
 
 #include "shader_includes.h"
 
-//#pragma GCC diagnostic push
-//#pragma GCC diagnostic ignored "-Wunused-function"
-//#pragma GCC diagnostic ignored "-Wunused-variable"
-
 static const char *src_vertexShader = R"(
     uniform mat4 u_ViewProjectionMatrix;
     uniform mat4 u_ModelMatrix;
@@ -109,8 +105,6 @@ inline static char* src_frag(void) {
     printf("Requesting fragment shader. Override: %s\n", shader_fragment_is_overridden() ? "true" : "false");
     return PREPROCESS(shader_fragment_is_overridden() ? get_shader_fragment_override() : src_fragmentShader); 
 }
-
-//#pragma GCC diagnostic pop
 
 #ifdef __cplusplus
 } /*extern "C"*/

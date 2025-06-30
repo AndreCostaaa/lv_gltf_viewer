@@ -74,7 +74,7 @@ namespace fastgltf {
 // It's simpler here to just declare the functions as part of the fastgltf::math namespace.
 namespace fastgltf::math {
 	/** Creates a right-handed view matrix */
-	[[nodiscard]] auto lookAtRH(const fvec3& eye, const fvec3& center, const fvec3& up) noexcept {
+	[[nodiscard]] _MAT4 lookAtRH(const fvec3& eye, const fvec3& center, const fvec3& up) noexcept {
 		auto dir = normalize(center - eye);
 		auto lft = normalize(cross(dir, up));
 		auto rup = cross(lft, dir);
@@ -91,7 +91,7 @@ namespace fastgltf::math {
 	 * Creates a right-handed perspective matrix, with the near and far clips at -1 and +1, respectively.
 	 * @param fov The FOV in radians
 	 */
-	[[nodiscard]] auto perspectiveRH(float fov, float ratio, float zNear, float zFar) noexcept {
+	[[nodiscard]] _MAT4 perspectiveRH(float fov, float ratio, float zNear, float zFar) noexcept {
 		mat<float, 4, 4> ret(0.f);
 		auto tanHalfFov = std::tan(fov / 2.f);
 		ret.col(0).x() = 1.f / (ratio * tanHalfFov);
