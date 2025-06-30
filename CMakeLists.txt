@@ -8,146 +8,146 @@ project(gltf_view LANGUAGES C CXX)
 # project.
 cmake_policy(SET CMP0079 NEW)
 
+include(FetchContent)
 
 # Compiler settings
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wpedantic")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wpedantic -flax-vector-conversions")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wpedantic -ggdb")
+set(CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wpedantic -flax-vector-conversions"
+)
 
-# LVGL build settings
-set(CONFIG_LV_BUILD_EXAMPLES OFF CACHE BOOL "disable lvgl examples" FORCE)
-set(CONFIG_LV_BUILD_DEMOS OFF CACHE BOOL "disable lvgl demos" FORCE)
-set(CONFIG_LV_USE_THORVG_INTERNAL OFF CACHE BOOL "disable thorvg internal" FORCE)
+find_package(PkgConfig REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(glfw3 3.3 REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(WebP REQUIRED)
+
+set(GLFW_TARGET)
+set(GLEW_TARGET)
+set(WEBP_TARGET)
+
+FetchContent_Declare(
+  fastgltf
+  GIT_REPOSITORY https://github.com/spnda/fastgltf.git
+  GIT_TAG v0.8.0
+  GIT_SHALLOW TRUE)
+
+set(FASTGLTF_COMPILE_AS_CPP20
+    OFF
+    CACHE BOOL "" FORCE)
+set(FASTGLTF_ENABLE_TESTS
+    OFF
+    CACHE BOOL "" FORCE)
+set(FASTGLTF_ENABLE_EXAMPLES
+    OFF
+    CACHE BOOL "" FORCE)
+set(FASTGLTF_ENABLE_DOCS
+    OFF
+    CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(fastgltf)
+
+set(CONFIG_LV_BUILD_EXAMPLES
+    OFF
+    CACHE BOOL "disable lvgl examples" FORCE)
+set(CONFIG_LV_BUILD_DEMOS
+    OFF
+    CACHE BOOL "disable lvgl demos" FORCE)
+set(CONFIG_LV_USE_THORVG_INTERNAL
+    OFF
+    CACHE BOOL "disable thorvg internal" FORCE)
 
 add_subdirectory(lvgl)
-
-set(FASTGLTF_ENABLE_DEPRECATED_EXT ON)
-set(LVGL_ENABLE_WEBP_IMAGES 1) # 0 = disable / 1 = enabled with internal decoder code / 2 = enabled with external lib webp
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
 
-add_library(lvgl_opengl_shader_cache 
-    lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.cpp
-)
-target_include_directories(lvgl_opengl_shader_cache PRIVATE lvgl lvgl/src)
+# Define common include directories
+set(LVGL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/lvgl ${CMAKE_SOURCE_DIR}/lvgl/src)
 
-add_library(lvgl_gltfdata 
-    lvgl_proto/src/others/gltf/data/lv_gltf_data.c
-    lvgl_proto/src/others/gltf/data/lv_gltf_data.cpp
-    lvgl_proto/src/others/gltf/data/lv_gltf_override.cpp
-)
+set(PROTO_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/lvgl_proto/src/others
+                       ${CMAKE_SOURCE_DIR}/lvgl_proto/src/others/gltf/data/deps)
 
-target_include_directories(lvgl_gltfdata PRIVATE lvgl lvgl/src ./lvgl_proto/src/others/gltf/data/deps)
+# Create library targets
+add_library(
+  lvgl_opengl_shader_cache
+  lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.cpp)
+target_include_directories(lvgl_opengl_shader_cache
+                           PRIVATE ${LVGL_INCLUDE_DIRS})
 
-add_library(lvgl_gltfview 
-    lvgl_proto/src/others/gltf/view/lv_gltf_view.c
-    lvgl_proto/src/others/gltf/view/lv_gltf_view.cpp
-)
+add_library(
+  lvgl_gltfdata
+  lvgl_proto/src/others/gltf/data/lv_gltf_data.c
+  lvgl_proto/src/others/gltf/data/lv_gltf_data.cpp
+  lvgl_proto/src/others/gltf/data/lv_gltf_override.cpp)
+target_include_directories(lvgl_gltfdata PRIVATE ${LVGL_INCLUDE_DIRS}
+                                                 ${PROTO_INCLUDE_DIRS})
+target_link_libraries(lvgl_gltfdata PRIVATE lvgl_opengl_shader_cache fastgltf)
+target_compile_definitions(lvgl_gltfdata
+                           PRIVATE FASTGLTF_ENABLE_DEPRECATED_EXT=1)
 
-target_include_directories(lvgl_gltfview PRIVATE lvgl lvgl/src ./lvgl_proto/src/others/gltf/data/deps)
+add_library(lvgl_gltfview lvgl_proto/src/others/gltf/view/lv_gltf_view.c
+                          lvgl_proto/src/others/gltf/view/lv_gltf_view.cpp)
+target_include_directories(lvgl_gltfview PRIVATE ${LVGL_INCLUDE_DIRS}
+                                                 ${PROTO_INCLUDE_DIRS})
+target_link_libraries(lvgl_gltfdata PRIVATE lvgl_opengl_shader_cache fastgltf
+                                            ${WEBP_TARGET})
+target_link_libraries(lvgl_gltfview PRIVATE lvgl_gltfdata)
 
-add_executable(gltf_view
-    demo.c
-    demo_ui.c
-    demo_cli.c
-    demo_nav.c
-    demo_os_integrate.c
-    demo_file_load_dialog.c
-    demo_misc_utils.c
-    resources/mouse_cursor_icon.c
-    resources/lvgl_icon_40px_ARGB888.c
-    resources/sprites1_32x32x7.c
-)
+# Main executable
+add_executable(
+  gltf_view
+  demo.c
+  demo_ui.c
+  demo_cli.c
+  demo_nav.c
+  demo_os_integrate.c
+  demo_file_load_dialog.c
+  demo_misc_utils.c
+  resources/mouse_cursor_icon.c
+  resources/lvgl_icon_40px_ARGB888.c
+  resources/sprites1_32x32x7.c)
 
-
+# Build type definitions
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_definitions(-DNDEBUG)
+  add_definitions(-DNDEBUG)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-    add_definitions(-DNDEBUG)
+  add_definitions(-DNDEBUG)
 endif()
 
-# Set flags for Debug build
-set(CMAKE_C_FLAGS_DEBUG "-g -Wall -Wextra -fsanitize=address -Wshadow")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -fsanitize=address -std=c++17")
-set(CMAKE_LINKER_FLAGS_DEBUG "-fsanitize=address")
+# Optional: Enable AddressSanitizer for Debug builds (can be disabled if
+# problematic)
+option(ENABLE_ASAN "Enable AddressSanitizer in Debug builds" OFF)
 
-# Set flags for Release build
-set(CMAKE_C_FLAGS_RELEASE "-O3 -Wall -Wshadow")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -std=c++17")
-set(CMAKE_LINKER_FLAGS_RELEASE "-O3")
-
-#  Set flags for MinSizeRel build
-set(CMAKE_C_FLAGS_MINSIZEREL "-Os -Wall -Wshadow")
-set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -Wall -std=c++17")
-set(CMAKE_LINKER_FLAGS_MINSIZEREL "-Wl,--gc-sections")  # Remove unused sections
-
-target_link_libraries(lvgl_gltfdata lvgl_opengl_shader_cache)
-if(DEFINED LVGL_ENABLE_WEBP_IMAGES AND LVGL_ENABLE_WEBP_IMAGES)
-    #target_link_libraries(lvgl_gltfdata webp)
-    if (LVGL_ENABLE_WEBP_IMAGES EQUAL 1)
-        add_library(lvgl_webpmin
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dec/alpha_dec.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dec/buffer_dec.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dec/frame_dec.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dec/io_dec.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dec/quant_dec.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dec/tree_dec.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dec/vp8_dec.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dec/vp8l_dec.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dec/webp_dec.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/utils/bit_reader_utils.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/utils/color_cache_utils.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/utils/huffman_utils.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/utils/palette.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/utils/quant_levels_dec_utils.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/utils/random_utils.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/utils/rescaler_utils.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/utils/thread_utils.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/utils/utils.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/alpha_processing.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/alpha_processing_neon.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/cpu.c        
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/dec.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/dec_neon.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/dec_clip_tables.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/filters.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/filters_neon.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/lossless.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/lossless_neon.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/rescaler.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/rescaler_neon.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/upsampling.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/upsampling_neon.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/yuv.c
-            lvgl_proto/src/others/gltf/data/deps/webp_min/src/dsp/yuv_neon.c
-        )
-        target_include_directories(lvgl_webpmin PRIVATE 
-            ${CMAKE_SOURCE_DIR}/lvgl_proto/src/others/gltf/data/deps/webp_min
-        )
-        target_link_libraries(lvgl_gltfdata lvgl_webpmin)
-    endif()
-    if (LVGL_ENABLE_WEBP_IMAGES EQUAL 2) 
-        target_link_libraries(lvgl_gltfdata webp)
-    endif()
-    target_compile_definitions(lvgl_gltfdata PRIVATE LVGL_ENABLE_WEBP_IMAGES=${LVGL_ENABLE_WEBP_IMAGES})
+if(ENABLE_ASAN AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+  target_compile_options(gltf_view PRIVATE -fsanitize=address)
+  target_link_options(gltf_view PRIVATE -fsanitize=address)
 endif()
+
+# Additional optimization for MinSizeRel
+if(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+  target_link_options(gltf_view PRIVATE -Wl,--gc-sections)
+endif()
+
+target_link_libraries(
+  gltf_view
+  PRIVATE lvgl
+          lvgl_gltfview
+          m
+          OpenGL::GL
+          GLEW::GLEW
+          glfw
+          WebP::webp)
 
 target_include_directories(
-  lvgl_gltfdata
-  PRIVATE
-    ${CMAKE_SOURCE_DIR}/lvgl_proto/src/others/gltf/data/deps/fastgltf/include/)
-target_link_libraries(lvgl_gltfview lvgl_gltfdata)
-
-target_link_libraries(gltf_view PRIVATE lvgl lvgl_gltfview pthread m GL GLEW glfw webp)
-target_include_directories(gltf_view PRIVATE lvgl_proto/src/others lvgl lvgl/src ./lvgl_proto/src/others/gltf/data/deps)
+  gltf_view PRIVATE lvgl_proto/src/others lvgl lvgl/src
+                    ./lvgl_proto/src/others/gltf/data/deps)
 
 set_target_properties(gltf_view PROPERTIES COMPILE_DEFINITIONS
-                                            "${LVGL_COMPILER_DEFINES}")
-
-
+                                           "${LVGL_COMPILER_DEFINES}")
