@@ -149,7 +149,7 @@ void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window, bool loc
     
     GLFWimage images[1]; 
     int width, height, channel;
-    stbi_uc* img = stbi_load("./window_icon_32px.png", &width, &height, &channel, 0); //rgba channels 
+    stbi_uc* img = stbi_load("./assets/window_icon_32px.png", &width, &height, &channel, 0); //rgba channels 
     if (img == NULL) printf("Icon Can Not Be Loaded\n");
     images[0].height = 32;
     images[0].width = 32;

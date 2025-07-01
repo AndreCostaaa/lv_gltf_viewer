@@ -96,16 +96,16 @@ bool demo_cli_apply_commandline_options( lv_gltf_view_t* viewer, char * gltfFile
                 if (p == 0) {
                     strncpy(hdrFile, argv[i + 1], MAX_PATH_LENGTH - 1);
                 } else {
-                    if (p == 1) strncpy(hdrFile, "media/hdr/footprint_court.jpg", MAX_PATH_LENGTH - 1);
-                    else if (p == 2) strncpy(hdrFile, "media/hdr/helipad.jpg", MAX_PATH_LENGTH - 1);
-                    else if (p == 3) strncpy(hdrFile, "media/hdr/field.jpg", MAX_PATH_LENGTH - 1);
-                    else if (p == 4) strncpy(hdrFile, "media/hdr/papermill.jpg", MAX_PATH_LENGTH - 1);
-                    else if (p == 5) strncpy(hdrFile, "media/hdr/pisa.jpg", MAX_PATH_LENGTH - 1);
-                    else if (p == 6) strncpy(hdrFile, "media/hdr/doge2.jpg", MAX_PATH_LENGTH - 1);
-                    else if (p == 7) strncpy(hdrFile, "media/hdr/ennis.jpg", MAX_PATH_LENGTH - 1);
-                    else if (p == 8) strncpy(hdrFile, "media/hdr/directional.jpg", MAX_PATH_LENGTH - 1);
-                    else if (p == 9) strncpy(hdrFile, "media/hdr/chromatic.jpg", MAX_PATH_LENGTH - 1);
-                    else if (p == 10) strncpy(hdrFile, "media/hdr/neutral.jpg", MAX_PATH_LENGTH - 1);
+                    if (p == 1) strncpy(hdrFile, "assets/hdr/footprint_court.jpg", MAX_PATH_LENGTH - 1);
+                    else if (p == 2) strncpy(hdrFile, "assets/hdr/helipad.jpg", MAX_PATH_LENGTH - 1);
+                    else if (p == 3) strncpy(hdrFile, "assets/hdr/field.jpg", MAX_PATH_LENGTH - 1);
+                    else if (p == 4) strncpy(hdrFile, "assets/hdr/papermill.jpg", MAX_PATH_LENGTH - 1);
+                    else if (p == 5) strncpy(hdrFile, "assets/hdr/pisa.jpg", MAX_PATH_LENGTH - 1);
+                    else if (p == 6) strncpy(hdrFile, "assets/hdr/doge2.jpg", MAX_PATH_LENGTH - 1);
+                    else if (p == 7) strncpy(hdrFile, "assets/hdr/ennis.jpg", MAX_PATH_LENGTH - 1);
+                    else if (p == 8) strncpy(hdrFile, "assets/hdr/directional.jpg", MAX_PATH_LENGTH - 1);
+                    else if (p == 9) strncpy(hdrFile, "assets/hdr/chromatic.jpg", MAX_PATH_LENGTH - 1);
+                    else if (p == 10) strncpy(hdrFile, "assets/hdr/neutral.jpg", MAX_PATH_LENGTH - 1);
                 }
                 hdrFile[MAX_PATH_LENGTH - 1] = '\0';
                 i++;

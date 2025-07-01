@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
     demo_gltfview = (lv_gltf_view_t * ) lv_malloc(get_viewer_datasize() );
     init_viewer_struct(demo_gltfview);
     char gltfFilePath[MAX_PATH_LENGTH] = {0};
-    char hdrFilePath[MAX_PATH_LENGTH] = "media/hdr/directional.jpg";
+    char hdrFilePath[MAX_PATH_LENGTH] = "assets/hdr/directional.jpg";
     int lastMouseX = 0, lastMouseY = 0;
     int frameCount = 0;
     bool softwareOnly = false;
