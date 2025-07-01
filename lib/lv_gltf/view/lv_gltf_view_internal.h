@@ -6,17 +6,17 @@
 #include <misc/lv_types.h>
 
 typedef enum {
-    ANTIALIAS_OFF=0,
-    ANTIALIAS_CONSTANT=1,
-    ANTIALIAS_NOT_MOVING=2,
-    ANTIALIAS_UNKNOWN=999
+    ANTIALIAS_OFF = 0,
+    ANTIALIAS_CONSTANT = 1,
+    ANTIALIAS_NOT_MOVING = 2,
+    ANTIALIAS_UNKNOWN = 999
 } AntialiasingMode;
 
 typedef enum {
-    BG_CLEAR=0,
-    BG_SOLID=1,
-    BG_ENVIRONMENT=2,
-    BG_UNKNOWN=999
+    BG_CLEAR = 0,
+    BG_SOLID = 1,
+    BG_ENVIRONMENT = 2,
+    BG_UNKNOWN = 999
 } BackgroundMode;
 
 typedef struct {

@@ -5,39 +5,41 @@
 
 #define _RET return
 
-uint32_t get_viewer_datasize(void) {
+uint32_t get_viewer_datasize(void)
+{
     return sizeof(lv_gltf_view_t);
 }
 
-void init_viewer_struct(_VIEW _ViewerMem) {
+void init_viewer_struct(_VIEW _ViewerMem)
+{
     lv_gltf_view_t _newViewer;
     auto _newMetrics = &_newViewer.state.metrics;
-        _newMetrics->opaqueFramebufferWidth = 256;
-        _newMetrics->opaqueFramebufferHeight = 256;
-        _newMetrics->vertex_count = 0;
+    _newMetrics->opaqueFramebufferWidth = 256;
+    _newMetrics->opaqueFramebufferHeight = 256;
+    _newMetrics->vertex_count = 0;
     auto _newDesc = &_newViewer.desc;
-        _newDesc->pitch = 0.f;
-        _newDesc->yaw = 0.f;
-        _newDesc->distance = 1.f;
-        _newDesc->width = 768;
-        _newDesc->height = 592;
-        _newDesc->focal_x = 0.f;
-        _newDesc->focal_y = 0.f;
-        _newDesc->focal_z = 0.f;
-        _newDesc->exposure = 0.8f;
-        _newDesc->env_pow = 1.8f;
-        _newDesc->blur_bg = 0.2f;
-        _newDesc->bg_mode = 0;
-        _newDesc->aa_mode = 2;
-        _newDesc->camera = 0;
-        _newDesc->anim = 0;
-        _newDesc->spin_degree_offset = 0.f;        
-        _newDesc->timestep = 0.f;
-        _newDesc->error_frames = 0;
-        _newDesc->dirty = true;
-        _newDesc->recenter_flag = true;
-        _newDesc->frame_was_cached = false;
-        _newDesc->frame_was_antialiased = false;
+    _newDesc->pitch = 0.f;
+    _newDesc->yaw = 0.f;
+    _newDesc->distance = 1.f;
+    _newDesc->width = 768;
+    _newDesc->height = 592;
+    _newDesc->focal_x = 0.f;
+    _newDesc->focal_y = 0.f;
+    _newDesc->focal_z = 0.f;
+    _newDesc->exposure = 0.8f;
+    _newDesc->env_pow = 1.8f;
+    _newDesc->blur_bg = 0.2f;
+    _newDesc->bg_mode = 0;
+    _newDesc->aa_mode = 2;
+    _newDesc->camera = 0;
+    _newDesc->anim = 0;
+    _newDesc->spin_degree_offset = 0.f;
+    _newDesc->timestep = 0.f;
+    _newDesc->error_frames = 0;
+    _newDesc->dirty = true;
+    _newDesc->recenter_flag = true;
+    _newDesc->frame_was_cached = false;
+    _newDesc->frame_was_antialiased = false;
 
     _newViewer.state.options.sceneIndex = 0;
     _newViewer.state.options.materialVariant = 0;
@@ -48,7 +50,8 @@ void init_viewer_struct(_VIEW _ViewerMem) {
     *_ViewerMem = _newViewer;
 }
 
-void __free_viewer_struct(_VIEW V) {
+void __free_viewer_struct(_VIEW V)
+{
     // Nothing to do here
     LV_UNUSED(V);
 }
@@ -59,7 +62,10 @@ void __free_viewer_struct(_VIEW V) {
  * @param V Pointer to the viewer instance.
  * @param M The matrix to set as the view matrix.
  */
-void set_matrix_view(_VIEW V,_MAT4 M) {V->mats.viewMatrix = M;}
+void set_matrix_view(_VIEW V, _MAT4 M)
+{
+    V->mats.viewMatrix = M;
+}
 
 /**
  * @brief Set the projection matrix for the viewer.
@@ -67,7 +73,10 @@ void set_matrix_view(_VIEW V,_MAT4 M) {V->mats.viewMatrix = M;}
  * @param V Pointer to the viewer instance.
  * @param M The matrix to set as the projection matrix.
  */
-void set_matrix_proj(_VIEW V,_MAT4 M) {V->mats.projectionMatrix = M;}
+void set_matrix_proj(_VIEW V, _MAT4 M)
+{
+    V->mats.projectionMatrix = M;
+}
 
 /**
  * @brief Set the view-projection matrix for the viewer.
@@ -75,7 +84,10 @@ void set_matrix_proj(_VIEW V,_MAT4 M) {V->mats.projectionMatrix = M;}
  * @param V Pointer to the viewer instance.
  * @param M The matrix to set as the view-projection matrix.
  */
-void set_matrix_viewproj(_VIEW V,_MAT4 M) {V->mats.viewProjectionMatrix = M;}
+void set_matrix_viewproj(_VIEW V, _MAT4 M)
+{
+    V->mats.viewProjectionMatrix = M;
+}
 
 /**
  * @brief Get the camera position from the viewer.
@@ -83,7 +95,10 @@ void set_matrix_viewproj(_VIEW V,_MAT4 M) {V->mats.viewProjectionMatrix = M;}
  * @param V Pointer to the viewer instance.
  * @return The camera position as a vector.
  */
-_VEC3 get_cam_pos(_VIEW V) {_RET (V->cameraPos); }
+_VEC3 get_cam_pos(_VIEW V)
+{
+    _RET(V->cameraPos);
+}
 
 /**
  * @brief Get the output framebuffer from the viewer.
@@ -91,7 +106,10 @@ _VEC3 get_cam_pos(_VIEW V) {_RET (V->cameraPos); }
  * @param V Pointer to the viewer instance.
  * @return The framebuffer ID or 0 if not ready.
  */
-uint32_t get_output_framebuffer(_VIEW V) {_RET !V->state.render_state_ready ? V->state.render_state.framebuffer : 0;}
+uint32_t get_output_framebuffer(_VIEW V)
+{
+    _RET !V->state.render_state_ready ? V->state.render_state.framebuffer : 0;
+}
 
 /**
  * @brief Get a pointer to the view matrix.
@@ -99,7 +117,10 @@ uint32_t get_output_framebuffer(_VIEW V) {_RET !V->state.render_state_ready ? V-
  * @param V Pointer to the viewer instance.
  * @return Pointer to the view matrix.
  */
-void* get_matrix_view(_VIEW V) {_RET &(V->mats.viewMatrix);}
+void * get_matrix_view(_VIEW V)
+{
+    _RET &(V->mats.viewMatrix);
+}
 
 /**
  * @brief Get a pointer to the projection matrix.
@@ -107,7 +128,10 @@ void* get_matrix_view(_VIEW V) {_RET &(V->mats.viewMatrix);}
  * @param V Pointer to the viewer instance.
  * @return Pointer to the projection matrix.
  */
-void* get_matrix_proj(_VIEW V) {_RET &(V->mats.projectionMatrix);}
+void * get_matrix_proj(_VIEW V)
+{
+    _RET &(V->mats.projectionMatrix);
+}
 
 /**
  * @brief Get a pointer to the view-projection matrix.
@@ -115,7 +139,10 @@ void* get_matrix_proj(_VIEW V) {_RET &(V->mats.projectionMatrix);}
  * @param V Pointer to the viewer instance.
  * @return Pointer to the view-projection matrix.
  */
-void* get_matrix_viewproj(_VIEW V) {_RET &(V->mats.viewProjectionMatrix);}
+void * get_matrix_viewproj(_VIEW V)
+{
+    _RET &(V->mats.viewProjectionMatrix);
+}
 
 /**
  * @brief Get a pointer to the viewer options.
@@ -123,7 +150,10 @@ void* get_matrix_viewproj(_VIEW V) {_RET &(V->mats.viewProjectionMatrix);}
  * @param V Pointer to the viewer instance.
  * @return Pointer to the viewer options structure.
  */
-_ViewerOpts* get_viewer_opts(_VIEW V) { _RET &(V->state.options); }
+_ViewerOpts * get_viewer_opts(_VIEW V)
+{
+    _RET &(V->state.options);
+}
 
 /**
  * @brief Get a pointer to the viewer metrics.
@@ -131,7 +161,10 @@ _ViewerOpts* get_viewer_opts(_VIEW V) { _RET &(V->state.options); }
  * @param V Pointer to the viewer instance.
  * @return Pointer to the viewer metrics structure.
  */
-_ViewerMetrics* get_viewer_metrics(_VIEW V) { _RET &(V->state.metrics); }
+_ViewerMetrics * get_viewer_metrics(_VIEW V)
+{
+    _RET &(V->state.metrics);
+}
 
 /**
  * @brief Get a pointer to the viewer state.
@@ -139,7 +172,10 @@ _ViewerMetrics* get_viewer_metrics(_VIEW V) { _RET &(V->state.metrics); }
  * @param V Pointer to the viewer instance.
  * @return Pointer to the viewer state structure.
  */
-_ViewerState* get_viewer_state(_VIEW V) { _RET &(V->state); }
+_ViewerState * get_viewer_state(_VIEW V)
+{
+    _RET &(V->state);
+}
 
 
 /**
@@ -148,14 +184,20 @@ _ViewerState* get_viewer_state(_VIEW V) { _RET &(V->state); }
  * @param V Pointer to the viewer instance.
  * @return Pointer to the matrix set structure.
  */
-_MatrixSet* get_matrix_set(_VIEW V) { _RET &(V->mats); }
+_MatrixSet * get_matrix_set(_VIEW V)
+{
+    _RET &(V->mats);
+}
 /**
  * @brief Get the view radius from the viewer.
  *
  * @param V Pointer to the viewer instance.
  * @return The view radius as a double.
  */
-double get_view_radius(_VIEW V) { _RET (double)V->bound_radius; }
+double get_view_radius(_VIEW V)
+{
+    _RET(double)V->bound_radius;
+}
 
 /**
  * @brief Set the camera position in the viewer.
@@ -165,4 +207,9 @@ double get_view_radius(_VIEW V) { _RET (double)V->bound_radius; }
  * @param y The Y coordinate of the camera position.
  * @param z The Z coordinate of the camera position.
  */
-void set_cam_pos(_VIEW V, float x, float y, float z) { V->cameraPos[0] = x; V->cameraPos[1] = y; V->cameraPos[2] = z; }
+void set_cam_pos(_VIEW V, float x, float y, float z)
+{
+    V->cameraPos[0] = x;
+    V->cameraPos[1] = y;
+    V->cameraPos[2] = z;
+}

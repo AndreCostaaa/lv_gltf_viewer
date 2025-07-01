@@ -27,7 +27,8 @@ GLfloat clearDepth;
 GLfloat clearColor[4];
 
 
-void lv_gltf_opengl_state_push(void) {
+void lv_gltf_opengl_state_push(void)
+{
     // retain state of blend enabled
     GL_CALL(glGetBooleanv(GL_BLEND, &blendEnabled));
     // retain src / dst blend functions
@@ -41,12 +42,18 @@ void lv_gltf_opengl_state_push(void) {
     GL_CALL(glGetFloatv(GL_DEPTH_CLEAR_VALUE, &clearDepth));
 }
 
-void lv_gltf_opengl_state_pop(void) {
-    GL_CALL(glDisable(GL_CULL_FACE));  
-    if (blendEnabled ) { GL_CALL(glEnable(GL_BLEND)); } else { GL_CALL(glDisable(GL_BLEND)); }
+void lv_gltf_opengl_state_pop(void)
+{
+    GL_CALL(glDisable(GL_CULL_FACE));
+    if(blendEnabled) {
+        GL_CALL(glEnable(GL_BLEND));
+    }
+    else {
+        GL_CALL(glDisable(GL_BLEND));
+    }
     GL_CALL(glBlendFunc(blendSrc, blendDst));
     GL_CALL(glBlendEquation(blendEquation));
-    GL_CALL(glDepthMask(GL_TRUE));    
+    GL_CALL(glDepthMask(GL_TRUE));
     GL_CALL(glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]));
     GL_CALL(glClearDepth(clearDepth));
 }
@@ -61,7 +68,7 @@ FVEC4 lv_gltf_get_primitive_centerpoint(lv_gltf_data_t * ret_data, fastgltf::Mes
 
     if (mesh.primitives.size() > prim_num) {
         const auto& it = mesh.primitives[prim_num];
-        const auto& asset = GET_ASSET(ret_data);    
+        const auto& asset = GET_ASSET(ret_data);
         auto* positionIt = it.findAttribute("POSITION");
         auto& positionAccessor = asset->accessors[positionIt->accessorIndex];
         if (positionAccessor.bufferViewIndex.has_value()) {
@@ -102,61 +109,80 @@ FVEC4 lv_gltf_get_primitive_centerpoint(lv_gltf_data_t * ret_data, fastgltf::Mes
     return _retval;
 }
 */
-void lv_gltf_print_matrix_summary(FMAT4 matrix) {
-    const auto& m = matrix.data();
-    std::cout << std::to_string(m[0]) << ", " << std::to_string(m[1]) << ", " << std::to_string(m[2]) << ", " << std::to_string(m[3]) << "\n"; 
-    std::cout << std::to_string(m[4]) << ", " << std::to_string(m[5]) << ", " << std::to_string(m[6]) << ", " << std::to_string(m[7]) << "\n"; 
-    std::cout << std::to_string(m[8]) << ", " << std::to_string(m[9]) << ", " << std::to_string(m[10]) << ", " << std::to_string(m[11]) << "\n"; 
-    std::cout << std::to_string(m[12]) << ", " << std::to_string(m[13]) << ", " << std::to_string(m[14]) << ", " << std::to_string(m[15]) << "\n"; 
+void lv_gltf_print_matrix_summary(FMAT4 matrix)
+{
+    const auto & m = matrix.data();
+    std::cout << std::to_string(m[0]) << ", " << std::to_string(m[1]) << ", " << std::to_string(
+                  m[2]) << ", " << std::to_string(m[3]) << "\n";
+    std::cout << std::to_string(m[4]) << ", " << std::to_string(m[5]) << ", " << std::to_string(
+                  m[6]) << ", " << std::to_string(m[7]) << "\n";
+    std::cout << std::to_string(m[8]) << ", " << std::to_string(m[9]) << ", " << std::to_string(
+                  m[10]) << ", " << std::to_string(m[11]) << "\n";
+    std::cout << std::to_string(m[12]) << ", " << std::to_string(m[13]) << ", " << std::to_string(
+                  m[14]) << ", " << std::to_string(m[15]) << "\n";
 }
 
-void lv_gltf_get_isolated_filename(const char* filename, char* out_buffer, uint32_t max_out_length){
+void lv_gltf_get_isolated_filename(const char * filename, char * out_buffer, uint32_t max_out_length)
+{
     std::string _filenamestr = filename;
     int32_t beginIdx = _filenamestr.rfind('/');
     std::string isofilename = _filenamestr.substr(beginIdx + 1);
     strncpy(out_buffer, isofilename.c_str(), max_out_length);
-    out_buffer[max_out_length-1] = '\0';
+    out_buffer[max_out_length - 1] = '\0';
 }
 
-void lv_gltf_debug_print_node(ASSET& asset, fastgltf::Node node, std::size_t depth) {
+void lv_gltf_debug_print_node(ASSET & asset, fastgltf::Node node, std::size_t depth)
+{
     std::size_t _tabwidth = 4;
     std::size_t _insetspaces = _tabwidth * depth;
-    char* _tabstr = new char[_insetspaces + 1];
+    char * _tabstr = new char[_insetspaces + 1];
     memset(_tabstr, ' ', _insetspaces);
     _tabstr[_insetspaces] = '\0';
 
-    if (depth == 1) {
-        std::cout << _tabstr << "+ '" << node.name << "' (Root Node)\n"; 
-    } else {
-        std::cout << _tabstr << "+ '" << node.name << "'\n"; 
+    if(depth == 1) {
+        std::cout << _tabstr << "+ '" << node.name << "' (Root Node)\n";
+    }
+    else {
+        std::cout << _tabstr << "+ '" << node.name << "'\n";
     }
 
-    if (node.meshIndex.has_value()) {
-        std::cout << _tabstr << ": Mesh Index: " << node.meshIndex.value() << " '" << asset.meshes[node.meshIndex.value()].name << "'\n"; 
-    } else {
-        std::cout << _tabstr << ": (this node does not render)\n"; 
+    if(node.meshIndex.has_value()) {
+        std::cout << _tabstr << ": Mesh Index: " << node.meshIndex.value() << " '" << asset.meshes[node.meshIndex.value()].name
+                  << "'\n";
     }
-    
-    if (const auto* pTRS = std::get_if<fastgltf::TRS>(&node.transform)) {
-        std::cout << _tabstr << ": Translation X/Y/Z: " << pTRS->translation.x() << " / " << pTRS->translation.y() << " / " << pTRS->translation.z() << "\n"; 
-        std::cout << _tabstr << ": Rotation X/Y/Z/W: " << pTRS->rotation.x() << " / " << pTRS->rotation.y() << " / " << pTRS->rotation.z() << " / " << pTRS->rotation.w() << "\n"; 
-        std::cout << _tabstr << ": Scale X/Y/Z/W: " << pTRS->scale.x() << " / " << pTRS->scale.y() << " / " << pTRS->scale.z() << "\n"; 
-    } else if (const auto* pMat4 = std::get_if<FMAT4>(&node.transform)) {
-        std::cout << _tabstr << ": 4x4 Matrix [ " << pMat4->col(0)[0] << ", " << pMat4->col(0)[1] << ", " << pMat4->col(0)[2] << ", " << pMat4->col(0)[3] << " ]\n"; 
-        std::cout << _tabstr << ":            [ " << pMat4->col(1)[0] << ", " << pMat4->col(1)[1] << ", " << pMat4->col(1)[2] << ", " << pMat4->col(1)[3] << " ]\n"; 
-        std::cout << _tabstr << ":            [ " << pMat4->col(2)[0] << ", " << pMat4->col(2)[1] << ", " << pMat4->col(2)[2] << ", " << pMat4->col(2)[3] << " ]\n"; 
-        std::cout << _tabstr << ":            [ " << pMat4->col(3)[0] << ", " << pMat4->col(3)[1] << ", " << pMat4->col(3)[2] << ", " << pMat4->col(3)[3] << " ]\n"; 
+    else {
+        std::cout << _tabstr << ": (this node does not render)\n";
     }
-    if (node.children.size() > 0) {
-        std::cout << _tabstr << "+ ("<< node.children.size() << ") children\n"; 
-        for (auto& child : node.children) {
+
+    if(const auto * pTRS = std::get_if<fastgltf::TRS>(&node.transform)) {
+        std::cout << _tabstr << ": Translation X/Y/Z: " << pTRS->translation.x() << " / " << pTRS->translation.y() << " / " <<
+                  pTRS->translation.z() << "\n";
+        std::cout << _tabstr << ": Rotation X/Y/Z/W: " << pTRS->rotation.x() << " / " << pTRS->rotation.y() << " / " <<
+                  pTRS->rotation.z() << " / " << pTRS->rotation.w() << "\n";
+        std::cout << _tabstr << ": Scale X/Y/Z/W: " << pTRS->scale.x() << " / " << pTRS->scale.y() << " / " << pTRS->scale.z()
+                  << "\n";
+    }
+    else if(const auto * pMat4 = std::get_if<FMAT4>(&node.transform)) {
+        std::cout << _tabstr << ": 4x4 Matrix [ " << pMat4->col(0)[0] << ", " << pMat4->col(0)[1] << ", " << pMat4->col(
+                      0)[2] << ", " << pMat4->col(0)[3] << " ]\n";
+        std::cout << _tabstr << ":            [ " << pMat4->col(1)[0] << ", " << pMat4->col(1)[1] << ", " << pMat4->col(
+                      1)[2] << ", " << pMat4->col(1)[3] << " ]\n";
+        std::cout << _tabstr << ":            [ " << pMat4->col(2)[0] << ", " << pMat4->col(2)[1] << ", " << pMat4->col(
+                      2)[2] << ", " << pMat4->col(2)[3] << " ]\n";
+        std::cout << _tabstr << ":            [ " << pMat4->col(3)[0] << ", " << pMat4->col(3)[1] << ", " << pMat4->col(
+                      3)[2] << ", " << pMat4->col(3)[3] << " ]\n";
+    }
+    if(node.children.size() > 0) {
+        std::cout << _tabstr << "+ (" << node.children.size() << ") children\n";
+        for(auto & child : node.children) {
             lv_gltf_debug_print_node(asset, asset.nodes[child], depth + 1);
         }
-    } 
+    }
     delete[] _tabstr;
 }
 
-void lv_gltf_copy_viewer_desc(gl_viewer_desc_t* from, gl_viewer_desc_t* to) {
+void lv_gltf_copy_viewer_desc(gl_viewer_desc_t * from, gl_viewer_desc_t * to)
+{
     to->pitch = from->pitch;
     to->yaw = from->yaw;
     to->distance = from->distance;
@@ -183,27 +209,30 @@ void lv_gltf_copy_viewer_desc(gl_viewer_desc_t* from, gl_viewer_desc_t* to) {
     to->spin_degree_offset = from->spin_degree_offset;
 }
 
-bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t* from, gl_viewer_desc_t* to){
-    if ( (to->pitch       != from->pitch) || 
-       (to->yaw           != from->yaw) || 
-       (to->distance      != from->distance) || 
-       (to->recenter_flag != from->recenter_flag) || 
-       (to->focal_x       != from->focal_x) || 
-       (to->focal_y       != from->focal_y) || 
-       (to->focal_z       != from->focal_z) || 
-       (to->camera        != from->camera) || 
-       (to->anim          != from->anim) || 
-       (to->aa_mode       != from->aa_mode) || 
-       (to->bg_mode       != from->bg_mode) || 
-       (to->blur_bg       != from->blur_bg) || 
-       (to->exposure      != from->exposure) || 
-       (to->fov           != from->fov) || 
-       (to->bg_r          != from->bg_r) || 
-       (to->bg_g          != from->bg_g) || 
-       (to->bg_b          != from->bg_b) || 
-       (to->bg_a          != from->bg_a) || 
-       (to->spin_degree_offset != from->spin_degree_offset) || 
-       (to->env_pow       != from->env_pow) ) { return true; }    
+bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t * from, gl_viewer_desc_t * to)
+{
+    if((to->pitch       != from->pitch) ||
+       (to->yaw           != from->yaw) ||
+       (to->distance      != from->distance) ||
+       (to->recenter_flag != from->recenter_flag) ||
+       (to->focal_x       != from->focal_x) ||
+       (to->focal_y       != from->focal_y) ||
+       (to->focal_z       != from->focal_z) ||
+       (to->camera        != from->camera) ||
+       (to->anim          != from->anim) ||
+       (to->aa_mode       != from->aa_mode) ||
+       (to->bg_mode       != from->bg_mode) ||
+       (to->blur_bg       != from->blur_bg) ||
+       (to->exposure      != from->exposure) ||
+       (to->fov           != from->fov) ||
+       (to->bg_r          != from->bg_r) ||
+       (to->bg_g          != from->bg_g) ||
+       (to->bg_b          != from->bg_b) ||
+       (to->bg_a          != from->bg_a) ||
+       (to->spin_degree_offset != from->spin_degree_offset) ||
+       (to->env_pow       != from->env_pow)) {
+        return true;
+    }
     // These will be handled elsewhere
     //if (to->width        != from->width) { printf("width diff\n"); return true; }
     //if (to->height       != from->height) { printf("height diff\n"); return true; }
@@ -224,11 +253,12 @@ bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t* from, gl_viewer_desc_t* to){
  * @param vec The 3D vector (FVEC3) to be multiplied by the matrix.
  * @return The resulting 3D vector (FVEC3) after multiplication.
  */
-FVEC3 __multiplyMatrixByVector(const FMAT4 mat, const FVEC3 vec) {
-    return FVEC3 (
-        mat[0][0] * vec[0] + mat[0][1] * vec[1] + mat[0][2] * vec[2] + mat[0][3],
-        mat[1][0] * vec[0] + mat[1][1] * vec[1] + mat[1][2] * vec[2] + mat[1][3],
-        mat[2][0] * vec[0] + mat[2][1] * vec[1] + mat[2][2] * vec[2] + mat[2][3] );
+FVEC3 __multiplyMatrixByVector(const FMAT4 mat, const FVEC3 vec)
+{
+    return FVEC3(
+               mat[0][0] * vec[0] + mat[0][1] * vec[1] + mat[0][2] * vec[2] + mat[0][3],
+               mat[1][0] * vec[0] + mat[1][1] * vec[1] + mat[1][2] * vec[2] + mat[1][3],
+               mat[2][0] * vec[0] + mat[2][1] * vec[1] + mat[2][2] * vec[2] + mat[2][3]);
 }
 
 /**
@@ -245,8 +275,10 @@ FVEC3 __multiplyMatrixByVector(const FMAT4 mat, const FVEC3 vec) {
  * @param collisionPoint Pointer to an FVEC3 where the collision point will be stored if a collision occurs.
  * @return A boolean indicating whether the ray successfully intersects the ground.
  */
-bool __computeRayToGround( lv_gltf_view_t * viewer, float norm_mouseX, float norm_mouseY, double groundHeight, float aspectRatio, FVEC3* collisionPoint) {
-    const auto& _viewmat = GET_VIEW_MAT(viewer);
+bool __computeRayToGround(lv_gltf_view_t * viewer, float norm_mouseX, float norm_mouseY, double groundHeight,
+                          float aspectRatio, FVEC3 * collisionPoint)
+{
+    const auto & _viewmat = GET_VIEW_MAT(viewer);
     //const auto& _desc = lv_gltf_view_get_desc(viewer);
     _MAT4 __projmat;
     //float aspectRatio = 256.0f / 192.0f;
@@ -263,72 +295,81 @@ bool __computeRayToGround( lv_gltf_view_t * viewer, float norm_mouseX, float nor
     __projmat[3][2] = -1.0f;
     __projmat[3][3] = 0.0f;
 
-//    mfloat_t _projmat[MAT4_SIZE];
-//    for (int32_t i=0; i<16; i++) {
-//        _projmat[i] = __projmat.data()[i];
-//    }
-//    mfloat_t _invprojmat[MAT4_SIZE];
+    //    mfloat_t _projmat[MAT4_SIZE];
+    //    for (int32_t i=0; i<16; i++) {
+    //        _projmat[i] = __projmat.data()[i];
+    //    }
+    //    mfloat_t _invprojmat[MAT4_SIZE];
     //mat4_inverse(_invprojmat, _projmat);
     __projmat = fastgltf::math::invert(_MAT4(__projmat));
-//    __projmat = FMAT4( 
-//        _invprojmat[0], _invprojmat[1], _invprojmat[2], _invprojmat[3],  
-//        _invprojmat[4], _invprojmat[5], _invprojmat[6], _invprojmat[7],  
-//        _invprojmat[8], _invprojmat[9], _invprojmat[10], _invprojmat[11],  
-//        _invprojmat[12], _invprojmat[13], _invprojmat[14], _invprojmat[15]);
+    //    __projmat = FMAT4(
+    //        _invprojmat[0], _invprojmat[1], _invprojmat[2], _invprojmat[3],
+    //        _invprojmat[4], _invprojmat[5], _invprojmat[6], _invprojmat[7],
+    //        _invprojmat[8], _invprojmat[9], _invprojmat[10], _invprojmat[11],
+    //        _invprojmat[12], _invprojmat[13], _invprojmat[14], _invprojmat[15]);
 
     // Step 1: Convert mouse coordinates to normalized device coordinates (NDC)
     float _x = norm_mouseX * 2.0f - 1.0f;
     float _y = 1.0f - (norm_mouseY * 2.0f);
     float _z = -1.0f; // Clip space z
-    FVEC4 clipSpacePos = FVEC4( _x, _y, _z, 1.f );
+    FVEC4 clipSpacePos = FVEC4(_x, _y, _z, 1.f);
     auto rayEye = (__projmat) * clipSpacePos  ;
-    rayEye[2] = -1.0f;    
+    rayEye[2] = -1.0f;
     rayEye[3] = 0.0f;
     FVEC4 t_rayWorld = fastgltf::math::invert(*_viewmat) * rayEye;
     FVEC3 rayDirection = fastgltf::math::normalize(FVEC3(t_rayWorld[0], t_rayWorld[1], t_rayWorld[2]));
 
     FVEC3  _tpos = get_cam_pos(viewer);
-    FVEC3  rayOrigin = FVEC3( _tpos[0],  _tpos[1],  _tpos[2] ); 
+    FVEC3  rayOrigin = FVEC3(_tpos[0],  _tpos[1],  _tpos[2]);
     float t = ((float)groundHeight - rayOrigin[1]) / rayDirection[1];
 
-    if (t < 0.f) {
+    if(t < 0.f) {
         return false; // The ray is pointing away from the ground
     }
 
     // Calculate the collision point
-    (*collisionPoint)[0]= (rayOrigin[0] + t * rayDirection[0]);
+    (*collisionPoint)[0] = (rayOrigin[0] + t * rayDirection[0]);
     (*collisionPoint)[1] = groundHeight; // y is the ground height
     (*collisionPoint)[2] = (rayOrigin[2] + t * rayDirection[2]);
 
     return true; // Collision point found
 }
 
-bool lv_gltf_view_raycast_ground_position( lv_gltf_view_t * viewer, int32_t _mouseX, int32_t _mouseY, int32_t _winWidth, int32_t _winHeight, double groundHeight, float* outPos) {
+bool lv_gltf_view_raycast_ground_position(lv_gltf_view_t * viewer, int32_t _mouseX, int32_t _mouseY, int32_t _winWidth,
+                                          int32_t _winHeight, double groundHeight, float * outPos)
+{
     float norm_mouseX = (float)_mouseX / (float)(_winWidth);
     float norm_mouseY = (float)_mouseY / (float)(_winHeight);
     FVEC3 _rayres;
     float aspect = (float)viewer->desc.width / (float)viewer->desc.height;
     bool validres = __computeRayToGround(viewer, norm_mouseX, norm_mouseY, groundHeight, aspect, &_rayres);
-    if (validres) {
-        outPos[0] = _rayres[0]; outPos[1] = _rayres[1]; outPos[2] = _rayres[2];
+    if(validres) {
+        outPos[0] = _rayres[0];
+        outPos[1] = _rayres[1];
+        outPos[2] = _rayres[2];
     }
     return validres;
 }
 
-void lv_gltf_view_recenter_view_on_model( lv_gltf_view_t * viewer, lv_gltf_data_t * gltf_data) {
-    const auto& _autocenpos = lv_gltf_data_get_center(gltf_data);
+void lv_gltf_view_recenter_view_on_model(lv_gltf_view_t * viewer, lv_gltf_data_t * gltf_data)
+{
+    const auto & _autocenpos = lv_gltf_data_get_center(gltf_data);
     lv_gltf_view_set_focal_x(viewer, _autocenpos[0]);
     lv_gltf_view_set_focal_y(viewer, _autocenpos[1]);
     lv_gltf_view_set_focal_z(viewer, _autocenpos[2]);
 }
 
-void lv_gltf_view_utils_save_pixelbuffer_to_png( char * pixels, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t width, uint32_t height ) {
+void lv_gltf_view_utils_save_pixelbuffer_to_png(char * pixels, const char * filename, bool alpha_enabled,
+                                                uint32_t compression_level, uint32_t width, uint32_t height)
+{
     stbi_write_png_compression_level = compression_level;
     stbi_flip_vertically_on_write(true);
     stbi_write_png(filename, width, height, (alpha_enabled ? 4 : 3), pixels, width * (alpha_enabled ? 4 : 3));
 }
 
-void es3_compat_get_texture_data(uint32_t tex_num, uint32_t mipmapnum, bool alpha_enabled, char* pixels, uint32_t width, uint32_t height) {
+void es3_compat_get_texture_data(uint32_t tex_num, uint32_t mipmapnum, bool alpha_enabled, char * pixels,
+                                 uint32_t width, uint32_t height)
+{
     GLuint framebuffer;
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -337,7 +378,7 @@ void es3_compat_get_texture_data(uint32_t tex_num, uint32_t mipmapnum, bool alph
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_num, mipmapnum);
 
     // Check if the framebuffer is complete
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         // Handle framebuffer not complete error
     }
 
@@ -351,25 +392,32 @@ void es3_compat_get_texture_data(uint32_t tex_num, uint32_t mipmapnum, bool alph
     glDeleteFramebuffers(1, &framebuffer);
 }
 
-void lv_gltf_view_utils_get_texture_pixels( char * pixels, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
+void lv_gltf_view_utils_get_texture_pixels(char * pixels, uint32_t tex_id, bool alpha_enabled, uint32_t mipmapnum,
+                                           uint32_t width, uint32_t height)
+{
     GL_CALL(glBindTexture(GL_TEXTURE_2D, tex_id));
     LV_UNUSED(width);
     LV_UNUSED(height);
-    #ifdef __EMSCRIPTEN__
-        es3_compat_get_texture_data(tex_id, mipmapnum, alpha_enabled, pixels, width, height);
-    #else
-        glGetTexImage(GL_TEXTURE_2D, mipmapnum, alpha_enabled?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE, pixels);
-    #endif
+#ifdef __EMSCRIPTEN__
+    es3_compat_get_texture_data(tex_id, mipmapnum, alpha_enabled, pixels, width, height);
+#else
+    glGetTexImage(GL_TEXTURE_2D, mipmapnum, alpha_enabled ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, pixels);
+#endif
 }
-void lv_gltf_view_utils_save_texture_to_png( uint32_t tex_id, const char * filename, bool alpha_enabled, uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height ) {
-    char * pixels =(char *)lv_malloc(height * width * 4);
-    lv_gltf_view_utils_get_texture_pixels( pixels, tex_id, alpha_enabled, mipmapnum, width, height );
-    lv_gltf_view_utils_save_pixelbuffer_to_png(  pixels, filename, alpha_enabled, compression_level, width, height );
+void lv_gltf_view_utils_save_texture_to_png(uint32_t tex_id, const char * filename, bool alpha_enabled,
+                                            uint32_t compression_level, uint32_t mipmapnum, uint32_t width, uint32_t height)
+{
+    char * pixels = (char *)lv_malloc(height * width * 4);
+    lv_gltf_view_utils_get_texture_pixels(pixels, tex_id, alpha_enabled, mipmapnum, width, height);
+    lv_gltf_view_utils_save_pixelbuffer_to_png(pixels, filename, alpha_enabled, compression_level, width, height);
     lv_free(pixels);
 }
 
-void lv_gltf_view_utils_save_png( lv_gltf_view_t * viewer, const char * filename, bool alpha_enabled, uint32_t compression_level ) {
-    const auto& vstate = get_viewer_state(viewer);
-    const auto& vdesc = lv_gltf_view_get_desc(viewer);
-    lv_gltf_view_utils_save_texture_to_png( vstate->render_state.texture, filename, alpha_enabled, compression_level, lv_gltf_view_check_frame_was_antialiased(viewer) ? 1 : 0, vdesc->width, vdesc->height );
+void lv_gltf_view_utils_save_png(lv_gltf_view_t * viewer, const char * filename, bool alpha_enabled,
+                                 uint32_t compression_level)
+{
+    const auto & vstate = get_viewer_state(viewer);
+    const auto & vdesc = lv_gltf_view_get_desc(viewer);
+    lv_gltf_view_utils_save_texture_to_png(vstate->render_state.texture, filename, alpha_enabled, compression_level,
+                                           lv_gltf_view_check_frame_was_antialiased(viewer) ? 1 : 0, vdesc->width, vdesc->height);
 }

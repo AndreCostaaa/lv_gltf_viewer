@@ -12,30 +12,31 @@
 
 _VEC3 get_cached_centerpoint(_DATA D, _UINT I, int32_t P, _MAT4 M);
 
-FVEC4 lv_gltf_get_primitive_centerpoint(lv_gltf_data_t * ret_data, fastgltf::Mesh& mesh, uint32_t prim_num){
+FVEC4 lv_gltf_get_primitive_centerpoint(lv_gltf_data_t * ret_data, fastgltf::Mesh & mesh, uint32_t prim_num)
+{
     FVEC4 _retval = FVEC4(0.0f);
     FVEC3 _vmin = FVEC3(999999999.f);
     FVEC3 _vmax = FVEC3(-999999999.f);
     FVEC3 _vcen = FVEC3(0.f);
     float _vrad = 0.f;
 
-    if (mesh.primitives.size() > prim_num) {
-        const auto& it = mesh.primitives[prim_num];
-        const auto& asset = GET_ASSET(ret_data);    
-        auto* positionIt = it.findAttribute("POSITION");
-        auto& positionAccessor = asset->accessors[positionIt->accessorIndex];
-        if (positionAccessor.bufferViewIndex.has_value()) {
-            if (positionAccessor.min.has_value() && positionAccessor.max.has_value()) {
+    if(mesh.primitives.size() > prim_num) {
+        const auto & it = mesh.primitives[prim_num];
+        const auto & asset = GET_ASSET(ret_data);
+        auto * positionIt = it.findAttribute("POSITION");
+        auto & positionAccessor = asset->accessors[positionIt->accessorIndex];
+        if(positionAccessor.bufferViewIndex.has_value()) {
+            if(positionAccessor.min.has_value() && positionAccessor.max.has_value()) {
                 FVEC4 _tmin = FVEC4(
-                    (float)(positionAccessor.min.value().get<double>((size_t)0)),
-                    (float)(positionAccessor.min.value().get<double>((size_t)1)),
-                    (float)(positionAccessor.min.value().get<double>((size_t)2)),
-                    0.f);
+                                  (float)(positionAccessor.min.value().get<double>((size_t)0)),
+                                  (float)(positionAccessor.min.value().get<double>((size_t)1)),
+                                  (float)(positionAccessor.min.value().get<double>((size_t)2)),
+                                  0.f);
                 FVEC4 _tmax = FVEC4(
-                    (float)(positionAccessor.max.value().get<double>((size_t)0)),
-                    (float)(positionAccessor.max.value().get<double>((size_t)1)),
-                    (float)(positionAccessor.max.value().get<double>((size_t)2)),
-                    0.f);
+                                  (float)(positionAccessor.max.value().get<double>((size_t)0)),
+                                  (float)(positionAccessor.max.value().get<double>((size_t)1)),
+                                  (float)(positionAccessor.max.value().get<double>((size_t)2)),
+                                  0.f);
 
                 _vmax[0] = std::max(_tmin.x(), _tmax.x());
                 _vmax[1] = std::max(_tmin.y(), _tmax.y());
@@ -54,7 +55,8 @@ FVEC4 lv_gltf_get_primitive_centerpoint(lv_gltf_data_t * ret_data, fastgltf::Mes
                 _retval[1] = _vcen[1];
                 _retval[2] = _vcen[2];
                 _retval[3] = _vrad;
-            } else {
+            }
+            else {
                 std::cout << "*** COULD NOT GET PRIMITIVE CENTER POINT - NO MIN/MAX DEFINED ***\n";
             }
         }
@@ -62,14 +64,17 @@ FVEC4 lv_gltf_get_primitive_centerpoint(lv_gltf_data_t * ret_data, fastgltf::Mes
     return _retval;
 }
 
-FVEC3 lv_gltf_get_centerpoint(lv_gltf_data_t * gltf_data, FMAT4 matrix, uint32_t meshIndex, int32_t elem) {
-    if (!centerpoint_cache_contains(gltf_data, meshIndex, elem)) recache_centerpoint(gltf_data, meshIndex, elem);
+FVEC3 lv_gltf_get_centerpoint(lv_gltf_data_t * gltf_data, FMAT4 matrix, uint32_t meshIndex, int32_t elem)
+{
+    if(!centerpoint_cache_contains(gltf_data, meshIndex, elem)) recache_centerpoint(gltf_data, meshIndex, elem);
     return get_cached_centerpoint(gltf_data, meshIndex, elem, matrix);
 }
 
-bool lv_gltf_data_utils_get_texture_info( lv_gltf_data_t * data_obj, uint32_t model_texture_index, uint32_t mipmapnum, size_t * byte_count, uint32_t * width, uint32_t * height, bool * has_alpha ) {
+bool lv_gltf_data_utils_get_texture_info(lv_gltf_data_t * data_obj, uint32_t model_texture_index, uint32_t mipmapnum,
+                                         size_t * byte_count, uint32_t * width, uint32_t * height, bool * has_alpha)
+{
     *byte_count = 0;
-    if (model_texture_index < data_obj->textures->size()) {
+    if(model_texture_index < data_obj->textures->size()) {
         uint32_t texid = (*data_obj->textures)[model_texture_index].texture;
         // Bind the texture
         GL_CALL(glBindTexture(GL_TEXTURE_2D, texid));
@@ -80,7 +85,7 @@ bool lv_gltf_data_utils_get_texture_info( lv_gltf_data_t * data_obj, uint32_t mo
         *has_alpha = false;
         bool not_valid = false;
 
-        switch (internalFormat) {
+        switch(internalFormat) {
             case GL_RGBA:
             case GL_BGRA:
             case GL_RGBA8:
@@ -105,36 +110,42 @@ bool lv_gltf_data_utils_get_texture_info( lv_gltf_data_t * data_obj, uint32_t mo
         *height = (uint32_t)(_theight);
         GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
 
-        if (!not_valid) {
+        if(!not_valid) {
             *byte_count = _twidth * _theight * (*has_alpha ? 4 : 3);
             return true;
-        } else {
+        }
+        else {
             return false;
         }
     }
     return false;
 }
 
-bool lv_gltf_data_utils_get_texture_pixels( void * pixels, lv_gltf_data_t * data_obj, uint32_t model_texture_index, uint32_t mipmapnum, uint32_t width, uint32_t height, bool has_alpha ) {
-    LV_UNUSED(width);  // This parameter is specified because WebGL can't read a texture's width from the GPU, however this isn't yet implemented so for now it either uses the GPU or it fails.
-    LV_UNUSED(height); // This parameter is specified because WebGL can't read a texture's width from the GPU, however this isn't yet implemented so for now it either uses the GPU or it fails.
-    if (model_texture_index < data_obj->textures->size()) {
+bool lv_gltf_data_utils_get_texture_pixels(void * pixels, lv_gltf_data_t * data_obj, uint32_t model_texture_index,
+                                           uint32_t mipmapnum, uint32_t width, uint32_t height, bool has_alpha)
+{
+    LV_UNUSED(
+        width);  // This parameter is specified because WebGL can't read a texture's width from the GPU, however this isn't yet implemented so for now it either uses the GPU or it fails.
+    LV_UNUSED(
+        height); // This parameter is specified because WebGL can't read a texture's width from the GPU, however this isn't yet implemented so for now it either uses the GPU or it fails.
+    if(model_texture_index < data_obj->textures->size()) {
         uint32_t texid = (*data_obj->textures)[model_texture_index].texture;
         // Bind the texture
-        GL_CALL(glBindTexture(GL_TEXTURE_2D, texid));       
-        glGetTexImage(GL_TEXTURE_2D, mipmapnum, (has_alpha)?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE, pixels);
+        GL_CALL(glBindTexture(GL_TEXTURE_2D, texid));
+        glGetTexImage(GL_TEXTURE_2D, mipmapnum, (has_alpha) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, pixels);
         GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
         return true;
     }
     return false;
 }
 
-void lv_gltf_data_utils_swap_pixels_red_blue(void * pixels, size_t byte_total_count, bool has_alpha){
-    char * pixel_buffer = (char*) pixels;
+void lv_gltf_data_utils_swap_pixels_red_blue(void * pixels, size_t byte_total_count, bool has_alpha)
+{
+    char * pixel_buffer = (char *) pixels;
     size_t bytes_per_pixel = has_alpha ? 4 : 3;
     size_t pixel_count = (byte_total_count / bytes_per_pixel);
-    if (bytes_per_pixel == 4) {
-        for (size_t p = 0; p < pixel_count; p++) {
+    if(bytes_per_pixel == 4) {
+        for(size_t p = 0; p < pixel_count; p++) {
             size_t index = p << 2;
             uint8_t r = pixel_buffer[index + 0];
             uint8_t g = pixel_buffer[index + 1];
@@ -145,8 +156,9 @@ void lv_gltf_data_utils_swap_pixels_red_blue(void * pixels, size_t byte_total_co
             pixel_buffer[index + 2] = r;
             pixel_buffer[index + 3] = a;
         }
-    } else {
-        for (size_t p = 0; p < pixel_count; p++) {
+    }
+    else {
+        for(size_t p = 0; p < pixel_count; p++) {
             size_t index = p * 3;
             uint8_t r = pixel_buffer[index + 0];
             uint8_t g = pixel_buffer[index + 1];
@@ -159,19 +171,23 @@ void lv_gltf_data_utils_swap_pixels_red_blue(void * pixels, size_t byte_total_co
 }
 
 /* Caller becomes responsible for freeing data of the result if data_size > 0, but if a new_image_dsc is passed to this function with a data_size > 0, it will free it's data first. */
-void lv_gltf_data_utils_texture_to_image_dsc(lv_image_dsc_t * new_image_dsc, lv_gltf_data_t * data_obj, uint32_t model_texture_index) {
+void lv_gltf_data_utils_texture_to_image_dsc(lv_image_dsc_t * new_image_dsc, lv_gltf_data_t * data_obj,
+                                             uint32_t model_texture_index)
+{
     size_t byte_total_count = 0;
     uint32_t source_pixel_width = 0;
     uint32_t source_pixel_height = 0;
     bool has_alpha = false;
     uint8_t * pixel_buffer;
-    if (lv_gltf_data_utils_get_texture_info( data_obj, model_texture_index, 0, &byte_total_count, &source_pixel_width, &source_pixel_height, &has_alpha )) {
-        pixel_buffer = (uint8_t*)lv_malloc(byte_total_count);
-        if (lv_gltf_data_utils_get_texture_pixels(pixel_buffer, data_obj, model_texture_index, 0, source_pixel_width, source_pixel_height, has_alpha )) {
-            if (pixel_buffer == NULL || byte_total_count == 0 || source_pixel_width == 0) return; 
+    if(lv_gltf_data_utils_get_texture_info(data_obj, model_texture_index, 0, &byte_total_count, &source_pixel_width,
+                                           &source_pixel_height, &has_alpha)) {
+        pixel_buffer = (uint8_t *)lv_malloc(byte_total_count);
+        if(lv_gltf_data_utils_get_texture_pixels(pixel_buffer, data_obj, model_texture_index, 0, source_pixel_width,
+                                                 source_pixel_height, has_alpha)) {
+            if(pixel_buffer == NULL || byte_total_count == 0 || source_pixel_width == 0) return;
 
-            if ( new_image_dsc->data_size > 0) {
-                lv_free((uint8_t*)new_image_dsc->data);
+            if(new_image_dsc->data_size > 0) {
+                lv_free((uint8_t *)new_image_dsc->data);
                 new_image_dsc->data = NULL;
                 new_image_dsc->data_size = 0;
             }
@@ -179,8 +195,8 @@ void lv_gltf_data_utils_texture_to_image_dsc(lv_image_dsc_t * new_image_dsc, lv_
             lv_gltf_data_utils_swap_pixels_red_blue(pixel_buffer, byte_total_count, has_alpha);
             size_t bytes_per_pixel = has_alpha ? 4 : 3;
             size_t pixel_count = (byte_total_count / bytes_per_pixel);
-            
-            new_image_dsc->data = (const uint8_t*)pixel_buffer;
+
+            new_image_dsc->data = (const uint8_t *)pixel_buffer;
             new_image_dsc->data_size = byte_total_count;
             new_image_dsc->header.w = source_pixel_width;
             new_image_dsc->header.h = (uint16_t)(pixel_count / source_pixel_width);

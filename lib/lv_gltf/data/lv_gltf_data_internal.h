@@ -46,10 +46,10 @@ typedef struct {
     _GLUINT diffuseTransmissionColorTexture;
     _GLUINT transmissionTexture;
     _GLUINT transmissionTexcoordIndex;
-    
+
     _GLINT baseColorTexcoordIndex;
     _GLINT emissiveTexcoordIndex;
-    
+
     _GLINT metallicRoughnessTexcoordIndex;
     _GLINT occlusionTexcoordIndex;
     _GLINT normalTexcoordIndex;
@@ -92,7 +92,7 @@ typedef struct {
     _GLINT envGgxLutSampler;
     _GLINT envCharlieLutSampler;
     _GLINT envMipCount;
-    
+
     _GLINT exposure;
     _GLINT roughnessFactor;
 
@@ -131,7 +131,7 @@ typedef struct {
     _GLINT clearcoatRoughnessUVSet;
     _GLINT clearcoatRoughnessUVTransform;
     _GLINT clearcoatNormalScale;
-    _GLINT clearcoatNormalSampler;    
+    _GLINT clearcoatNormalSampler;
     _GLINT clearcoatNormalUVSet;
     _GLINT clearcoatNormalUVTransform;
 
@@ -142,7 +142,7 @@ typedef struct {
 
     _GLINT diffuseTransmissionSampler;
     _GLINT diffuseTransmissionUVSet;
-    _GLINT diffuseTransmissionUVTransform;    
+    _GLINT diffuseTransmissionUVTransform;
 
     _GLINT diffuseTransmissionColorSampler;
     _GLINT diffuseTransmissionColorUVSet;
@@ -172,7 +172,7 @@ typedef struct {
 
     _GLINT attenuationDistance;
     _GLINT attenuationColor;
-    
+
     _GLINT jointsSampler;
 
     _GLINT diffuseFactor;
@@ -185,7 +185,7 @@ typedef struct {
     _GLINT specularGlossinessSampler;
     _GLINT specularGlossinessUVSet;
     _GLINT specularGlossinessUVTransform;
-    
+
 } UniformLocs;
 
 typedef struct {

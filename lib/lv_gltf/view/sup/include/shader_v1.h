@@ -7,7 +7,7 @@ extern "C" {
 
 #include "shader_includes.h"
 
-static const char *src_vertexShader = R"(
+static const char * src_vertexShader = R"(
     uniform mat4 u_ViewProjectionMatrix;
     uniform mat4 u_ModelMatrix;
     uniform mat4 u_NormalMatrix;
@@ -96,14 +96,14 @@ static const char *src_fragmentShader = R"(
 )";
 
 #include <stdio.h>
-inline static char* src_vertex(void) { 
-    printf("Requesting vertex shader. Override: %s\n", shader_vertex_is_overridden() ? "true" : "false"); 
-    return PREPROCESS(shader_vertex_is_overridden() ? get_shader_vertex_override() : src_vertexShader); 
+inline static char* src_vertex(void) {
+    printf("Requesting vertex shader. Override: %s\n", shader_vertex_is_overridden() ? "true" : "false");
+    return PREPROCESS(shader_vertex_is_overridden() ? get_shader_vertex_override() : src_vertexShader);
 }
 
 inline static char* src_frag(void) {
     printf("Requesting fragment shader. Override: %s\n", shader_fragment_is_overridden() ? "true" : "false");
-    return PREPROCESS(shader_fragment_is_overridden() ? get_shader_fragment_override() : src_fragmentShader); 
+    return PREPROCESS(shader_fragment_is_overridden() ? get_shader_fragment_override() : src_fragmentShader);
 }
 
 //#pragma GCC diagnostic pop

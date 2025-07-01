@@ -1,7 +1,7 @@
 #ifndef MAINUI_SHARED_H
 #define MAINUI_SHARED_H
 
-#ifdef __cplusplus 
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -65,7 +65,7 @@ extern float desktop_ratio;
 #define MAX_OPTION_LENGTH 50
 
 #define PI_TO_RAD 0.01745329238f
-#define WINDOW_CONTROL_MARGIN 80 
+#define WINDOW_CONTROL_MARGIN 80
 
 extern bool animate_spin;
 extern float spin_rate;
@@ -141,26 +141,30 @@ void demo_ui_loading_info_objects(void);
 void demo_ui_pitch_yaw_distance_sliders(lv_obj_t * container);
 void demo_ui_camera_select(lv_obj_t * container);
 void demo_ui_animation_select(lv_obj_t * container);
-void demo_ui_fill_in_InfoTab( lv_gltf_data_t * _data );
+void demo_ui_fill_in_InfoTab(lv_gltf_data_t * _data);
 void demo_ui_add_override_controls(lv_obj_t * container);
-void demo_ui_apply_camera_button_visibility( lv_gltf_data_t * _data);
-void demo_ui_apply_anim_button_visibility( lv_gltf_data_t * _data);
+void demo_ui_apply_camera_button_visibility(lv_gltf_data_t * _data);
+void demo_ui_apply_anim_button_visibility(lv_gltf_data_t * _data);
 void demo_ui_set_tab(unsigned int _tabnum);
 void demo_ui_make_underlayer(void);
 void demo_ui_make_overlayer(void);
-void demo_ui_load_progress_callback(const char* phase_title, const char* sub_phase_title, float phase_progress, float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max);
-bool demo_cli_apply_commandline_options(lv_gltf_view_t* viewer, char * gltfFile, char * hdrFile, int * frame_count, bool * software_only, bool * start_maximized, bool *stub_mode, float * _anim_rate, int argc, char *argv[] );
-void demo_nav_process_drag(float movement_power, uint32_t mouse_state_ex, int mouse_x, int mouse_y, int last_mouse_x, int last_mouse_y);
-void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window, bool lock_window_size, bool start_maximized );
+void demo_ui_load_progress_callback(const char * phase_title, const char * sub_phase_title, float phase_progress,
+                                    float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max);
+bool demo_cli_apply_commandline_options(lv_gltf_view_t * viewer, char * gltfFile, char * hdrFile, int * frame_count,
+                                        bool * software_only, bool * start_maximized, bool * stub_mode, float * _anim_rate, int argc, char * argv[]);
+void demo_nav_process_drag(float movement_power, uint32_t mouse_state_ex, int mouse_x, int mouse_y, int last_mouse_x,
+                           int last_mouse_y);
+void demo_os_integrate_setup_glfw_window(lv_glfw_window_t * lv_window, bool lock_window_size, bool start_maximized);
 bool demo_os_integrate_get_maximum_window_framebuffer_size(uint32_t * _max_window_width, uint32_t * _max_window_height);
 bool demo_os_integrate_window_should_close(void);
 void demo_os_integrate_signal_window_close(void);
 bool demo_os_integrate_confirm_desktop_mode_ok(void);
 #ifdef ENABLE_DESKTOP_MODE
-void demo_os_integrate_save_png_from_new_thread(int _frameCount, bool _desktop_mode, int _maxFrames, bool _file_alpha, char* _pixels);
-void *demo_os_integrate_save_desktop_png_thread(void *arg);
+void demo_os_integrate_save_png_from_new_thread(int _frameCount, bool _desktop_mode, int _maxFrames, bool _file_alpha,
+                                                char * _pixels);
+void * demo_os_integrate_save_desktop_png_thread(void * arg);
 #endif
-void os_integrate_window_resize_callback(GLFWwindow* window, int width, int height);
+void os_integrate_window_resize_callback(GLFWwindow * window, int width, int height);
 uint32_t ui_get_window_width(void);
 uint32_t ui_get_window_height(void);
 uint32_t ui_get_primary_texture_width(void);
@@ -169,30 +173,30 @@ uint32_t ui_get_max_window_width(void);
 uint32_t ui_get_max_window_height(void);
 void demo_ui_set_slider_value_without_event(lv_obj_t * slider, int value);
 void demo_ui_set_checkbox_value_without_event(lv_obj_t * checkbox, bool value);
-void demo_ui_apply_pitch_value(float visual_pitch );
-bool demo_ui_apply_yaw_value(float visual_yaw );
-void demo_ui_apply_distance_value(float visual_distance );
-void demo_ui_reposition_all( void );
+void demo_ui_apply_pitch_value(float visual_pitch);
+bool demo_ui_apply_yaw_value(float visual_yaw);
+void demo_ui_apply_distance_value(float visual_distance);
+void demo_ui_reposition_all(void);
 void reload(char * _filename, const char * _hdr_filename);
 void demo_refocus(lv_gltf_view_t * gltfview, bool first_call);
 void create_file_open_dialog(lv_obj_t * container);
 void __make_styles(void);
-void ui_resize_all_file_open_dialog_widgets(lv_obj_t *parent);
+void ui_resize_all_file_open_dialog_widgets(lv_obj_t * parent);
 void demo_os_integrate_window_standard_title(const char * file_path);
-void demo_file_load_dialog_set_directory_from_filepath(char *current_filename);
+void demo_file_load_dialog_set_directory_from_filepath(char * current_filename);
 uint32_t ui_max(uint32_t a, uint32_t b);
 void demo_ui_apply_spin_rate_value(float visual_spin_rate);
 void demo_ui_apply_spin_enabled_value(bool visual_animate_spin);
-void demo_nav_gradual_to_goals( void );
+void demo_nav_gradual_to_goals(void);
 double d_min(double a, double b);
 uint32_t ui_max(uint32_t a, uint32_t b);
 float lerp_towards(float start, float end, float t, float min_change);
-void setup_shadercache(const char * hdr_filepath, int degrees_x10 );
+void setup_shadercache(const char * hdr_filepath, int degrees_x10);
 void demo_set_overrides(void);
 void demo_refocus(lv_gltf_view_t * gltfview, bool first_call);
 uint32_t demo_make_small_clear_texture(void);
 
-#ifdef __cplusplus 
+#ifdef __cplusplus
 }
 #endif
 
