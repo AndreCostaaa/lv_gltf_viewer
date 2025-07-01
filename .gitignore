@@ -1,13 +1,2 @@
-/build/
-/CMakeFiles/
-Makefile
-cmake_install.cmake_install
-CMakeCache.txt
-/lib/b64
-/lib/fastgltf
-/lib/mathc
-/lib/*.a
-/render_frames/*
+build
 .cache
-gltf_view
-_deps
