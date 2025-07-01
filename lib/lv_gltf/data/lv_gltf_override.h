@@ -35,11 +35,6 @@ struct lv_gltf_override_struct {
     struct lv_gltf_override_struct * nextOverride; // Pointer to the next override
 } ;
 
-#ifndef LV_GLTFOVERRIDE_PREDEFINED
-#define LV_GLTFOVERRIDE_PREDEFINED
-typedef struct lv_gltf_override_struct lv_gltf_override_t;
-#endif
-
 /**
  * @brief Add an override to a GLTF data object by node index.
  *
