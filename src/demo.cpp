@@ -8,8 +8,6 @@
 #include "lib/lv_gltf/view/lv_gltf_view.h"
 #include "lib/lv_gltf/view/lv_gltf_view_internal.hpp"
 
-//#include "torusknot.h"
-//#define EXPERIMENTAL_GROUNDCAST
 #define SYSTEM_ASSETS_FILENAME  "./gltfs/support_assets.glb"
 
 float TIME_SCALE = 1.0f;
@@ -107,7 +105,6 @@ void reload(char * _filename, const char * _hdr_filename) {
 
     if (shader_cache == NULL) setup_shadercache(_hdr_filename, 1800);
     lv_gltf_data_load_file(_filename, demo_gltfdata, shader_cache);
-    //lv_gltf_data_load_bytes(__gltfs_torusknot_gltf, __gltfs_torusknot_gltf_len, demo_gltfdata, shader_cache);
 
     if (lv_gltf_view_get_probe(demo_gltfdata)->cameraCount == 0) {
         use_scenecam = false;
