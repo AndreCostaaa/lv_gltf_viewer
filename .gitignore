@@ -10,3 +10,4 @@ CMakeCache.txt
 /render_frames/*
 .cache
 gltf_view
+_deps

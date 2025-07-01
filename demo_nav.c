@@ -1,5 +1,6 @@
 #include "demo.h"
 #include <math.h>
+#include <stdio.h>
 
 float goal_pitch;
 float goal_yaw;
@@ -154,3 +155,4 @@ void demo_nav_gradual_to_goals( void ) {
     } else if (last_dragged_control == distance_slider) last_dragged_control = NULL;
 
 }
+

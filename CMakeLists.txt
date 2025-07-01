@@ -10,6 +10,31 @@ cmake_policy(SET CMP0079 NEW)
 
 include(FetchContent)
 
+find_package(PkgConfig REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(GLEW REQUIRED)
+
+FetchContent_Declare(
+  fastgltf
+  GIT_REPOSITORY https://github.com/spnda/fastgltf.git
+  GIT_TAG 06d47e8da970bb6383a292063d4a8e30b23e8560
+  GIT_SHALLOW TRUE)
+
+set(FASTGLTF_ENABLE_DEPRECATED_EXT
+    ON
+    CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(fastgltf)
+
+FetchContent_Declare(
+  webp
+  GIT_REPOSITORY https://chromium.googlesource.com/webm/libwebp
+  GIT_TAG 85e098e58d3fb89fee93b09c6c4515dbc4593c46
+  GIT_SHALLOW TRUE)
+
+FetchContent_MakeAvailable(webp)
+
 # Compiler settings
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
@@ -19,38 +44,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wpedantic -ggdb")
 set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wpedantic -flax-vector-conversions"
 )
-
-find_package(PkgConfig REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(glfw3 3.3 REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(WebP REQUIRED)
-
-set(GLFW_TARGET)
-set(GLEW_TARGET)
-set(WEBP_TARGET)
-
-FetchContent_Declare(
-  fastgltf
-  GIT_REPOSITORY https://github.com/spnda/fastgltf.git
-  GIT_TAG v0.8.0
-  GIT_SHALLOW TRUE)
-
-set(FASTGLTF_COMPILE_AS_CPP20
-    OFF
-    CACHE BOOL "" FORCE)
-set(FASTGLTF_ENABLE_TESTS
-    OFF
-    CACHE BOOL "" FORCE)
-set(FASTGLTF_ENABLE_EXAMPLES
-    OFF
-    CACHE BOOL "" FORCE)
-set(FASTGLTF_ENABLE_DOCS
-    OFF
-    CACHE BOOL "" FORCE)
-
-FetchContent_MakeAvailable(fastgltf)
-
 set(CONFIG_LV_BUILD_EXAMPLES
     OFF
     CACHE BOOL "disable lvgl examples" FORCE)
@@ -68,40 +61,46 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
 
 # Define common include directories
 set(LVGL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/lvgl ${CMAKE_SOURCE_DIR}/lvgl/src)
-
-set(PROTO_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/lvgl_proto/src/others
-                       ${CMAKE_SOURCE_DIR}/lvgl_proto/src/others/gltf/data/deps)
+set(PROTO_INCLUDE_DIRS lib/lv_gltf/data/deps/)
 
 # Create library targets
-add_library(
-  lvgl_opengl_shader_cache
-  lvgl_proto/src/others/opengl_shader_cache/lv_opengl_shader_cache.cpp)
+add_library(lvgl_opengl_shader_cache
+            lib/lv_opengl_shader_cache/lv_opengl_shader_cache.cpp)
 target_include_directories(lvgl_opengl_shader_cache
                            PRIVATE ${LVGL_INCLUDE_DIRS})
 
 add_library(
   lvgl_gltfdata
-  lvgl_proto/src/others/gltf/data/lv_gltf_data.c
-  lvgl_proto/src/others/gltf/data/lv_gltf_data.cpp
-  lvgl_proto/src/others/gltf/data/lv_gltf_override.cpp)
-target_include_directories(lvgl_gltfdata PRIVATE ${LVGL_INCLUDE_DIRS}
+  lib/lv_gltf/data/lv_gltf_override.cpp lib/lv_gltf/data/sup/utils.cpp
+  lib/lv_gltf/data/sup/injest.cpp lib/lv_gltf/data/sup/reports.cpp
+  lib/lv_gltf/data/sup/datatypes.cpp)
+
+target_include_directories(lvgl_gltfdata PRIVATE fastgltf ${LVGL_INCLUDE_DIRS}
                                                  ${PROTO_INCLUDE_DIRS})
 target_link_libraries(lvgl_gltfdata PRIVATE lvgl_opengl_shader_cache fastgltf)
-target_compile_definitions(lvgl_gltfdata
-                           PRIVATE FASTGLTF_ENABLE_DEPRECATED_EXT=1)
 
-add_library(lvgl_gltfview lvgl_proto/src/others/gltf/view/lv_gltf_view.c
-                          lvgl_proto/src/others/gltf/view/lv_gltf_view.cpp)
+target_compile_definitions(lvgl_gltfdata PRIVATE LVGL_ENABLE_WEBP_IMAGES)
+
+add_library(
+  lvgl_gltfview
+  lib/lv_gltf/view/lv_gltf_view.cpp
+  lib/lv_gltf/view/sup/datatypes.cpp
+  lib/lv_gltf/view/sup/utils.cpp
+  lib/lv_gltf/view/sup/setup.cpp
+  lib/lv_gltf/view/sup/animation.cpp
+  lib/lv_gltf/view/sup/ibl_sampler.cpp
+  lib/lv_gltf/view/sup/shader_includes.cpp)
+
 target_include_directories(lvgl_gltfview PRIVATE ${LVGL_INCLUDE_DIRS}
                                                  ${PROTO_INCLUDE_DIRS})
-target_link_libraries(lvgl_gltfdata PRIVATE lvgl_opengl_shader_cache fastgltf
-                                            ${WEBP_TARGET})
-target_link_libraries(lvgl_gltfview PRIVATE lvgl_gltfdata)
+target_link_libraries(lvgl_gltfview PRIVATE lvgl_opengl_shader_cache fastgltf
+                                            webp)
+target_link_libraries(lvgl_gltfview PRIVATE lvgl_gltfdata fastgltf)
 
 # Main executable
 add_executable(
   gltf_view
-  demo.c
+  demo.cpp
   demo_ui.c
   demo_cli.c
   demo_nav.c
@@ -139,15 +138,17 @@ target_link_libraries(
   gltf_view
   PRIVATE lvgl
           lvgl_gltfview
+          lvgl_gltfdata
           m
           OpenGL::GL
           GLEW::GLEW
           glfw
-          WebP::webp)
+          webp
+          fastgltf
+)
 
 target_include_directories(
-  gltf_view PRIVATE lvgl_proto/src/others lvgl lvgl/src
-                    ./lvgl_proto/src/others/gltf/data/deps)
+  gltf_view PRIVATE ./lib/lv_gltf ./lib/lv_gltf/data/deps lvgl lvgl/src)
 
 set_target_properties(gltf_view PROPERTIES COMPILE_DEFINITIONS
                                            "${LVGL_COMPILER_DEFINES}")

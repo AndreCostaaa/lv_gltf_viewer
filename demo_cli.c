@@ -1,4 +1,6 @@
 #include "demo.h"
+#include "view/lv_gltf_view_internal.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -43,7 +45,7 @@ void cli_print_usage(void) {
 
 }
 
-bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char * hdrFile, int * frame_count, bool * software_only, bool * start_maximized, bool *_stub_mode, float * _anim_rate, int argc, char *argv[] ){
+bool demo_cli_apply_commandline_options( lv_gltf_view_t* viewer, char * gltfFile, char * hdrFile, int * frame_count, bool * software_only, bool * start_maximized, bool *_stub_mode, float * _anim_rate, int argc, char *argv[] ){
 
     /* First apply the defaults */
     lv_gltf_view_set_env_pow(viewer, 1.8f );

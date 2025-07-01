@@ -1,6 +1,8 @@
+#include "data/lv_gltf_override.h"
 #include "demo.h"
-#include <gltf/data/lv_gltf_data.h>
+#include "lib/lv_gltf/view/sup/include/shader_includes.h"
 #include <drivers/glfw/lv_opengles_debug.h>
+#include "lib/lv_gltf/view/sup/include/shader_v1.h"
 
 lv_opengl_shader_cache_t _shader_cache;
 gl_environment_textures _environment;

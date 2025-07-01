@@ -1,8 +1,14 @@
 #ifndef MAINUI_SHARED_H
 #define MAINUI_SHARED_H
-#include <lvgl.h>
-#include "lvgl_proto/src/others/gltf/view/lv_gltf_view.h"
 
+#ifdef __cplusplus 
+extern "C" {
+#endif
+
+#include "data/lv_gltf_data_internal.h"
+#include "view/lv_gltf_view_internal.h"
+#include <lvgl.h>
+#include "lib/lv_gltf/view/lv_gltf_view.h"
 #include <unistd.h>     /* usleep */
 #include <GL/glew.h>    /* For window size restrictions */
 #include <GLFW/glfw3.h> /* For window size / title */
@@ -143,7 +149,7 @@ void demo_ui_set_tab(unsigned int _tabnum);
 void demo_ui_make_underlayer(void);
 void demo_ui_make_overlayer(void);
 void demo_ui_load_progress_callback(const char* phase_title, const char* sub_phase_title, float phase_progress, float phase_progress_max, float sub_phase_progress, float sub_phase_progress_max);
-bool demo_cli_apply_commandline_options( pViewer viewer, char * gltfFile, char * hdrFile, int * frame_count, bool * software_only, bool * start_maximized, bool *stub_mode, float * _anim_rate, int argc, char *argv[] );
+bool demo_cli_apply_commandline_options(lv_gltf_view_t* viewer, char * gltfFile, char * hdrFile, int * frame_count, bool * software_only, bool * start_maximized, bool *stub_mode, float * _anim_rate, int argc, char *argv[] );
 void demo_nav_process_drag(float movement_power, uint32_t mouse_state_ex, int mouse_x, int mouse_y, int last_mouse_x, int last_mouse_y);
 void demo_os_integrate_setup_glfw_window( lv_glfw_window_t * lv_window, bool lock_window_size, bool start_maximized );
 bool demo_os_integrate_get_maximum_window_framebuffer_size(uint32_t * _max_window_width, uint32_t * _max_window_height);
@@ -184,6 +190,10 @@ float lerp_towards(float start, float end, float t, float min_change);
 void setup_shadercache(const char * hdr_filepath, int degrees_x10 );
 void demo_set_overrides(void);
 void demo_refocus(lv_gltf_view_t * gltfview, bool first_call);
-uint32_t demo_make_small_clear_texture();
+uint32_t demo_make_small_clear_texture(void);
+
+#ifdef __cplusplus 
+}
+#endif
 
 #endif // MAINUI_SHARED_H

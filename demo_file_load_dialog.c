@@ -1,7 +1,8 @@
 
 #include "demo.h"
-#include <gltf/data/lv_gltf_data.h>
+#include "lib/lv_gltf/data/lv_gltf_data.h"
 #include <dirent.h>  // For directory operations
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 

@@ -1,10 +1,12 @@
-
 #include <lvgl.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
 #include "demo.h"
-#include <gltf/data/lv_gltf_data.h>
+#include "lib/lv_gltf/data/lv_gltf_override.h"
+#include "lib/lv_gltf/data/lv_gltf_data.h"
+#include "lib/lv_gltf/data/lv_gltf_data_internal.h"
 
 lv_obj_t * grp_loading;
 lv_obj_t * spin_checkbox;
@@ -56,24 +58,24 @@ lv_obj_t * cam_buttons[MAX_CAM_BUTTONS];
 #define MAX_ANIM_BUTTONS 16
 lv_obj_t * anim_buttons[MAX_ANIM_BUTTONS];
 
-uint32_t ui_get_window_width(){
+uint32_t ui_get_window_width(void){
     
     return lv_gltf_view_get_width(demo_gltfview)+(INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT);
     //return WINDOW_WIDTH;
 }
 
 
-uint32_t ui_get_window_height(){
+uint32_t ui_get_window_height(void){
     return lv_gltf_view_get_height(demo_gltfview)+(INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM);
     //return WINDOW_HEIGHT;
 }
-uint32_t ui_get_primary_texture_width(){ return lv_gltf_view_get_width(demo_gltfview); }
-uint32_t ui_get_primary_texture_height(){ return lv_gltf_view_get_height(demo_gltfview); }
+uint32_t ui_get_primary_texture_width(void){ return lv_gltf_view_get_width(demo_gltfview); }
+uint32_t ui_get_primary_texture_height(void){ return lv_gltf_view_get_height(demo_gltfview); }
 
 uint32_t ui_get_max_window_width(void) { return 1920; }
 uint32_t ui_get_max_window_height(void) { return 1080; }
 
-void __make_styles() {
+void __make_styles(void) {
     __styles_ready = true;
     //static lv_style_t style_knob;
     lv_style_init(&style_knob);
@@ -304,18 +306,18 @@ void demo_ui_apply_camera_button_visibility(lv_gltf_data_t * _data){
     gltf_probe_info * probe = lv_gltf_view_get_probe(_data);
     for (unsigned int i=0; i<MAX_CAM_BUTTONS; i++)
         if (use_scenecam && (i < probe->cameraCount)) lv_obj_clear_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
-            else lv_obj_add_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
+        else lv_obj_add_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
     if (probe->cameraCount > 0) lv_obj_clear_flag(use_scenecam_checkbox, LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(use_scenecam_checkbox, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(use_scenecam_checkbox, LV_OBJ_FLAG_HIDDEN);
 }
 
 void demo_ui_apply_anim_button_visibility(lv_gltf_data_t * _data){
     gltf_probe_info * probe = lv_gltf_view_get_probe(_data);
     for (unsigned int i=0; i<MAX_ANIM_BUTTONS; i++)
         if (anim_enabled && i < probe->animationCount) lv_obj_clear_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
-            else lv_obj_add_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
+        else lv_obj_add_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
     if (probe->animationCount > 0) lv_obj_clear_flag(anim_checkbox, LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(anim_checkbox, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(anim_checkbox, LV_OBJ_FLAG_HIDDEN);
 }
 
 static void use_scenecam_checkbox_event_cb(lv_event_t * e){
@@ -651,7 +653,7 @@ lv_obj_t *  __add_blanktab_px(lv_obj_t * _tabview, unsigned int _px_length) {
         if (i == _count-1){
             lv_obj_t * _newTab = button;
             lv_obj_clear_flag(_newTab, LV_OBJ_FLAG_CLICKABLE  );
-            lv_obj_set_flex_grow(_newTab, 0.1f);
+            lv_obj_set_flex_grow(_newTab, 0);
             lv_obj_set_style_bg_opa(_newTab, LV_OPA_0, LV_PART_ANY);
             lv_obj_set_size(button, lv_pct(100), lv_dpx(_px_length));
             return button;

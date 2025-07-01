@@ -6,7 +6,7 @@
 #include <sys/statvfs.h>  /* to check drive space */
 
 #include <stb_image/stb_image.h>
-#include <gltf/data/lv_gltf_data.h>
+#include <lib/lv_gltf/data/lv_gltf_data.h>
 #include <drivers/glfw/lv_opengles_texture.h>
 #include <drivers/glfw/lv_glfw_window_private.h>
 
