@@ -6,26 +6,15 @@ A simple glTF file viewer, made using the LVGL `3dtexture` widget.
 
 Ensure [GLFW is installed](https://docs.lvgl.io/master/details/integration/driver/opengles.html) for this example.
 
-prebuild.sh will initialize git submodules, then build and install fastgltf
+## Getting Started
 
 ```shell
-./prebuild.sh
-cmake -B build -S .
-make -C build -j$(nproc) lvgl_workspace
-./build/lvgl_workspace
+git clone <TODO>
+git submodule update --init
+cmake -B build
+cmake --build build -j$(nproc)
+./build/gltf_view -in ./gltfs/logo1.glb
 ```
-
-For demonstration purposes, there is a very simple
-glTF loader.  This is a proof of concept build and there
-are many known issues.
-
-to build:
-```bash
-./prebuild.sh
-./full_build.sh
-```
-
-Run from within it's root directory, so it can find the HDR folder and load an environment.
 
 ---
 
@@ -53,6 +42,5 @@ You can confirm the mime-types are setup correctly by viewing
 More Samples:
 
 ![example running screenclip two](readme_images/screenshot_image1.png)
-
 
 ![example running screenclip three](readme_images/screenshot_image2.png)
