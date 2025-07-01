@@ -105,9 +105,9 @@ add_executable(
   src/demo_os_integrate.c
   src/demo_file_load_dialog.c
   src/demo_misc_utils.c
-  resources/mouse_cursor_icon.c
-  resources/lvgl_icon_40px_ARGB888.c
-  resources/sprites1_32x32x7.c)
+  src/mouse_cursor_icon.c
+  src/lvgl_icon_40px_ARGB888.c
+  src/sprites1_32x32x7.c)
 
 # Build type definitions
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
