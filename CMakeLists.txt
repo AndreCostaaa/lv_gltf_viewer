@@ -40,10 +40,8 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wpedantic -ggdb")
-set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wpedantic -flax-vector-conversions"
-)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 set(CONFIG_LV_BUILD_EXAMPLES
     OFF
     CACHE BOOL "disable lvgl examples" FORCE)
@@ -144,8 +142,7 @@ target_link_libraries(
           GLEW::GLEW
           glfw
           webp
-          fastgltf
-)
+          fastgltf)
 
 target_include_directories(
   gltf_view PRIVATE ./lib/lv_gltf ./lib/lv_gltf/data/deps lvgl lvgl/src)
