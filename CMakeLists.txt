@@ -40,8 +40,8 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -ggdb")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -ggdb")
 set(CONFIG_LV_BUILD_EXAMPLES
     OFF
     CACHE BOOL "disable lvgl examples" FORCE)
@@ -106,6 +106,8 @@ add_executable(
   src/lvgl_icon_40px_ARGB888.c
   src/sprites1_32x32x7.c)
 
+add_executable(demo src/simple_demo.c)
+
 # Build type definitions
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
   add_definitions(-DNDEBUG)
@@ -141,8 +143,26 @@ target_link_libraries(
           webp
           fastgltf)
 
+target_link_libraries(
+  demo
+  PRIVATE lvgl
+          lvgl_gltfview
+          lvgl_gltfdata
+          m
+          OpenGL::GL
+          GLEW::GLEW
+          glfw
+          webp
+          fastgltf)
+
 target_include_directories(
   gltf_view PRIVATE ./lib/lv_gltf ./lib/lv_gltf/data/deps lvgl lvgl/src)
 
 set_target_properties(gltf_view PROPERTIES COMPILE_DEFINITIONS
                                            "${LVGL_COMPILER_DEFINES}")
+
+set_target_properties(demo PROPERTIES COMPILE_DEFINITIONS
+                                      "${LVGL_COMPILER_DEFINES}")
+
+target_include_directories(demo PRIVATE ./lib/lv_gltf ./lib/lv_gltf/data/deps
+                                        lvgl lvgl/src)
