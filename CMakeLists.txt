@@ -98,13 +98,13 @@ target_link_libraries(lvgl_gltfview PRIVATE lvgl_gltfdata fastgltf)
 # Main executable
 add_executable(
   gltf_view
-  demo.cpp
-  demo_ui.c
-  demo_cli.c
-  demo_nav.c
-  demo_os_integrate.c
-  demo_file_load_dialog.c
-  demo_misc_utils.c
+  src/demo.cpp
+  src/demo_ui.c
+  src/demo_cli.c
+  src/demo_nav.c
+  src/demo_os_integrate.c
+  src/demo_file_load_dialog.c
+  src/demo_misc_utils.c
   resources/mouse_cursor_icon.c
   resources/lvgl_icon_40px_ARGB888.c
   resources/sprites1_32x32x7.c)
