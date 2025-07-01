@@ -54,9 +54,6 @@ set(CONFIG_LV_USE_THORVG_INTERNAL
 
 add_subdirectory(lvgl)
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
-
 # Define common include directories
 set(LVGL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/lvgl ${CMAKE_SOURCE_DIR}/lvgl/src)
 set(PROTO_INCLUDE_DIRS lib/lv_gltf/data/deps/)
