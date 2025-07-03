@@ -17,8 +17,8 @@ find_package(GLEW REQUIRED)
 
 FetchContent_Declare(
   fastgltf
-  GIT_REPOSITORY https://github.com/AndreCostaaa/fastgltf
-  GIT_TAG 64ff5389179cdb0130e4f35c01153b006f09bfbf
+  GIT_REPOSITORY https://github.com/spnda/fastgltf
+  GIT_TAG 4e2261350888bae7c35a1f39991f6233d57795f5
   GIT_SHALLOW TRUE)
 
 set(FASTGLTF_ENABLE_DEPRECATED_EXT
