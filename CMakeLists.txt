@@ -29,8 +29,8 @@ FetchContent_MakeAvailable(fastgltf)
 
 FetchContent_Declare(
   webp
-  GIT_REPOSITORY https://chromium.googlesource.com/webm/libwebp
-  GIT_TAG 85e098e58d3fb89fee93b09c6c4515dbc4593c46
+  GIT_REPOSITORY https://github.com/webmproject/libwebp
+  GIT_TAG fa6f56496a442eed59b103250021e4b14ebf1427
   GIT_SHALLOW TRUE)
 
 FetchContent_MakeAvailable(webp)
