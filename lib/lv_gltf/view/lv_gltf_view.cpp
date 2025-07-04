@@ -11,6 +11,7 @@
 #include <functional>
 #include <vector>
 #include <map>
+#include <sys/time.h>
 
 #include <lvgl.h>
 #include <drivers/glfw/lv_opengles_debug.h> /* GL_CALL */
@@ -205,6 +206,31 @@ float       lv_gltf_view_get_focal_z(lv_gltf_view_t * view)
 float       lv_gltf_view_get_spin_degree_offset(lv_gltf_view_t * view)
 {
     return lv_gltf_view_get_desc(view)->spin_degree_offset;
+}
+uint32_t    lv_gltf_view_get_last_render_total_msec(lv_gltf_view_t * view)
+{
+    return lv_gltf_view_get_desc(view)->last_render_total_msec;
+}
+uint64_t    lv_gltf_view_get_last_render_start_msec(lv_gltf_view_t * view)
+{
+    return lv_gltf_view_get_desc(view)->last_render_system_msec;
+}
+uint32_t    lv_gltf_view_get_fps_goal_delay(lv_gltf_view_t * view, double goal_fps_d)
+{
+    float goal_fps = goal_fps_d > 0.f ? goal_fps_d : 0.1f;
+    uint32_t goal_fps_msec = ((1.0f / goal_fps) * 1000);
+    struct timeval now_time;
+    gettimeofday(&now_time, NULL);
+    uint64_t now_msec = ( ( ( now_time.tv_sec * 1000000 ) + now_time.tv_usec ) / 1000 );
+    uint64_t last_start_msec = lv_gltf_view_get_desc(view)->last_render_system_msec;
+    if (last_start_msec == 0) {
+        return goal_fps_msec;
+    }
+    int64_t ret_delay = goal_fps_msec - (now_msec - last_start_msec);
+    if (ret_delay > goal_fps_msec) { 
+        printf ("ret delay was abnormal: %d msec - using fps delay instead\n", goal_fps_msec); return goal_fps_msec; 
+    }
+    return ret_delay > 0 ? (uint32_t)ret_delay : 0;
 }
 
 void lv_gltf_view_set_pitch(lv_gltf_view_t * view, int pitch_degrees_x100)
@@ -903,6 +929,11 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     uint32_t sceneIndex = 0;
     gl_renwin_state_t _output;
     gl_renwin_state_t _opaque;
+
+    struct timeval start_time;
+    gettimeofday(&start_time, NULL);
+    view_desc->last_render_system_msec = ((start_time.tv_sec * 1000000) + start_time.tv_usec ) / 1000;
+
     view_desc->frame_was_cached = true;
     view_desc->render_width = view_desc->width * (opt_aa_this_frame ? 2 : 1);
     view_desc->render_height = view_desc->height * (opt_aa_this_frame ? 2 : 1);
@@ -1302,6 +1333,11 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     }
     lv_gltf_opengl_state_pop();
     view_desc->frame_was_cached = false;
+
+    struct timeval finish_time;
+    gettimeofday(&finish_time, NULL);
+    view_desc->last_render_total_msec = ( ( ( finish_time.tv_sec * 1000000 ) + finish_time.tv_usec ) / 1000 ) - view_desc->last_render_system_msec;
+
     return _output.texture;
 }
 

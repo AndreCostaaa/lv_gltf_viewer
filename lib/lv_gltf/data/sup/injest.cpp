@@ -115,25 +115,15 @@ void injest_discover_defines(lv_gltf_data_t * data_obj, void * node, void * prim
         if(material.unlit) {
             addDefine("MATERIAL_UNLIT", NULL);
             addDefine("LINEAR_OUTPUT", NULL);
-
-            //addDefine("USE_IBL", NULL );
-            //addDefine("LIGHT_COUNT", "0" );
         }
         else {
             addDefine("MATERIAL_METALLICROUGHNESS", NULL);
-            //addDefine("USE_IBL", NULL );
-            //addDefine("LIGHT_COUNT", "0" );
-            //addDefine("USE_PUNCTUAL", NULL );
-            //addDefine("LIGHT_COUNT", "2" );
+            addDefine("LINEAR_OUTPUT", NULL );
         }
 
         if(data_obj->node_by_light_index->size() > 0) {
             addDefine("USE_PUNCTUAL", NULL);
             addDefine("USE_IBL", NULL);
-            //addDefine("LIGHT_COUNT", "2" );
-            //char _tbuffer[10];
-            //snprintf(_tbuffer, 10, "%ld", data_obj->node_by_light_index->size());
-            //            addDefine("LIGHT_COUNT", std::to_string(data_obj->node_by_light_index->size()).c_str() );
             size_t lc = data_obj->node_by_light_index->size();
             if(lc == 1) addDefine("LIGHT_COUNT", "1");
             else if(lc == 2) addDefine("LIGHT_COUNT", "2");

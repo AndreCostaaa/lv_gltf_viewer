@@ -427,6 +427,12 @@ int main(int argc, char *argv[]) {
             if (desktop_mode && (totalframenum != framenum)) { /* Do nothing, frame is cached */ } else
             #endif
             {
+                uint32_t fps_lock_delay_msec = lv_gltf_view_get_fps_goal_delay(demo_gltfview, 60.0);
+                if (fps_lock_delay_msec > 0) {
+                    //printf("Delaying for %d msec to hit fps goal of %.1f fps\n", fps_lock_delay_msec, 30.0f);
+                    poll(fds, 0, fps_lock_delay_msec);
+                }
+
                 gltf_texture = lv_gltf_view_render( shader_cache, demo_gltfview, demo_gltfdata, true, 0, 0, 0, 0 );
                 if (needs_system_gltfdata && (use_scenecam == false)) {
                     if (!lv_gltf_view_check_frame_was_cached(demo_gltfview))

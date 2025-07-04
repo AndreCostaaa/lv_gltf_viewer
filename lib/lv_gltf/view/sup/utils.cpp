@@ -207,6 +207,8 @@ void lv_gltf_copy_viewer_desc(gl_viewer_desc_t * from, gl_viewer_desc_t * to)
     to->bg_b = from->bg_b;
     to->bg_a = from->bg_a;
     to->spin_degree_offset = from->spin_degree_offset;
+    to->last_render_system_msec = from->last_render_system_msec;
+    to->last_render_total_msec = from->last_render_total_msec;
 }
 
 bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t * from, gl_viewer_desc_t * to)
@@ -237,6 +239,8 @@ bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t * from, gl_viewer_desc_t * to)
     //if (to->width        != from->width) { printf("width diff\n"); return true; }
     //if (to->height       != from->height) { printf("height diff\n"); return true; }
     // These are intentionally not compared
+    //if (to->last_render_total_msec     != from->last_render_total_msec) return true;
+    //if (to->last_render_system_msec     != from->last_render_system_msec) return true;
     //if (to->timestep     != from->timestep) return true;
     //if (to->error_frames != from->error_frames) return true;
     //if (to->frame_was_cached != from->frame_was_cached) return true;

@@ -32,6 +32,7 @@ void init_viewer_struct(_VIEW _ViewerMem)
     _newDesc->bg_mode = 0;
     _newDesc->aa_mode = 2;
     _newDesc->camera = 0;
+    _newDesc->fov = 45.f;
     _newDesc->anim = 0;
     _newDesc->spin_degree_offset = 0.f;
     _newDesc->timestep = 0.f;
@@ -40,6 +41,12 @@ void init_viewer_struct(_VIEW _ViewerMem)
     _newDesc->recenter_flag = true;
     _newDesc->frame_was_cached = false;
     _newDesc->frame_was_antialiased = false;
+    _newDesc->bg_r = 230;
+    _newDesc->bg_g = 230;
+    _newDesc->bg_b = 230;
+    _newDesc->bg_a = 255;
+    _newDesc->last_render_system_msec = 0;
+    _newDesc->last_render_total_msec = 0;
 
     _newViewer.state.options.sceneIndex = 0;
     _newViewer.state.options.materialVariant = 0;

@@ -212,7 +212,7 @@ bool demo_os_integrate_get_maximum_window_framebuffer_size(uint32_t * _max_windo
     }
 
     // Is session 1 an X11 session?
-    int window_type_detected = system("./ex/__detect_x11.sh") >> 8;
+    int window_type_detected = system("./demo_helper_scripts/__detect_x11.sh") >> 8;
     if(window_type_detected == 0) {
         // X11
         printf("Runtime info: X11.\n");

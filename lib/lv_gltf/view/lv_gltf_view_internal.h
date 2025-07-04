@@ -85,6 +85,8 @@ typedef struct {
     float blur_bg;              // How much to blur the environment background, between 0.0 and 1.0
     float env_pow;              // Environmental brightness, 1.0 default
     float exposure;             // Image exposure level, 1.0 default
+    uint64_t last_render_system_msec;  // The system time of the last render in 1/1000th's of a second. 
+    uint64_t last_render_total_msec;  // The total time of the last render in 1/1000th's of a second.  (Note this does not include any time used outside of the render loop ie lv_refr_now() )
 } gl_viewer_desc_t;
 
 struct gl_shader_light_t {

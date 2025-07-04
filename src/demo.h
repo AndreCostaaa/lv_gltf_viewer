@@ -28,7 +28,7 @@ extern "C" {
 #define DESKTOP_OUTPUT_FILEPATH_TEMPLATE "/var/ramtemp/background%05d.png"
 #define DESKTOP_APPLY_COMMAND "pcmanfm --set-wallpaper /var/ramtemp/background.png&"
 #define DESKTOP_APPLY_COMMAND_TEMPLATE "pcmanfm --set-wallpaper /var/ramtemp/background%05d.png&"
-#define RESIZE_RAMDRIVE_COMMAND_TEMPLATE "sudo ./ex/__resize_ramdrive.sh %s %dM > /dev/null"
+#define RESIZE_RAMDRIVE_COMMAND_TEMPLATE "sudo ./demo_helper_scripts/__resize_ramdrive.sh %s %dM > /dev/null"
 extern bool desktop_mode;
 extern float desktop_ratio;
 #endif

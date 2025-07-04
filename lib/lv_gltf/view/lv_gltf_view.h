@@ -123,6 +123,29 @@ uint32_t lv_gltf_view_get_aa_mode(lv_gltf_view_t * view);
 uint32_t lv_gltf_view_get_bg_mode(lv_gltf_view_t * view);
 
 /**
+ * @brief Get the total milliseconds used to render the last frame
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @return The time used to render the last frame in 1/1000ths of a second.
+ */
+uint32_t    lv_gltf_view_get_last_render_total_msec(lv_gltf_view_t * view);
+/**
+ * @brief Get the system time at the start of the last render
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @return The system time of the last render in 1/1000ths of a second.
+ */
+uint64_t    lv_gltf_view_get_last_render_start_msec(lv_gltf_view_t * view);
+/**
+ * @brief Calculates the timing required to maintain a specified FPS, relative to the system time of the last frame render.
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @return How long the calling function should delay (in 1/1000ths of a second) before calling the render function.
+ */
+uint32_t    lv_gltf_view_get_fps_goal_delay(lv_gltf_view_t * view, double goal_fps_d);
+
+
+/**
  * @brief Set the viewing angle pitch in degrees x 100 (36000 per full turn)
  *
  * @param view Pointer to the lv_gltf_view.
