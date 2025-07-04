@@ -111,7 +111,9 @@ void reload(char * _filename, const char * _hdr_filename) {
         camera = -1;
     } else {
         use_scenecam = true;
-        camera = 0;
+        if (camera > (int32_t)lv_gltf_view_get_probe(demo_gltfdata)->cameraCount ) {
+            camera = (int32_t)lv_gltf_view_get_probe(demo_gltfdata)->cameraCount;
+        }
     }
     if (lv_gltf_view_get_probe(demo_gltfdata)->animationCount == 0) {
         anim_enabled = false;

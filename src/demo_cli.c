@@ -367,6 +367,7 @@ bool demo_cli_apply_commandline_options(lv_gltf_view_t * viewer, char * gltfFile
         printf("HDR File Path: %s\n", hdrFile[0] ? hdrFile : "None provided");
         printf("Antialiasing Mode: %d\n", lv_gltf_view_get_aa_mode(demo_gltfview));
         printf("Background Mode: %d\n",  lv_gltf_view_get_bg_mode(demo_gltfview));
+        printf("Camera Num: %d\n", camera);
         printf("Pitch: %.2f\n", lv_gltf_view_get_pitch(demo_gltfview));
         printf("Yaw: %.2f\n", lv_gltf_view_get_yaw(demo_gltfview));
         printf("Frame Count: %d\n", *frame_count);
