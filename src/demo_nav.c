@@ -117,7 +117,7 @@ void demo_nav_gradual_to_goals(void)
     if(tfx != goal_focal_x) {
         tfx = lerp_towards(tfx, goal_focal_x, EASE_POWER_1, MIN_POSITION_CHANGE);
         if(tfx == goal_focal_x) {
-            goal_focal_x = lv_gltf_view_get_focal_x(demo_gltfview);
+            tfx = goal_focal_x = lv_gltf_view_get_focal_x(demo_gltfview);
         }
         lv_gltf_view_set_focal_x(demo_gltfview, tfx);
     }
@@ -126,7 +126,7 @@ void demo_nav_gradual_to_goals(void)
     if(tfy != goal_focal_y) {
         tfy = lerp_towards(tfy, goal_focal_y, EASE_POWER_1, MIN_POSITION_CHANGE);
         if(tfy == goal_focal_y) {
-            goal_focal_y = lv_gltf_view_get_focal_y(demo_gltfview);
+            tfy = goal_focal_y = lv_gltf_view_get_focal_y(demo_gltfview);
         }
         lv_gltf_view_set_focal_y(demo_gltfview, tfy);
     }
@@ -135,7 +135,7 @@ void demo_nav_gradual_to_goals(void)
     if(tfz != goal_focal_z) {
         tfz = lerp_towards(tfz, goal_focal_z, EASE_POWER_1, MIN_POSITION_CHANGE);
         if(tfz == goal_focal_z) {
-            goal_focal_z = lv_gltf_view_get_focal_z(demo_gltfview);
+            tfz = goal_focal_z = lv_gltf_view_get_focal_z(demo_gltfview);
         }
         lv_gltf_view_set_focal_z(demo_gltfview, tfz);
     }
