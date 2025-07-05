@@ -17,6 +17,7 @@ extern "C" {
 #include <poll.h>
 
 #define ENABLE_DESKTOP_MODE
+#define EXPERIMENTAL_GROUNDCAST
 
 #ifdef ENABLE_DESKTOP_MODE
 #include <pthread.h>
