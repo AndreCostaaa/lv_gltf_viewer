@@ -435,10 +435,13 @@ int main(int argc, char *argv[]) {
                     poll(fds, 0, fps_lock_delay_msec);
                 }
 
-                gltf_texture = lv_gltf_view_render( shader_cache, demo_gltfview, demo_gltfdata, true, 0, 0, 0, 0 );
+                /*  Only draw the grid (and other extras) if they are enabled 
+                    and the view is not currently from a scene defined camera */
+
                 if (needs_system_gltfdata && (use_scenecam == false)) {
-                    if (!lv_gltf_view_check_frame_was_cached(demo_gltfview))
-                        gltf_texture = lv_gltf_view_render( shader_cache, demo_gltfview, system_gltfdata, false, 0,0,0,0);
+                    gltf_texture = lv_gltf_view_get_desc(demo_gltfview)->render_func(shader_cache, demo_gltfview, demo_gltfdata, system_gltfdata, NULL);
+                } else {
+                    gltf_texture = lv_gltf_view_get_desc(demo_gltfview)->render_func(shader_cache, demo_gltfview, demo_gltfdata, NULL);
                 }
             }
             if (reapply_layout_flag) demo_ui_reposition_all();

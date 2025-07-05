@@ -209,6 +209,8 @@ void lv_gltf_copy_viewer_desc(gl_viewer_desc_t * from, gl_viewer_desc_t * to)
     to->spin_degree_offset = from->spin_degree_offset;
     to->last_render_system_msec = from->last_render_system_msec;
     to->last_render_total_msec = from->last_render_total_msec;
+    to->render_func = from->render_func;
+
 }
 
 bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t * from, gl_viewer_desc_t * to)
@@ -232,6 +234,7 @@ bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t * from, gl_viewer_desc_t * to)
        (to->bg_b          != from->bg_b) ||
        (to->bg_a          != from->bg_a) ||
        (to->spin_degree_offset != from->spin_degree_offset) ||
+       (to->render_func   != from->render_func) ||
        (to->env_pow       != from->env_pow)) {
         return true;
     }

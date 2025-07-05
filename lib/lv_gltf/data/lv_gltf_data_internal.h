@@ -1,6 +1,8 @@
 #ifndef LV_GLTFDATA_PRIVATE_H
 #define LV_GLTFDATA_PRIVATE_H
 
+#include "../view/lv_gltf_view.h"
+#include "../view/lv_gltf_view_internal.h"
 #include <misc/lv_types.h>
 
 typedef struct lv_gltf_override_struct lv_gltf_override_t;

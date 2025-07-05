@@ -478,6 +478,15 @@ void lv_gltf_view_set_width(lv_gltf_view_t * view, uint32_t new_width);
  */
 void lv_gltf_view_set_height(lv_gltf_view_t * view, uint32_t new_height);
 
+
+/**
+ * @brief Check if the viewer currently needs an update.
+ *
+ * @param view Pointer to the lv_gltf_view.
+ * @return True if the view is dirty, false if not.
+ */
+bool lv_gltf_view_check_dirty(lv_gltf_view_t * view);
+
 /**
  * @brief Mark the viewer as needing an update.
  *

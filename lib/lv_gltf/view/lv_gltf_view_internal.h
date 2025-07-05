@@ -55,6 +55,8 @@ typedef struct  {
     bool renderOpaqueBuffer;
 } _ViewerState;
 
+typedef uint32_t (*render_func_t)(lv_opengl_shader_cache_t *, lv_gltf_view_t *, lv_gltf_data_t *, ...);
+
 typedef struct {
     float pitch;
     float yaw;
@@ -87,6 +89,7 @@ typedef struct {
     float exposure;             // Image exposure level, 1.0 default
     uint64_t last_render_system_msec;  // The system time of the last render in 1/1000th's of a second. 
     uint64_t last_render_total_msec;  // The total time of the last render in 1/1000th's of a second.  (Note this does not include any time used outside of the render loop ie lv_refr_now() )
+    render_func_t render_func;
 } gl_viewer_desc_t;
 
 struct gl_shader_light_t {

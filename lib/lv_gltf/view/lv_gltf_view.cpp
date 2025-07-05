@@ -155,6 +155,10 @@ float absf(float v)
     return v > 0 ? v : -v;
 }
 
+bool lv_gltf_view_check_dirty(lv_gltf_view_t * view) {
+    return lv_gltf_view_get_desc(view)->dirty;
+}
+
 void        lv_gltf_view_mark_dirty(lv_gltf_view_t * view)
 {
     lv_gltf_view_get_desc(view)->dirty = true;
@@ -925,6 +929,11 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     bool opt_draw_bg = prepare_bg && (view_desc->bg_mode == BG_ENVIRONMENT);
     bool opt_aa_this_frame = (view_desc->aa_mode == ANTIALIAS_CONSTANT) || ((view_desc->aa_mode == ANTIALIAS_NOT_MOVING) &&
                                                                             (gltf_data->_lastFrameNoMotion == true)); //((_lastFrameNoMotion == true) && (_lastFrameWasAntialiased == false)));
+    if (prepare_bg == false) {
+        // If this data object is a secondary render pass, inherit the anti-alias setting for this frame from the first gltf_data drawn
+        opt_aa_this_frame = view_desc->frame_was_antialiased;
+    }
+
     lv_gltf_opengl_state_push();
     uint32_t sceneIndex = 0;
     gl_renwin_state_t _output;
@@ -943,10 +952,12 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
 
     if((opt_aa_this_frame != gltf_data->_lastFrameWasAntialiased) || size_changed) {
         // Antialiasing state has changed since the last render
-        if(vstate->render_state_ready) {
-            setup_cleanup_opengl_output(&vstate->render_state);
-            vstate->render_state = setup_primary_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height,
-                                                        opt_aa_this_frame);
+        if (prepare_bg == true) {
+            if(vstate->render_state_ready) {
+                setup_cleanup_opengl_output(&vstate->render_state);
+                vstate->render_state = setup_primary_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height,
+                                                            opt_aa_this_frame);
+            }
         }
         gltf_data->_lastFrameWasAntialiased = opt_aa_this_frame;
     }
@@ -958,11 +969,13 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
         crop_bottom = crop_bottom << 1;
     }
     view_desc->frame_was_antialiased = opt_aa_this_frame;
-    if(!vstate->render_state_ready) {
-        _output = setup_primary_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height,
-                                       opt_aa_this_frame);
-        setup_finish_frame();
-        vstate->render_state = _output;
+    if (prepare_bg == true) {
+        if(!vstate->render_state_ready) {
+            _output = setup_primary_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height,
+                                        opt_aa_this_frame);
+            setup_finish_frame();
+            vstate->render_state = _output;
+        }
     }
 
     if(!gltf_data->nodes_parsed) {
@@ -1043,12 +1056,14 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     }
 
     if(!vstate->render_state_ready) {
-        vstate->render_state_ready = true;
-        if(vstate->renderOpaqueBuffer) {
-            std::cout << "**** CREATING OPAQUE RENDER BUFFER OBJECTS ****\n";
-            _opaque = setup_opaque_output(vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight);
-            vstate->opaque_render_state = _opaque;
-            setup_finish_frame();
+        if (prepare_bg == true) {
+            vstate->render_state_ready = true;
+            if(vstate->renderOpaqueBuffer) {
+                std::cout << "**** CREATING OPAQUE RENDER BUFFER OBJECTS ****\n";
+                _opaque = setup_opaque_output(vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight);
+                vstate->opaque_render_state = _opaque;
+                setup_finish_frame();
+            }
         }
     }
     bool _motionDirty = false;
