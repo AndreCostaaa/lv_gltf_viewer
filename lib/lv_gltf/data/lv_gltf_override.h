@@ -25,20 +25,61 @@ typedef enum {
 	OMC_CHAN4 = 0x08
 } OverrideMaskChannels;
 
-struct lv_gltf_override_struct {
+struct _lv_gltf_override {
 	OverrideProp prop;
-	struct lv_gltf_override_struct
-		*next_override;
+	struct _lv_gltf_override *next_override;
 	uint32_t data_mask;
 	float data1;
 	float data2;
 	float data3;
 	float data4;
 	bool read_only;
-
+	bool dirty;
 };
+typedef _lv_gltf_override lv_gltf_override_t;
 
-typedef struct lv_gltf_override_struct lv_gltf_override_t;
+/**
+ * @brief Change the value in data channel 1 of a given override.
+ *
+ * @param override Pointer to the lv_gltf_override_t to change the data channel 1 value of.
+ * @param new_value The new value.
+ */
+void lv_gltf_data_set_override_data1(lv_gltf_override_t *override,
+				     float new_value);
+
+/**
+ * @brief Change the value in data channel 2 of a given override.
+ *
+ * @param override Pointer to the lv_gltf_override_t to change the data channel 2 value of.
+ * @param new_value The new value.
+ */
+void lv_gltf_data_set_override_data2(lv_gltf_override_t *override,
+				     float new_value);
+
+/**
+ * @brief Change the value in data channel 3 of a given override.
+ *
+ * @param override Pointer to the lv_gltf_override_t to change the data channel 3 value of.
+ * @param new_value The new value.
+ */
+void lv_gltf_data_set_override_data3(lv_gltf_override_t *override,
+				     float new_value);
+
+/**
+ * @brief Change the value in data channel 4 of a given override.
+ *
+ * @param override Pointer to the lv_gltf_override_t to change the data channel 4 value of.
+ * @param new_value The new value.
+ */
+void lv_gltf_data_set_override_data4(lv_gltf_override_t *override,
+				     float new_value);
+
+/**
+ * @brief Reset the dirty flag for a given override.
+ *
+ * @param override Pointer to the lv_gltf_override_t to reset the dirty flag for.
+ */
+void lv_gltf_data_clean_override(lv_gltf_override_t *override);
 
 /**
  * @brief Add an override to a GLTF data object by node index.
