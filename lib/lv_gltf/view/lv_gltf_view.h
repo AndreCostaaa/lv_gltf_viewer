@@ -418,8 +418,8 @@ void lv_gltf_view_reset_between_models(lv_gltf_view_t * viewer);
  * @param _env_rotation_degreesX10 The rotation of the environment texture in tenths of degrees.
  * @return The configured environment textures.
  */
-gl_environment_textures lv_gltf_view_ibl_sampler_setup(gl_environment_textures * _lastEnv, const char * _env_filename,
-                                                       int _env_rotation_degreesX10);
+lv_gl_shader_manager_env_textures_t lv_gltf_view_ibl_sampler_setup(lv_gl_shader_manager_env_textures_t * _lastEnv,
+                                                                   const char * _env_filename, int _env_rotation_degreesX10);
 
 /**
  * @brief Set a callback function to report the loading phase of the IBL texture.

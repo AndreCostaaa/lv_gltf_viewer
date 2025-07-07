@@ -155,7 +155,8 @@ float absf(float v)
     return v > 0 ? v : -v;
 }
 
-bool lv_gltf_view_check_dirty(lv_gltf_view_t * view) {
+bool lv_gltf_view_check_dirty(lv_gltf_view_t * view)
+{
     return lv_gltf_view_get_desc(view)->dirty;
 }
 
@@ -225,14 +226,15 @@ uint32_t    lv_gltf_view_get_fps_goal_delay(lv_gltf_view_t * view, double goal_f
     uint32_t goal_fps_msec = ((1.0f / goal_fps) * 1000);
     struct timeval now_time;
     gettimeofday(&now_time, NULL);
-    uint64_t now_msec = ( ( ( now_time.tv_sec * 1000000 ) + now_time.tv_usec ) / 1000 );
+    uint64_t now_msec = (((now_time.tv_sec * 1000000) + now_time.tv_usec) / 1000);
     uint64_t last_start_msec = lv_gltf_view_get_desc(view)->last_render_system_msec;
-    if (last_start_msec == 0) {
+    if(last_start_msec == 0) {
         return goal_fps_msec;
     }
     int64_t ret_delay = goal_fps_msec - (now_msec - last_start_msec);
-    if (ret_delay > goal_fps_msec) { 
-        printf ("ret delay was abnormal: %d msec - using fps delay instead\n", goal_fps_msec); return goal_fps_msec; 
+    if(ret_delay > goal_fps_msec) {
+        printf("ret delay was abnormal: %d msec - using fps delay instead\n", goal_fps_msec);
+        return goal_fps_msec;
     }
     return ret_delay > 0 ? (uint32_t)ret_delay : 0;
 }
@@ -579,7 +581,7 @@ void draw_primitive(int32_t prim_num,
                     fastgltf::Node & node,
                     std::size_t mesh_index,
                     const FMAT4 & matrix,
-                    gl_environment_textures env_tex,
+                    lv_gl_shader_manager_env_textures_t env_tex,
                     bool is_transmission_pass)
 {
     auto mesh = get_meshdata_num(gltf_data, mesh_index);
@@ -929,7 +931,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     bool opt_draw_bg = prepare_bg && (view_desc->bg_mode == BG_ENVIRONMENT);
     bool opt_aa_this_frame = (view_desc->aa_mode == ANTIALIAS_CONSTANT) || ((view_desc->aa_mode == ANTIALIAS_NOT_MOVING) &&
                                                                             (gltf_data->_lastFrameNoMotion == true)); //((_lastFrameNoMotion == true) && (_lastFrameWasAntialiased == false)));
-    if (prepare_bg == false) {
+    if(prepare_bg == false) {
         // If this data object is a secondary render pass, inherit the anti-alias setting for this frame from the first gltf_data drawn
         opt_aa_this_frame = view_desc->frame_was_antialiased;
     }
@@ -941,7 +943,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
 
     struct timeval start_time;
     gettimeofday(&start_time, NULL);
-    view_desc->last_render_system_msec = ((start_time.tv_sec * 1000000) + start_time.tv_usec ) / 1000;
+    view_desc->last_render_system_msec = ((start_time.tv_sec * 1000000) + start_time.tv_usec) / 1000;
 
     view_desc->frame_was_cached = true;
     view_desc->render_width = view_desc->width * (opt_aa_this_frame ? 2 : 1);
@@ -952,7 +954,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
 
     if((opt_aa_this_frame != gltf_data->_lastFrameWasAntialiased) || size_changed) {
         // Antialiasing state has changed since the last render
-        if (prepare_bg == true) {
+        if(prepare_bg == true) {
             if(vstate->render_state_ready) {
                 setup_cleanup_opengl_output(&vstate->render_state);
                 vstate->render_state = setup_primary_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height,
@@ -969,10 +971,10 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
         crop_bottom = crop_bottom << 1;
     }
     view_desc->frame_was_antialiased = opt_aa_this_frame;
-    if (prepare_bg == true) {
+    if(prepare_bg == true) {
         if(!vstate->render_state_ready) {
             _output = setup_primary_output((uint32_t)view_desc->render_width, (uint32_t)view_desc->render_height,
-                                        opt_aa_this_frame);
+                                           opt_aa_this_frame);
             setup_finish_frame();
             vstate->render_state = _output;
         }
@@ -1056,7 +1058,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     }
 
     if(!vstate->render_state_ready) {
-        if (prepare_bg == true) {
+        if(prepare_bg == true) {
             vstate->render_state_ready = true;
             if(vstate->renderOpaqueBuffer) {
                 std::cout << "**** CREATING OPAQUE RENDER BUFFER OBJECTS ****\n";
@@ -1283,7 +1285,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
             for(NodePairVector::iterator nodeElem = kv->second.begin(); nodeElem != kv->second.end(); nodeElem++) {
                 auto node = nodeElem->first;
                 draw_primitive(nodeElem->second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(),
-                               get_cached_transform(gltf_data, node), *(shaders->lastEnv), true);
+                               get_cached_transform(gltf_data, node), *(shaders->last_env), true);
             }
         }
         for(NodeDistanceVector::iterator kv = get_distance_sort_begin(gltf_data); kv != get_distance_sort_end(gltf_data);
@@ -1292,7 +1294,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
             const auto & nodeElem = nodeDistancePair.second; // Access the second member (NodeIndexPair)
             auto node = nodeElem.first;
             draw_primitive(nodeElem.second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(),
-                           get_cached_transform(gltf_data, node), *(shaders->lastEnv), true);
+                           get_cached_transform(gltf_data, node), *(shaders->last_env), true);
         }
 
         GL_CALL(glBindTexture(GL_TEXTURE_2D, _opaque.texture));
@@ -1313,7 +1315,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
                                                                               gltf_data->viewMat, gltf_data->viewPos, gltf_data, false);
         else setup_view_proj_matrix(viewer, view_desc, gltf_data, false);
     }
-    viewer->envRotationAngle = shaders->lastEnv->angle;
+    viewer->envRotationAngle = shaders->last_env->angle;
 
     {
         if(setup_restore_primary_output(view_desc, _output, (uint32_t)view_desc->render_width - (crop_left + crop_right),
@@ -1328,7 +1330,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
             for(NodePairVector::iterator nodeElem = kv->second.begin(); nodeElem != kv->second.end(); nodeElem++) {
                 auto node = nodeElem->first;
                 draw_primitive(nodeElem->second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(),
-                               get_cached_transform(gltf_data, node), *(shaders->lastEnv), false);
+                               get_cached_transform(gltf_data, node), *(shaders->last_env), false);
             }
         }
         for(NodeDistanceVector::iterator kv = get_distance_sort_begin(gltf_data); kv != get_distance_sort_end(gltf_data);
@@ -1337,7 +1339,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
             const auto & nodeElem = nodeDistancePair.second; // Access the second member (NodeIndexPair)
             auto node = nodeElem.first;
             draw_primitive(nodeElem.second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(),
-                           get_cached_transform(gltf_data, node), *(shaders->lastEnv), false);
+                           get_cached_transform(gltf_data, node), *(shaders->last_env), false);
         }
         if(opt_aa_this_frame) {
             GL_CALL(glBindTexture(GL_TEXTURE_2D, _output.texture));
@@ -1351,7 +1353,8 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
 
     struct timeval finish_time;
     gettimeofday(&finish_time, NULL);
-    view_desc->last_render_total_msec = ( ( ( finish_time.tv_sec * 1000000 ) + finish_time.tv_usec ) / 1000 ) - view_desc->last_render_system_msec;
+    view_desc->last_render_total_msec = (((finish_time.tv_sec * 1000000) + finish_time.tv_usec) / 1000) -
+                                        view_desc->last_render_system_msec;
 
     return _output.texture;
 }

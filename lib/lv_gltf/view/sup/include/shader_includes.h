@@ -7,14 +7,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-
-#ifndef LV_SHADER_CACHE_KEYVAL
-#define LV_SHADER_CACHE_KEYVAL
-typedef struct {
-    const char * key;
-    const char * value;
-} lv_shader_key_value_t;
-#endif /* LV_SHADER_CACHE_KEYVAL */
+#include "../../../lv_gl_shader/lv_gl_shader.h"
 
 bool shader_fragment_is_overridden(void);
 const char * get_shader_fragment_override(void);
@@ -24,9 +17,10 @@ void lv_gltf_view_shader_fragment_override(const char * override_fragment_code);
 void lv_gltf_view_shader_vertex_override(const char * override_vertex_code);
 
 char * process_includes(const char * src, const char * _defines);
-char * process_defines(const lv_shader_key_value_t * __define_set, size_t _num_items);
+char * process_defines(const lv_gl_shader_t * __define_set,
+                       size_t _num_items);
 char * get_defines_str(void);
-lv_shader_key_value_t * all_defines(void);
+lv_gl_shader_t * all_defines(void);
 uint32_t all_defines_count(void);
 
 size_t lineCount(const char * str);
@@ -34,12 +28,12 @@ void addDefine(const char * defsymbol, const char * defvalue_or_null);
 void clearDefines(void);
 char * getDefineId(void);
 
-#define _STRINGIFY(x) #x
+#define _STRINGIFY(x)       #x
 #define GLSL_VERSION_PREFIX _STRINGIFY(#version 300 es)
 
 char * PREPROCESS(const char * x);
 
-static lv_shader_key_value_t src_includes[] = {
+static lv_gl_shader_t src_includes[] = {
     {
         "tonemapping.glsl", R"(
 
@@ -2798,7 +2792,7 @@ static lv_shader_key_value_t src_includes[] = {
     },
 };
 
-static lv_shader_key_value_t env_src_includes[] = {
+static lv_gl_shader_t env_src_includes[] = {
     {
         "fullscreen.vert", R"(
         precision highp float;

@@ -2,11 +2,12 @@
 #include "misc/lv_timer.h"
 #include "view/lv_gltf_view.h"
 #include "view/sup/include/shader_includes.h"
-#include "lib/lv_opengl_shader_cache/lv_opengl_shader_cache.h"
+#include "lib/lv_gl_shader/lv_gl_shader_manager.h"
 #include "view/sup/include/shader_v1.h"
 #include "widgets/3dtexture/lv_3dtexture.h"
 #include <GL/glew.h> /* For window size restrictions */
 #include <GLFW/glfw3.h> /* For window size / title */
+#include <lib/lv_gl_shader/lv_gl_shader_manager_internal.h>
 #include <lvgl.h>
 #include "demo.h"
 #include <stdbool.h>
@@ -29,16 +30,15 @@ int main(void)
 	/* create a display that flushes to a texture */
 	lv_display_t *texture =
 		lv_opengles_texture_create(WINDOW_WIDTH, WINDOW_HEIGHT);
-	lv_display_set_default(texture);
 
 	/* add the texture to the window */
 	unsigned int texture_id = lv_opengles_texture_get_texture_id(texture);
 	lv_glfw_window_add_texture(window, texture_id, WINDOW_WIDTH,
 				   WINDOW_HEIGHT);
 
-	lv_opengl_shader_cache_t shader_cache = lv_opengl_shader_cache_create(
-		src_includes,
-		sizeof(src_includes) / sizeof(lv_shader_key_value_t),
+	/* */
+	lv_gl_shader_manager_t *shader_manager = lv_gl_shader_manager_create(
+		src_includes, sizeof(src_includes) / sizeof(*src_includes),
 		src_vertex(), src_frag());
 
 	lv_gltf_view_t *demo_gltfview =
@@ -47,16 +47,17 @@ int main(void)
 	lv_gltf_view_set_width(demo_gltfview, WINDOW_WIDTH);
 	lv_gltf_view_set_height(demo_gltfview, WINDOW_HEIGHT);
 
-	gl_environment_textures env =
+	lv_gl_shader_manager_env_textures_t env =
 		lv_gltf_view_ibl_sampler_setup(NULL, NULL, 0);
-	shader_cache.lastEnv = &env;
+	shader_manager->last_env = &env;
 
 	lv_gltf_data_t *demo_gltfdata =
 		(lv_gltf_data_t *)lv_malloc(lv_gltf_data_get_struct_size());
-	lv_gltf_data_load_file("gltfs/logo1.glb", demo_gltfdata, &shader_cache);
-
+	lv_gltf_data_load_file("gltfs/logo1.glb", demo_gltfdata,
+			       shader_manager);
+	lv_gltf_view_set_fov(demo_gltfview, 45);
 	lv_3dtexture_id_t gltf_texture = lv_gltf_view_render(
-		&shader_cache, demo_gltfview, demo_gltfdata, true, 0, 0, 0, 0);
+		shader_manager, demo_gltfview, demo_gltfdata, true, 0, 0, 0, 0);
 
 	lv_obj_t *gltfview_3dtex = lv_3dtexture_create(lv_screen_active());
 	lv_3dtexture_set_src(gltfview_3dtex, gltf_texture);
@@ -74,7 +75,7 @@ int main(void)
 	// Cleanup
 	lv_gltf_data_destroy(demo_gltfdata);
 	lv_gltf_view_destroy(demo_gltfview);
-	lv_opengl_shader_cache_destroy(&shader_cache);
+	lv_gl_shader_manager_destroy(shader_manager);
 
 	return 0;
 }

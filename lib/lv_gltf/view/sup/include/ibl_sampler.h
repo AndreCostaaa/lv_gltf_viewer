@@ -9,7 +9,7 @@
 #define IBL_SAMPLER_VERBOSITY VERBOSITY_MAX
 
 
-#include "../../../../lv_opengl_shader_cache/lv_opengl_shader_cache.h"
+#include "../../../../lv_gl_shader/lv_gl_shader_manager_internal.h"
 
 #include <misc/lv_types.h>
 
@@ -31,8 +31,7 @@ class iblSampler
         uint32_t framebuffer;
         uint32_t mipmapCount;
 
-        lv_opengl_shader_cache_t _shaderCache;
-        lv_opengl_shader_cache_t * shaderCache;
+        lv_gl_shader_manager_t * shader_manager;
 
         struct t_texture {
             uint32_t internalFormat;
@@ -84,8 +83,9 @@ extern "C" {
 
 void lv_gltf_view_ibl_set_loadphase_callback(void (*_load_progress_callback)(const char *, const char *, float, float,
                                                                              float, float));
-gl_environment_textures lv_gltf_view_ibl_sampler_setup(gl_environment_textures * _lastEnv, const char * _env_filename,
-                                                       int _env_rotation_degreesX10);
+lv_gl_shader_manager_env_textures_t lv_gltf_view_ibl_sampler_setup(lv_gl_shader_manager_env_textures_t * _lastEnv,
+                                                                   const char * _env_filename,
+                                                                   int _env_rotation_degreesX10);
 
 #ifdef __cplusplus
 } /*extern "C"*/

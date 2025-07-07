@@ -3,7 +3,7 @@
 
 #include <misc/lv_types.h>
 #include <draw/lv_image_dsc.h>
-#include "../../lv_opengl_shader_cache/lv_opengl_shader_cache.h"
+#include "../../lv_gl_shader/lv_gl_shader_manager.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,7 +72,7 @@ void lv_gltf_data_make_animations_summary(lv_gltf_data_t * data,
  */
 void lv_gltf_data_load_bytes(const void * gltf_bytes, size_t gltf_data_size,
                              lv_gltf_data_t * ret_data,
-                             lv_opengl_shader_cache_t * shaders);
+                             lv_gl_shader_manager_t * shader_manager);
 
 /**
  * @brief Load the gltf file at the specified filepath
@@ -82,7 +82,7 @@ void lv_gltf_data_load_bytes(const void * gltf_bytes, size_t gltf_data_size,
  * @param shaders Pointer to the shader cache object this file uses.
  */
 void lv_gltf_data_load_file(const char * gltf_path, lv_gltf_data_t * ret_data,
-                            lv_opengl_shader_cache_t * shaders);
+                            lv_gl_shader_manager_t * shader_manager);
 
 /**
  * @brief Set the callback function that is called when loading increments.

@@ -22,7 +22,7 @@
 #include <cmath>
 #include "../../data/lv_gltf_data_internal.hpp"
 #include "../lv_gltf_view_internal.hpp"
-#include "../../../lv_opengl_shader_cache/lv_opengl_shader_cache.h"
+#include "../../../lv_gl_shader/lv_gl_shader_program.h"
 #include "../lv_gltf_view_internal.hpp"
 
 /**
@@ -34,111 +34,127 @@
  * @param uniforms Pointer to a UniformLocs structure where the uniform locations will be stored.
  * @param _shader_prog_program The shader program from which to retrieve the uniform locations.
  */
-void setup_uniform_locations(UniformLocs * uniforms, uint32_t _shader_prog_program)
+void setup_uniform_locations(UniformLocs * uniforms,
+                             uint32_t _shader_prog_program)
 {
-    auto _u = [&](const char * _uniform) -> GLint { return glGetUniformLocation(_shader_prog_program, _uniform); };
+    auto _u = [&](const char * _uniform) -> GLint {
+        return glGetUniformLocation(_shader_prog_program, _uniform);
+    };
     // *** IMAGE QUALITY UNIFORMS ***********************************************************************
-    uniforms->exposure =                            _u("u_Exposure");
+    uniforms->exposure = _u("u_Exposure");
     // *** CAMERA/VIEW/PROJECTION/MODEL MATRIX UNIFORMS *************************************************
-    uniforms->camera =                              _u("u_Camera");
-    uniforms->modelMatrixUniform =                  _u("u_ModelMatrix");
-    uniforms->viewProjectionMatrixUniform =         _u("u_ViewProjectionMatrix");
-    uniforms->viewMatrixUniform =                   _u("u_ViewMatrix");
-    uniforms->projectionMatrixUniform =             _u("u_ProjectionMatrix");
+    uniforms->camera = _u("u_Camera");
+    uniforms->modelMatrixUniform = _u("u_ModelMatrix");
+    uniforms->viewProjectionMatrixUniform = _u("u_ViewProjectionMatrix");
+    uniforms->viewMatrixUniform = _u("u_ViewMatrix");
+    uniforms->projectionMatrixUniform = _u("u_ProjectionMatrix");
     // *** IMAGE BASED LIGHTING (IBL) UNIFORMS **********************************************************
-    uniforms->envIntensity =                        _u("u_EnvIntensity");
-    uniforms->envDiffuseSampler =                   _u("u_LambertianEnvSampler");
-    uniforms->envSpecularSampler =                  _u("u_GGXEnvSampler");
-    uniforms->envSheenSampler =                     _u("u_CharlieEnvSampler");
-    uniforms->envGgxLutSampler =                    _u("u_GGXLUT");
-    uniforms->envCharlieLutSampler =                _u("u_CharlieLUT");
-    uniforms->envMipCount =                         _u("u_MipCount");
+    uniforms->envIntensity = _u("u_EnvIntensity");
+    uniforms->envDiffuseSampler = _u("u_LambertianEnvSampler");
+    uniforms->envSpecularSampler = _u("u_GGXEnvSampler");
+    uniforms->envSheenSampler = _u("u_CharlieEnvSampler");
+    uniforms->envGgxLutSampler = _u("u_GGXLUT");
+    uniforms->envCharlieLutSampler = _u("u_CharlieLUT");
+    uniforms->envMipCount = _u("u_MipCount");
     // *** BASE COLOR / TEXTURE UNIFORMS ****************************************************************
-    uniforms->baseColorFactor =                     _u("u_BaseColorFactor");
-    uniforms->baseColorSampler =                    _u("u_BaseColorSampler");
-    uniforms->baseColorUVSet =                      _u("u_BaseColorUVSet");
-    uniforms->baseColorUVTransform =                _u("u_BaseColorUVTransform");
+    uniforms->baseColorFactor = _u("u_BaseColorFactor");
+    uniforms->baseColorSampler = _u("u_BaseColorSampler");
+    uniforms->baseColorUVSet = _u("u_BaseColorUVSet");
+    uniforms->baseColorUVTransform = _u("u_BaseColorUVTransform");
     // *** CUTOFF / IOR / DISPERSION UNIFORMS ***********************************************************
-    uniforms->alphaCutoff =                         _u("u_AlphaCutoff");
-    uniforms->ior =                                 _u("u_Ior");
-    uniforms->dispersion =                          _u("u_Dispersion");
+    uniforms->alphaCutoff = _u("u_AlphaCutoff");
+    uniforms->ior = _u("u_Ior");
+    uniforms->dispersion = _u("u_Dispersion");
     // *** METALLIC / ROUGHNESS UNIFORMS ****************************************************************
-    uniforms->metallicFactor =                      _u("u_MetallicFactor");
-    uniforms->roughnessFactor =                     _u("u_RoughnessFactor");
-    uniforms->metallicRoughnessSampler =            _u("u_MetallicRoughnessSampler");
-    uniforms->metallicRoughnessUVSet =              _u("u_MetallicRoughnessUVSet");
-    uniforms->metallicRoughnessUVTransform =        _u("u_MetallicRoughnessUVTransform");
+    uniforms->metallicFactor = _u("u_MetallicFactor");
+    uniforms->roughnessFactor = _u("u_RoughnessFactor");
+    uniforms->metallicRoughnessSampler = _u("u_MetallicRoughnessSampler");
+    uniforms->metallicRoughnessUVSet = _u("u_MetallicRoughnessUVSet");
+    uniforms->metallicRoughnessUVTransform =
+        _u("u_MetallicRoughnessUVTransform");
     // *** EMISSION UNIFORMS ****************************************************************************
-    uniforms->emissiveFactor =                      _u("u_EmissiveFactor");
-    uniforms->emissiveSampler =                     _u("u_EmissiveSampler");
-    uniforms->emissiveUVSet =                       _u("u_EmissiveUVSet");
-    uniforms->emissiveUVTransform =                 _u("u_EmissiveUVTransform");
-    uniforms->emissiveStrength =                    _u("u_EmissiveStrength");
+    uniforms->emissiveFactor = _u("u_EmissiveFactor");
+    uniforms->emissiveSampler = _u("u_EmissiveSampler");
+    uniforms->emissiveUVSet = _u("u_EmissiveUVSet");
+    uniforms->emissiveUVTransform = _u("u_EmissiveUVTransform");
+    uniforms->emissiveStrength = _u("u_EmissiveStrength");
     // *** OCCLUSION UNIFORMS ***************************************************************************
-    uniforms->occlusionStrength =                   _u("u_OcclusionStrength");
-    uniforms->occlusionSampler =                    _u("u_OcclusionSampler");
-    uniforms->occlusionUVSet =                      _u("u_OcclusionUVSet");
-    uniforms->occlusionUVTransform =                _u("u_OcclusionUVTransform");
+    uniforms->occlusionStrength = _u("u_OcclusionStrength");
+    uniforms->occlusionSampler = _u("u_OcclusionSampler");
+    uniforms->occlusionUVSet = _u("u_OcclusionUVSet");
+    uniforms->occlusionUVTransform = _u("u_OcclusionUVTransform");
     // *** NORMAL MAP UNIFORMS **************************************************************************
-    uniforms->normalSampler =                       _u("u_NormalSampler");
-    uniforms->normalScale =                         _u("u_NormalScale");
-    uniforms->normalUVSet =                         _u("u_NormalUVSet");
-    uniforms->normalUVTransform =                   _u("u_NormalUVTransform");
+    uniforms->normalSampler = _u("u_NormalSampler");
+    uniforms->normalScale = _u("u_NormalScale");
+    uniforms->normalUVSet = _u("u_NormalUVSet");
+    uniforms->normalUVTransform = _u("u_NormalUVTransform");
     // *** VOLUME / TRANSMISSION UNIFORMS ***************************************************************
-    uniforms->attenuationDistance =                 _u("u_AttenuationDistance");
-    uniforms->attenuationColor =                    _u("u_AttenuationColor");
-    uniforms->transmissionFactor =                  _u("u_TransmissionFactor");
-    uniforms->transmissionSampler =                 _u("u_TransmissionSampler");
-    uniforms->transmissionUVSet =                   _u("u_TransmissionUVSet");
-    uniforms->transmissionUVTransform =             _u("u_TransmissionUVTransform");
-    uniforms->transmissionFramebufferSampler =      _u("u_TransmissionFramebufferSampler");
-    uniforms->transmissionFramebufferSize =         _u("u_TransmissionFramebufferSize");
-    uniforms->screenSize =                          _u("u_ScreenSize");
-    uniforms->thickness =                           _u("u_ThicknessFactor");
-    uniforms->thicknessSampler =                    _u("u_ThicknessSampler");
-    uniforms->thicknessUVSet =                      _u("u_ThicknessUVSet");
-    uniforms->thicknessUVTransform =                _u("u_ThicknessUVTransform");
+    uniforms->attenuationDistance = _u("u_AttenuationDistance");
+    uniforms->attenuationColor = _u("u_AttenuationColor");
+    uniforms->transmissionFactor = _u("u_TransmissionFactor");
+    uniforms->transmissionSampler = _u("u_TransmissionSampler");
+    uniforms->transmissionUVSet = _u("u_TransmissionUVSet");
+    uniforms->transmissionUVTransform = _u("u_TransmissionUVTransform");
+    uniforms->transmissionFramebufferSampler =
+        _u("u_TransmissionFramebufferSampler");
+    uniforms->transmissionFramebufferSize =
+        _u("u_TransmissionFramebufferSize");
+    uniforms->screenSize = _u("u_ScreenSize");
+    uniforms->thickness = _u("u_ThicknessFactor");
+    uniforms->thicknessSampler = _u("u_ThicknessSampler");
+    uniforms->thicknessUVSet = _u("u_ThicknessUVSet");
+    uniforms->thicknessUVTransform = _u("u_ThicknessUVTransform");
     // *** CLEARCOAT UNIFORMS ***************************************************************************
-    uniforms->clearcoatFactor =                     _u("u_ClearcoatFactor");
-    uniforms->clearcoatRoughnessFactor =            _u("u_ClearcoatRoughnessFactor");
-    uniforms->clearcoatSampler =                    _u("u_ClearcoatSampler");
-    uniforms->clearcoatUVSet =                      _u("u_ClearcoatUVSet");
-    uniforms->clearcoatUVTransform =                _u("u_ClearcoatUVTransform");
-    uniforms->clearcoatRoughnessSampler =           _u("u_ClearcoatRoughnessSampler");
-    uniforms->clearcoatRoughnessUVSet =             _u("u_ClearcoatRoughnessUVSet");
-    uniforms->clearcoatRoughnessUVTransform =       _u("u_ClearcoatRoughnessUVTransform");
-    uniforms->clearcoatNormalScale =                _u("u_ClearcoatNormalScale");
-    uniforms->clearcoatNormalSampler =              _u("u_ClearcoatNormalSampler");
-    uniforms->clearcoatNormalUVSet =                _u("u_ClearcoatNormalUVSet");
-    uniforms->clearcoatNormalUVTransform =          _u("u_ClearcoatNormalUVTransform");
+    uniforms->clearcoatFactor = _u("u_ClearcoatFactor");
+    uniforms->clearcoatRoughnessFactor = _u("u_ClearcoatRoughnessFactor");
+    uniforms->clearcoatSampler = _u("u_ClearcoatSampler");
+    uniforms->clearcoatUVSet = _u("u_ClearcoatUVSet");
+    uniforms->clearcoatUVTransform = _u("u_ClearcoatUVTransform");
+    uniforms->clearcoatRoughnessSampler = _u("u_ClearcoatRoughnessSampler");
+    uniforms->clearcoatRoughnessUVSet = _u("u_ClearcoatRoughnessUVSet");
+    uniforms->clearcoatRoughnessUVTransform =
+        _u("u_ClearcoatRoughnessUVTransform");
+    uniforms->clearcoatNormalScale = _u("u_ClearcoatNormalScale");
+    uniforms->clearcoatNormalSampler = _u("u_ClearcoatNormalSampler");
+    uniforms->clearcoatNormalUVSet = _u("u_ClearcoatNormalUVSet");
+    uniforms->clearcoatNormalUVTransform =
+        _u("u_ClearcoatNormalUVTransform");
     // *** DIFFUSE TRANSMISSION UNIFORMS ****************************************************************
-    uniforms->diffuseTransmissionFactor =           _u("u_DiffuseTransmissionFactor");
-    uniforms->diffuseTransmissionSampler =          _u("u_DiffuseTransmissionSampler");
-    uniforms->diffuseTransmissionUVSet =            _u("u_DiffuseTransmissionUVSet");
-    uniforms->diffuseTransmissionUVTransform =      _u("u_DiffuseTransmissionUVTransform");
-    uniforms->diffuseTransmissionColorFactor =      _u("u_DiffuseTransmissionColorFactor");
-    uniforms->diffuseTransmissionColorSampler =     _u("u_DiffuseTransmissionColorSampler");
-    uniforms->diffuseTransmissionColorUVSet =       _u("u_DiffuseTransmissionColorUVSet");
-    uniforms->diffuseTransmissionColorUVTransform = _u("u_DiffuseTransmissionColorUVTransform");
+    uniforms->diffuseTransmissionFactor = _u("u_DiffuseTransmissionFactor");
+    uniforms->diffuseTransmissionSampler =
+        _u("u_DiffuseTransmissionSampler");
+    uniforms->diffuseTransmissionUVSet = _u("u_DiffuseTransmissionUVSet");
+    uniforms->diffuseTransmissionUVTransform =
+        _u("u_DiffuseTransmissionUVTransform");
+    uniforms->diffuseTransmissionColorFactor =
+        _u("u_DiffuseTransmissionColorFactor");
+    uniforms->diffuseTransmissionColorSampler =
+        _u("u_DiffuseTransmissionColorSampler");
+    uniforms->diffuseTransmissionColorUVSet =
+        _u("u_DiffuseTransmissionColorUVSet");
+    uniforms->diffuseTransmissionColorUVTransform =
+        _u("u_DiffuseTransmissionColorUVTransform");
     // *** LEGACY SUPPORT - PBR_SPECULARGLOSS ***********************************************************
-    uniforms->diffuseFactor =                       _u("u_DiffuseFactor");
-    uniforms->specularFactor =                      _u("u_SpecularFactor");
-    uniforms->glossinessFactor =                    _u("u_GlossinessFactor");
-    uniforms->diffuseSampler =                      _u("u_DiffuseSampler");
-    uniforms->diffuseUVSet =                        _u("u_DiffuseUVSet");
-    uniforms->diffuseUVTransform =                  _u("u_DiffuseUVTransform");
-    uniforms->specularGlossinessSampler =           _u("u_SpecularGlossinessSampler");
-    uniforms->specularGlossinessUVSet =             _u("u_SpecularGlossinessUVSet");
-    uniforms->specularGlossinessUVTransform =       _u("u_SpecularGlossinessUVTransform");
+    uniforms->diffuseFactor = _u("u_DiffuseFactor");
+    uniforms->specularFactor = _u("u_SpecularFactor");
+    uniforms->glossinessFactor = _u("u_GlossinessFactor");
+    uniforms->diffuseSampler = _u("u_DiffuseSampler");
+    uniforms->diffuseUVSet = _u("u_DiffuseUVSet");
+    uniforms->diffuseUVTransform = _u("u_DiffuseUVTransform");
+    uniforms->specularGlossinessSampler = _u("u_SpecularGlossinessSampler");
+    uniforms->specularGlossinessUVSet = _u("u_SpecularGlossinessUVSet");
+    uniforms->specularGlossinessUVTransform =
+        _u("u_SpecularGlossinessUVTransform");
     // *** [PARTIALLY SUPPORTED / IN DEVELOPMENT] UNIFORMS **********************************************
-    uniforms->sheenColorFactor =                    _u("u_SheenColorFactor");
-    uniforms->sheenRoughnessFactor =                _u("u_SheenRoughnessFactor");
+    uniforms->sheenColorFactor = _u("u_SheenColorFactor");
+    uniforms->sheenRoughnessFactor = _u("u_SheenRoughnessFactor");
     //
-    uniforms->specularColorFactor =                 _u("u_KHR_materials_specular_specularColorFactor");
-    uniforms->specularFactor =                      _u("u_KHR_materials_specular_specularFactor");
+    uniforms->specularColorFactor =
+        _u("u_KHR_materials_specular_specularColorFactor");
+    uniforms->specularFactor =
+        _u("u_KHR_materials_specular_specularFactor");
     //
-    uniforms->jointsSampler =                      _u("u_jointsSampler");
-
+    uniforms->jointsSampler = _u("u_jointsSampler");
 }
 
 /**
@@ -157,8 +173,8 @@ FMAT3 setup_texture_transform_matrix(fastgltf::TextureTransform transform)
     FMAT3 translation = FMAT3(0.f);
     FMAT3 result = FMAT3(0.f);
 
-    float s =  std::sin(transform.rotation);
-    float c =  std::cos(transform.rotation);
+    float s = std::sin(transform.rotation);
+    float c = std::cos(transform.rotation);
     rotation[0][0] = c;
     rotation[1][1] = c;
     rotation[0][1] = s;
@@ -191,32 +207,17 @@ FMAT3 setup_texture_transform_matrix(fastgltf::TextureTransform transform)
  * @param indexBuffer Pointer to a GLuint where the index buffer ID will be stored.
  * @param vertexBuffer Pointer to a GLuint where the vertex buffer ID will be stored.
  */
-void setup_background_environment(GLuint program, GLuint * vao, GLuint * indexBuffer, GLuint * vertexBuffer)
+void setup_background_environment(GLuint program, GLuint * vao,
+                                  GLuint * indexBuffer, GLuint * vertexBuffer)
 {
-    int32_t indices[] = {
-        1, 2, 0,
-        2, 3, 0,
-        6, 2, 1,
-        1, 5, 6,
-        6, 5, 4,
-        4, 7, 6,
-        6, 3, 2,
-        7, 3, 6,
-        3, 7, 0,
-        7, 4, 0,
-        5, 1, 0,
-        4, 5, 0
-    };
-    float verts[] = {
-        -1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-        1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-        1.0f, -1.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f
-    };
+    int32_t indices[] = { 1, 2, 0, 2, 3, 0, 6, 2, 1, 1, 5, 6,
+                          6, 5, 4, 4, 7, 6, 6, 3, 2, 7, 3, 6,
+                          3, 7, 0, 7, 4, 0, 5, 1, 0, 4, 5, 0
+                        };
+    float verts[] = { -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f, 1.0f,
+                      -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
+                      -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f, 1.0f
+                    };
     GL_CALL(glUseProgram(program));
     GL_CALL(glGenVertexArrays(1, vao));
     GL_CALL(glBindVertexArray(*vao));
@@ -224,19 +225,22 @@ void setup_background_environment(GLuint program, GLuint * vao, GLuint * indexBu
     GL_CALL(glGenBuffers(1, vertexBuffer));
 
     GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, *vertexBuffer));
-    GL_CALL(glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW));
+    GL_CALL(glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts,
+                         GL_STATIC_DRAW));
     GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *indexBuffer));
-    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW));
+    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
+                         GL_STATIC_DRAW));
 
-    GLint positionAttributeLocation = glGetAttribLocation(program, "a_position");
+    GLint positionAttributeLocation =
+        glGetAttribLocation(program, "a_position");
 
     // Specify the layout of the vertex data
-    glVertexAttribPointer(positionAttributeLocation, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+    glVertexAttribPointer(positionAttributeLocation, 3, GL_FLOAT, GL_FALSE,
+                          0, (void *)0);
     glEnableVertexAttribArray(positionAttributeLocation);
 
     GL_CALL(glBindVertexArray(0));
     GL_CALL(glUseProgram(0));
-
 }
 
 /**
@@ -251,7 +255,9 @@ void setup_background_environment(GLuint program, GLuint * vao, GLuint * indexBu
  */
 FMAT3 setup_tangent_bitangent_normal_matrix(FVEC3 normal, FVEC4 tangent_and_w)
 {
-    FVEC3 bitangent = fastgltf::math::cross(normal, FVEC3(tangent_and_w[0], tangent_and_w[1], tangent_and_w[2]));
+    FVEC3 bitangent = fastgltf::math::cross(
+                          normal,
+                          FVEC3(tangent_and_w[0], tangent_and_w[1], tangent_and_w[2]));
     FMAT3 r = FMAT3(0.f);
     r[0][0] = tangent_and_w[0];
     r[0][1] = tangent_and_w[1];
@@ -281,16 +287,18 @@ template <typename T>
 [[nodiscard]] fastgltf::math::quat<T> eulerToQuaternion(T P, T Y, T R);
 }
 
-void setup_environment_rotation_matrix(float env_rotation_angle, uint32_t shader_program)
+void setup_environment_rotation_matrix(float env_rotation_angle,
+                                       uint32_t shader_program)
 {
-
-    fastgltf::math::fmat3x3 rotmat = fastgltf::math::asMatrix(fastgltf::math::eulerToQuaternion(env_rotation_angle, 0.f,
-                                                                                                3.14159f));
+    fastgltf::math::fmat3x3 rotmat = fastgltf::math::asMatrix(
+                                         fastgltf::math::eulerToQuaternion(env_rotation_angle, 0.f,
+                                                                           3.14159f));
 
     // Get the uniform location and set the uniform
     int32_t u_loc;
     GL_CALL(u_loc = glGetUniformLocation(shader_program, "u_EnvRotation"));
-    GL_CALL(glUniformMatrix3fv(u_loc, 1, GL_FALSE, (const GLfloat *)rotmat.data()));
+    GL_CALL(glUniformMatrix3fv(u_loc, 1, GL_FALSE,
+                               (const GLfloat *)rotmat.data()));
 }
 /*
 void old_mathc_based_setup_environment_rotation_matrix(float env_rotation_angle, uint32_t shader_program) {
@@ -324,7 +332,8 @@ void old_mathc_based_setup_environment_rotation_matrix(float env_rotation_angle,
  */
 void setup_uniform_color(GLint uniform_loc, fastgltf::math::nvec3 color)
 {
-    GL_CALL(glUniform3f(uniform_loc, static_cast<float>(color[0]), static_cast<float>(color[1]),
+    GL_CALL(glUniform3f(uniform_loc, static_cast<float>(color[0]),
+                        static_cast<float>(color[1]),
                         static_cast<float>(color[2])));
 }
 
@@ -339,10 +348,11 @@ void setup_uniform_color(GLint uniform_loc, fastgltf::math::nvec3 color)
  */
 void setup_uniform_color_alpha(GLint uniform_loc, fastgltf::math::nvec4 color)
 {
-    GL_CALL(glUniform4f(uniform_loc, static_cast<float>(color[0]), static_cast<float>(color[1]),
-                        static_cast<float>(color[2]), static_cast<float>(color[3])));
+    GL_CALL(glUniform4f(uniform_loc, static_cast<float>(color[0]),
+                        static_cast<float>(color[1]),
+                        static_cast<float>(color[2]),
+                        static_cast<float>(color[3])));
 }
-
 
 /**
  * @brief Set up a texture for rendering.
@@ -360,16 +370,23 @@ void setup_uniform_color_alpha(GLint uniform_loc, fastgltf::math::nvec4 color)
  * @param uv_transform The transformation to be applied to the UV coordinates.
  * @return The texture ID generated for the setup texture.
  */
-uint32_t setup_texture(uint32_t tex_unit, uint32_t tex_name, int32_t tex_coord_index,
-                       std::unique_ptr<fastgltf::TextureTransform> & tex_transform,
-                       GLint sampler, GLint uv_set, GLint uv_transform)
+uint32_t
+setup_texture(uint32_t tex_unit, uint32_t tex_name, int32_t tex_coord_index,
+              std::unique_ptr<fastgltf::TextureTransform> & tex_transform,
+              GLint sampler, GLint uv_set, GLint uv_transform)
 {
-    GL_CALL(glActiveTexture(GL_TEXTURE0 + tex_unit));   // Activate the texture unit
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, tex_name));    // Bind the texture (assuming 2D texture)
-    GL_CALL(glUniform1i(sampler, tex_unit));            // Set the sampler to use the texture unit
-    GL_CALL(glUniform1i(uv_set, tex_coord_index));      // Set the UV set index
-    if(tex_transform != NULL) GL_CALL(glUniformMatrix3fv(uv_transform, 1, GL_FALSE,
-                                                             &(setup_texture_transform_matrix(*tex_transform)[0][0])));
+    GL_CALL(glActiveTexture(GL_TEXTURE0 +
+                            tex_unit)); // Activate the texture unit
+    GL_CALL(glBindTexture(
+                GL_TEXTURE_2D,
+                tex_name)); // Bind the texture (assuming 2D texture)
+    GL_CALL(glUniform1i(
+                sampler, tex_unit)); // Set the sampler to use the texture unit
+    GL_CALL(glUniform1i(uv_set, tex_coord_index)); // Set the UV set index
+    if(tex_transform != NULL)
+        GL_CALL(glUniformMatrix3fv(uv_transform, 1, GL_FALSE,
+                                   &(setup_texture_transform_matrix(
+                                         *tex_transform)[0][0])));
     tex_unit++;
     return tex_unit;
 }
@@ -388,7 +405,8 @@ uint32_t setup_texture(uint32_t tex_unit, uint32_t tex_name, int32_t tex_coord_i
  * @param message The message string containing the details of the OpenGL event.
  * @param userParam User-defined parameter passed to the callback.
  */
-void glMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * message,
+void glMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
+                       GLsizei length, const GLchar * message,
                        const void * userParam)
 {
     LV_UNUSED(source);
@@ -404,7 +422,6 @@ void glMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, G
     }
 }
 
-
 /**
  * @brief Clean up OpenGL output resources.
  *
@@ -418,9 +435,11 @@ void setup_cleanup_opengl_output(gl_renwin_state_t * state)
     if(state) {
         // Delete the framebuffer
         if(state->framebuffer) {
-            GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0)); // Unbind the framebuffer
+            GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER,
+                                      0)); // Unbind the framebuffer
             GL_CALL(glDeleteFramebuffers(1, &state->framebuffer));
-            state->framebuffer = 0; // Reset to avoid dangling pointer
+            state->framebuffer =
+                0; // Reset to avoid dangling pointer
         }
 
         // Delete the color texture
@@ -432,7 +451,8 @@ void setup_cleanup_opengl_output(gl_renwin_state_t * state)
         // Delete the depth texture
         if(state->renderbuffer) {
             GL_CALL(glDeleteTextures(1, &state->renderbuffer));
-            state->renderbuffer = 0; // Reset to avoid dangling pointer
+            state->renderbuffer =
+                0; // Reset to avoid dangling pointer
         }
     }
 }
@@ -448,9 +468,9 @@ void setup_cleanup_opengl_output(gl_renwin_state_t * state)
  * @param texture_height The height of the texture for the opaque output.
  * @return A gl_renwin_state_t structure containing the state of the opaque output.
  */
-gl_renwin_state_t setup_opaque_output(uint32_t texture_width, uint32_t texture_height)
+gl_renwin_state_t setup_opaque_output(uint32_t texture_width,
+                                      uint32_t texture_height)
 {
-
     gl_renwin_state_t _ret;
 
     GLuint rtex;
@@ -459,11 +479,17 @@ gl_renwin_state_t setup_opaque_output(uint32_t texture_width, uint32_t texture_h
     //const auto& metrics = get_viewer_metrics(viewer);
 
     GL_CALL(glBindTexture(GL_TEXTURE_2D, _ret.texture));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_width, texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                            GL_LINEAR_MIPMAP_LINEAR));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                            GL_NEAREST));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                            GL_CLAMP_TO_EDGE));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                            GL_CLAMP_TO_EDGE));
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_width,
+                         texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                         NULL));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
     GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
@@ -471,25 +497,33 @@ gl_renwin_state_t setup_opaque_output(uint32_t texture_width, uint32_t texture_h
     GL_CALL(glGenTextures(1, &rdepth));
     _ret.renderbuffer = rdepth;
     GL_CALL(glBindTexture(GL_TEXTURE_2D, _ret.renderbuffer));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                            GL_NEAREST));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                            GL_NEAREST));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                            GL_CLAMP_TO_EDGE));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                            GL_CLAMP_TO_EDGE));
 #ifdef __EMSCRIPTEN__ // Check if compiling for Emscripten (WebGL)
     // For WebGL2
-    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, texture_width, texture_height, 0, GL_DEPTH_COMPONENT,
-                         GL_UNSIGNED_INT, NULL));
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24,
+                         texture_width, texture_height, 0,
+                         GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL));
 #else
     // For Desktop OpenGL
-    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, texture_width, texture_height, 0, GL_DEPTH_COMPONENT,
-                         GL_UNSIGNED_SHORT, NULL));
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24,
+                         texture_width, texture_height, 0,
+                         GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL));
 #endif
     GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
 
     GL_CALL(glGenFramebuffers(1, &_ret.framebuffer));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _ret.framebuffer));
-    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _ret.texture, 0));
-    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _ret.renderbuffer, 0));
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_2D, _ret.texture, 0));
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                                   GL_TEXTURE_2D, _ret.renderbuffer, 0));
 
     return _ret;
 }
@@ -505,9 +539,10 @@ gl_renwin_state_t setup_opaque_output(uint32_t texture_width, uint32_t texture_h
  * @param mipmaps_enabled A boolean indicating whether mipmaps should be generated for the texture.
  * @return A gl_renwin_state_t structure containing the state of the primary output.
  */
-gl_renwin_state_t setup_primary_output(uint32_t texture_width, uint32_t texture_height, bool mipmaps_enabled)
+gl_renwin_state_t setup_primary_output(uint32_t texture_width,
+                                       uint32_t texture_height,
+                                       bool mipmaps_enabled)
 {
-
     gl_renwin_state_t _ret;
 
     GLuint rtex;
@@ -516,12 +551,18 @@ gl_renwin_state_t setup_primary_output(uint32_t texture_width, uint32_t texture_
     GL_CALL(glBindTexture(GL_TEXTURE_2D, _ret.texture));
     //GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mipmaps_enabled ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                            mipmaps_enabled ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+                            mipmaps_enabled ? GL_NEAREST_MIPMAP_NEAREST :
+                            GL_NEAREST));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                            GL_NEAREST));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                            GL_CLAMP_TO_EDGE));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                            GL_CLAMP_TO_EDGE));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1));
-    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_width, texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_width,
+                         texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                         NULL));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
     GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
@@ -529,26 +570,34 @@ gl_renwin_state_t setup_primary_output(uint32_t texture_width, uint32_t texture_
     GL_CALL(glGenTextures(1, &rdepth));
     _ret.renderbuffer = rdepth;
     GL_CALL(glBindTexture(GL_TEXTURE_2D, _ret.renderbuffer));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                            GL_NEAREST));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                            GL_NEAREST));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                            GL_CLAMP_TO_EDGE));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                            GL_CLAMP_TO_EDGE));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1));
 #ifdef __EMSCRIPTEN__ // Check if compiling for Emscripten (WebGL)
     // For WebGL2
-    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, texture_width, texture_height, 0, GL_DEPTH_COMPONENT,
-                         GL_UNSIGNED_INT, NULL));
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24,
+                         texture_width, texture_height, 0,
+                         GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL));
 #else
     // For Desktop OpenGL
-    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, texture_width, texture_height, 0, GL_DEPTH_COMPONENT,
-                         GL_UNSIGNED_SHORT, NULL));
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24,
+                         texture_width, texture_height, 0,
+                         GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL));
 #endif
     GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
 
     GL_CALL(glGenFramebuffers(1, &_ret.framebuffer));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _ret.framebuffer));
-    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _ret.texture, 0));
-    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _ret.renderbuffer, 0));
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_2D, _ret.texture, 0));
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                                   GL_TEXTURE_2D, _ret.renderbuffer, 0));
 
     return _ret;
 }
@@ -567,22 +616,26 @@ gl_renwin_state_t setup_primary_output(uint32_t texture_width, uint32_t texture_
  * @param prepare_bg A boolean indicating whether to prepare the background during restoration.
  * @return A boolean indicating whether rendering should be canceled due to an error.
  */
-bool setup_restore_opaque_output(gl_viewer_desc_t * view_desc, gl_renwin_state_t _ret, uint32_t texture_w,
+bool setup_restore_opaque_output(gl_viewer_desc_t * view_desc,
+                                 gl_renwin_state_t _ret, uint32_t texture_w,
                                  uint32_t texture_h, bool prepare_bg)
 {
-
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _ret.framebuffer));
-    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _ret.texture, 0));
-    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _ret.renderbuffer, 0));
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_2D, _ret.texture, 0));
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                                   GL_TEXTURE_2D, _ret.renderbuffer, 0));
     GL_CALL(glViewport(0, 0, texture_w, texture_h));
     if(prepare_bg) {
-        GL_CALL(glClearColor(view_desc->bg_r / 255.0f, view_desc->bg_g / 255.0f, view_desc->bg_b / 255.0f,
-                             view_desc->bg_a / 255.0f));
+        GL_CALL(glClearColor(
+                    view_desc->bg_r / 255.0f, view_desc->bg_g / 255.0f,
+                    view_desc->bg_b / 255.0f, view_desc->bg_a / 255.0f));
         //GL_CALL(glClearColor(208.0/255.0, 220.0/255.0, 230.0/255.0, 0.0f));
         GL_CALL(glClearDepth(1.0f));
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
-    if(glGetError() != GL_NO_ERROR) return true;
+    if(glGetError() != GL_NO_ERROR)
+        return true;
     return false;
 }
 
@@ -638,28 +691,33 @@ bool checkOpenGLError()
  * @param prepare_bg A boolean indicating whether to prepare the background during restoration.
  * @return A boolean indicating whether rendering should be canceled due to an error.
  */
-bool setup_restore_primary_output(gl_viewer_desc_t * view_desc, gl_renwin_state_t _ret, uint32_t texture_w,
-                                  uint32_t texture_h,
-                                  uint32_t texture_offset_w, uint32_t texture_offset_h, bool prepare_bg)
+bool setup_restore_primary_output(gl_viewer_desc_t * view_desc,
+                                  gl_renwin_state_t _ret, uint32_t texture_w,
+                                  uint32_t texture_h, uint32_t texture_offset_w,
+                                  uint32_t texture_offset_h, bool prepare_bg)
 {
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, _ret.framebuffer));
     if(checkOpenGLError()) {
         std::cout << "AAA ";
         return true;
     }
-    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _ret.texture, 0));
-    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _ret.renderbuffer, 0));
-    GL_CALL(glViewport(texture_offset_w, texture_offset_h, texture_w, texture_h));
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_2D, _ret.texture, 0));
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                                   GL_TEXTURE_2D, _ret.renderbuffer, 0));
+    GL_CALL(glViewport(texture_offset_w, texture_offset_h, texture_w,
+                       texture_h));
     if(prepare_bg) {
-        GL_CALL(glClearColor(view_desc->bg_r / 255.0f, view_desc->bg_g / 255.0f, view_desc->bg_b / 255.0f,
-                             view_desc->bg_a / 255.0f));
+        GL_CALL(glClearColor(
+                    view_desc->bg_r / 255.0f, view_desc->bg_g / 255.0f,
+                    view_desc->bg_b / 255.0f, view_desc->bg_a / 255.0f));
         GL_CALL(glClearDepth(1.0f));
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    if(glGetError() != GL_NO_ERROR) return true;
+    if(glGetError() != GL_NO_ERROR)
+        return true;
     return false;
-
 }
 
 /**
@@ -683,7 +741,6 @@ void setup_finish_frame(void)
 //    set_cam_pos(viewer, view_pos[0], view_pos[1], view_pos[2]);
 //}
 
-
 /**
  * @brief Create a view-projection matrix from the camera.
  *
@@ -699,10 +756,10 @@ void setup_finish_frame(void)
  * @param gltf_data Pointer to the GLTF data structure containing scene information.
  * @param transmission_pass A boolean indicating whether this setup is for the transmission pass.
  */
-void setup_view_proj_matrix_from_camera(lv_gltf_view_t * viewer, int32_t _cur_cam_num,
-                                        gl_viewer_desc_t * view_desc, const FMAT4 view_mat,
-                                        const FVEC3 view_pos, lv_gltf_data_t * gltf_data,
-                                        bool transmission_pass)
+void setup_view_proj_matrix_from_camera(
+    lv_gltf_view_t * viewer, int32_t _cur_cam_num,
+    gl_viewer_desc_t * view_desc, const FMAT4 view_mat, const FVEC3 view_pos,
+    lv_gltf_data_t * gltf_data, bool transmission_pass)
 {
     // The following matrix math is for the projection matrices as defined by the glTF spec:
     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#projection-matrices
@@ -718,40 +775,57 @@ void setup_view_proj_matrix_from_camera(lv_gltf_view_t * viewer, int32_t _cur_ca
         height = 256;
     }
 
-    std::visit(fastgltf::visitor {
+    std::visit(
+    fastgltf::visitor{
         [&](fastgltf::Camera::Perspective & perspective)
         {
             projection = _MAT4(0.0f);
-            projection[0][0] = 1.f / (aspect * tan(0.5f * perspective.yfov));
-            projection[1][1] = 1.f / (tan(0.5f * perspective.yfov));
+            projection[0][0] =
+            1.f /
+            (aspect * tan(0.5f * perspective.yfov));
+            projection[1][1] =
+            1.f / (tan(0.5f * perspective.yfov));
             projection[2][3] = -1;
 
             if(perspective.zfar.has_value()) {
                 // Finite projection matrix
-                projection[2][2] = (*perspective.zfar + perspective.znear) / (perspective.znear - *perspective.zfar);
-                projection[3][2] = (2 * *perspective.zfar * perspective.znear) / (perspective.znear - *perspective.zfar);
+                projection[2][2] = (*perspective.zfar +
+                                    perspective.znear) /
+                (perspective.znear -
+                 *perspective.zfar);
+                projection[3][2] =
+                (2 * *perspective.zfar *
+                 perspective.znear) /
+                (perspective.znear -
+                 *perspective.zfar);
             }
             else {
                 // Infinite projection matrix
                 projection[2][2] = -1;
-                projection[3][2] = -2 * perspective.znear;
+                projection[3][2] =
+                    -2 * perspective.znear;
             }
         },
         [&](fastgltf::Camera::Orthographic & orthographic)
         {
             projection = _MAT4(1.0f);
-            projection[0][0] = (1.f / orthographic.xmag) * aspect;
+            projection[0][0] =
+                (1.f / orthographic.xmag) * aspect;
             projection[1][1] = 1.f / orthographic.ymag;
-            projection[2][2] = 2.f / (orthographic.znear - orthographic.zfar);
-            projection[3][2] = (orthographic.zfar + orthographic.znear) / (orthographic.znear - orthographic.zfar);
+            projection[2][2] = 2.f / (orthographic.znear -
+                                      orthographic.zfar);
+            projection[3][2] = (orthographic.zfar +
+                                orthographic.znear) /
+                               (orthographic.znear -
+                                orthographic.zfar);
         },
-    }, asset->cameras[_cur_cam_num].camera);
+    },
+    asset->cameras[_cur_cam_num].camera);
 
     set_matrix_view(viewer, view_mat);
     set_matrix_proj(viewer, projection);
     set_matrix_viewproj(viewer, projection * view_mat);
     set_cam_pos(viewer, view_pos[0], view_pos[1], view_pos[2]);
-
 }
 
 /**
@@ -771,7 +845,8 @@ void setup_view_proj_matrix_from_camera(lv_gltf_view_t * viewer, int32_t _cur_ca
 namespace fastgltf::math
 {
 /** Creates a right-handed view matrix */
-[[nodiscard]] _MAT4 lookAtRH(const fvec3 & eye, const fvec3 & center, const fvec3 & up) noexcept;
+[[nodiscard]] _MAT4 lookAtRH(const fvec3 & eye, const fvec3 & center,
+                             const fvec3 & up) noexcept;
 }
 
 void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_desc,
@@ -787,7 +862,6 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
         view_desc->focal_z = _autocenpos[2];
     }
 
-
     auto _bradius = lv_gltf_data_get_radius(gltf_data);
     float radius = _bradius * 2.5;
     radius *= view_desc->distance;
@@ -795,20 +869,27 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
     _VEC3 rcam_dir = _VEC3(0.0f, 0.0f, 1.0f);
 
     // Note because we switched over to fastgltf math and it's right-hand focused, z axis is actually pitch (instead of x-axis), and x axis is yaw, instead of y-axis
-    fastgltf::math::fmat3x3 rotation1 = fastgltf::math::asMatrix(fastgltf::math::eulerToQuaternion(0.f, 0.f,
-                                                                                                   fastgltf::math::radians(view_desc->pitch)));
-    fastgltf::math::fmat3x3 rotation2 = fastgltf::math::asMatrix(fastgltf::math::eulerToQuaternion(fastgltf::math::radians(
-                                                                                                       view_desc->yaw + view_desc->spin_degree_offset), 0.f, 0.f));
+    fastgltf::math::fmat3x3 rotation1 =
+        fastgltf::math::asMatrix(fastgltf::math::eulerToQuaternion(
+                                     0.f, 0.f, fastgltf::math::radians(view_desc->pitch)));
+    fastgltf::math::fmat3x3 rotation2 =
+        fastgltf::math::asMatrix(fastgltf::math::eulerToQuaternion(
+                                     fastgltf::math::radians(view_desc->yaw +
+                                                             view_desc->spin_degree_offset),
+                                     0.f, 0.f));
 
     rcam_dir = rotation1 * rcam_dir;
     rcam_dir = rotation2 * rcam_dir;
 
     _VEC3 ncam_dir = fastgltf::math::normalize(rcam_dir);
-    _VEC3 cam_target = _VEC3(view_desc->focal_x, view_desc->focal_y, view_desc->focal_z);
-    _VEC3 cam_position = _VEC3(cam_target[0] + (ncam_dir[0] * radius), cam_target[1] + (ncam_dir[1] * radius),
+    _VEC3 cam_target = _VEC3(view_desc->focal_x, view_desc->focal_y,
+                             view_desc->focal_z);
+    _VEC3 cam_position = _VEC3(cam_target[0] + (ncam_dir[0] * radius),
+                               cam_target[1] + (ncam_dir[1] * radius),
                                cam_target[2] + (ncam_dir[2] * radius));
 
-    _MAT4 view_mat = fastgltf::math::lookAtRH(cam_position, cam_target, _VEC3(0.0f, 1.0f, 0.0f));
+    _MAT4 view_mat = fastgltf::math::lookAtRH(cam_position, cam_target,
+                                              _VEC3(0.0f, 1.0f, 0.0f));
 
     // Create Projection Matrix
     _MAT4 projection;
@@ -827,7 +908,8 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
 
     if(fov <= 0.0f) {
         // Isometric view: create an orthographic projection
-        float orthoSize =  view_desc->distance * _bradius; // Adjust as needed
+        float orthoSize =
+            view_desc->distance * _bradius; // Adjust as needed
 
         projection = _MAT4(1.0f);
         projection[0][0] = -(orthoSize * aspect);
@@ -840,8 +922,11 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
         // Perspective view
         projection = _MAT4(0.0f);
         assert(width != 0 && height != 0);
-        projection[0][0] = 1.f / (aspect * tan(0.5f * fastgltf::math::radians(fov)));
-        projection[1][1] = 1.f / (tan(0.5f * fastgltf::math::radians(fov)));
+        projection[0][0] =
+            1.f /
+            (aspect * tan(0.5f * fastgltf::math::radians(fov)));
+        projection[1][1] =
+            1.f / (tan(0.5f * fastgltf::math::radians(fov)));
         projection[2][3] = -1;
 
         //if (perspective.zfar.has_value()) {
@@ -853,7 +938,6 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
         //    projection[2][2] = -1.f;
         //    projection[3][2] = -2.f * znear;
         //}
-
     }
 
     set_matrix_view(viewer, view_mat);
@@ -871,15 +955,20 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
  * @param shaders Pointer to the lv_opengl_shader_cache_t structure containing the shader cache.
  * @return A gl_renwin_shaderset_t structure representing the compiled and loaded shaders.
  */
-gl_renwin_shaderset_t setup_compile_and_load_shaders(lv_opengl_shader_cache_t * shaders)
+gl_renwin_shaderset_t
+setup_compile_and_load_shaders(lv_opengl_shader_cache_t * shaders)
 {
-    lv_shader_key_value_t * all_defs = all_defines();
-    auto _program = shaders->get_shader_program(shaders,
-                                                shaders->select_shader(shaders, "__MAIN__.frag", all_defs, all_defines_count()),
-                                                shaders->select_shader(shaders, "__MAIN__.vert", all_defs, all_defines_count()));
-    GL_CALL(glUseProgram(_program->program));
+    lv_gl_shader_t * all_defs = all_defines();
+    lv_gl_shader_program_t * program = shaders->get_shader_program(
+                                           shaders,
+                                           shaders->select_shader(shaders, "__MAIN__.frag", all_defs,
+                                                                  all_defines_count()),
+                                           shaders->select_shader(shaders, "__MAIN__.vert", all_defs,
+                                                                  all_defines_count()));
+    GLuint program_id = lv_gl_shader_program_get_id(program);
+    GL_CALL(glUseProgram(program_id));
     gl_renwin_shaderset_t _shader_prog;
-    _shader_prog.program = _program->program;
+    _shader_prog.program = program_id;
     _shader_prog.ready = true;
 
     return _shader_prog;
@@ -893,16 +982,19 @@ gl_renwin_shaderset_t setup_compile_and_load_shaders(lv_opengl_shader_cache_t * 
  *
  * @param shaders Pointer to the lv_opengl_shader_cache_t structure containing the shader cache.
  */
-void setup_compile_and_load_bg_shader(lv_opengl_shader_cache_t * shaders)
+void setup_compile_and_load_bg_shader(lv_gl_shader_manager_t * manager)
 {
-    lv_shader_key_value_t * empty_defs = nullptr;//{};
+    lv_gl_shader_t * empty_defs = nullptr; //{};
     //lv_shader_key_value_t empty_defs[0] = {};
-    lv_shader_key_value_t frag_defs[1] = {{"TONEMAP_KHR_PBR_NEUTRAL", NULL}};
-    auto bg_program = shaders->get_shader_program(shaders,
-                                                  shaders->select_shader(shaders, "cubemap.frag", frag_defs, 1),
-                                                  shaders->select_shader(shaders, "cubemap.vert", empty_defs, 0));
-    shaders->bg_program = bg_program->program;
-    setup_background_environment(shaders->bg_program, &shaders->bg_vao, &shaders->bg_indexBuf, &shaders->bg_vertexBuf);
+    lv_gl_shader_t frag_defs[1] = { { "TONEMAP_KHR_PBR_NEUTRAL", NULL } };
+    lv_gl_shader_program_t * bg_program = manager->get_shader_program(
+                                              manager,
+                                              manager->select_shader(manager, "cubemap.frag", frag_defs, 1),
+                                              manager->select_shader(manager, "cubemap.vert", empty_defs, 0));
+    manager->bg_program = lv_gl_shader_program_get_id(bg_program);
+    setup_background_environment(manager->bg_program, &manager->bg_vao,
+                                 &manager->bg_index_buf,
+                                 &manager->bg_vertex_buf);
 }
 
 /**
@@ -915,42 +1007,57 @@ void setup_compile_and_load_bg_shader(lv_opengl_shader_cache_t * shaders)
  * @param viewer Pointer to the lv_gltf_view_t structure representing the viewer.
  * @param blur The amount of blur to be applied to the background rendering.
  */
-void setup_draw_environment_background(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t * viewer, float blur)
+void setup_draw_environment_background(lv_gl_shader_manager_t * manager,
+                                       lv_gltf_view_t * viewer, float blur)
 {
-    GL_CALL(glBindVertexArray(shaders->bg_vao));
-    GL_CALL(glUseProgram(shaders->bg_program));
+    GL_CALL(glBindVertexArray(manager->bg_vao));
+    GL_CALL(glUseProgram(manager->bg_program));
     GL_CALL(glEnable(GL_CULL_FACE));
     GL_CALL(glDisable(GL_BLEND));
     GL_CALL(glDisable(GL_DEPTH_TEST));
-    GL_CALL(glUniformMatrix4fv(glGetUniformLocation(shaders->bg_program, "u_ViewProjectionMatrix"), 1, false,
-                               GET_VIEWPROJ_MAT(viewer)->data()));
+    GL_CALL(glUniformMatrix4fv(
+                glGetUniformLocation(manager->bg_program,
+                                     "u_ViewProjectionMatrix"),
+                1, false, GET_VIEWPROJ_MAT(viewer)->data()));
     //GL_CALL(glBindTextureUnit(0, shaders->lastEnv->specular));
 
     // Bind the texture to the specified texture unit
     GL_CALL(glActiveTexture(GL_TEXTURE0 + 0)); // Activate the texture unit
-    GL_CALL(glBindTexture(GL_TEXTURE_CUBE_MAP, shaders->lastEnv->specular));   // Bind the texture (assuming 2D texture)
+    GL_CALL(glBindTexture(
+                GL_TEXTURE_CUBE_MAP,
+                manager->last_env
+                ->specular)); // Bind the texture (assuming 2D texture)
 
-    GL_CALL(glUniform1i(glGetUniformLocation(shaders->bg_program, "u_GGXEnvSampler"), 0));
+    GL_CALL(glUniform1i(glGetUniformLocation(manager->bg_program,
+                                             "u_GGXEnvSampler"),
+                        0));
 
-    GL_CALL(glUniform1i(glGetUniformLocation(shaders->bg_program, "u_MipCount"), shaders->lastEnv->mipCount));
-    GL_CALL(glUniform1f(glGetUniformLocation(shaders->bg_program, "u_EnvBlurNormalized"), blur));
-    GL_CALL(glUniform1f(glGetUniformLocation(shaders->bg_program, "u_EnvIntensity"), 1.0f));
-    GL_CALL(glUniform1f(glGetUniformLocation(shaders->bg_program, "u_Exposure"), 1.0f));
+    GL_CALL(glUniform1i(glGetUniformLocation(manager->bg_program,
+                                             "u_MipCount"),
+                        manager->last_env->mipCount));
+    GL_CALL(glUniform1f(glGetUniformLocation(manager->bg_program,
+                                             "u_EnvBlurNormalized"),
+                        blur));
+    GL_CALL(glUniform1f(glGetUniformLocation(manager->bg_program,
+                                             "u_EnvIntensity"),
+                        1.0f));
+    GL_CALL(glUniform1f(
+                glGetUniformLocation(manager->bg_program, "u_Exposure"), 1.0f));
 
-    setup_environment_rotation_matrix(shaders->lastEnv->angle, shaders->bg_program);
+    setup_environment_rotation_matrix(manager->last_env->angle,
+                                      manager->bg_program);
 
     // Bind the index buffer
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shaders->bg_indexBuf);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, manager->bg_index_buf);
 
     // Bind the vertex buffer
-    glBindBuffer(GL_ARRAY_BUFFER, shaders->bg_vertexBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, manager->bg_vertex_buf);
 
     // Draw the elements
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)0);
 
     GL_CALL(glBindVertexArray(0));
     return;
-
 }
 
 /**
@@ -962,7 +1069,8 @@ void setup_draw_environment_background(lv_opengl_shader_cache_t * shaders, lv_gl
  * @param link_target Pointer to the lv_gltf_data_t structure that will be linked to the source.
  * @param link_source Pointer to the lv_gltf_data_t structure that serves as the source for linking.
  */
-void lv_gltf_data_link_view_to(lv_gltf_data_t * link_target,  lv_gltf_data_t * link_source)
+void lv_gltf_data_link_view_to(lv_gltf_data_t * link_target,
+                               lv_gltf_data_t * link_source)
 {
     link_target->view_is_linked = true;
     link_target->linked_view_source = link_source;

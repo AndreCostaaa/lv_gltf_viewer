@@ -1,4 +1,6 @@
 #include "demo.h"
+#include <lib/lv_gl_shader/lv_gl_shader_manager.h>
+#include <lib/lv_gl_shader/lv_gl_shader_manager_internal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -42,7 +44,7 @@ lv_glfw_texture_t * window_texture;
 
 lv_obj_t * gltfview_3dtex;
 lv_gltf_view_t * demo_gltfview;
-lv_opengl_shader_cache_t * shader_cache = NULL;
+lv_gl_shader_manager_t * shader_cache = NULL;
 lv_gltf_data_t * system_gltfdata = NULL;
 lv_gltf_data_t * demo_gltfdata = NULL;
 lv_gltf_override_t * ov_boom;
@@ -489,7 +491,7 @@ int main(int argc, char *argv[]) {
         if (needs_system_gltfdata) lv_gltf_data_destroy(system_gltfdata);
         lv_gltf_data_destroy(demo_gltfdata);
         lv_gltf_view_destroy(demo_gltfview);
-        lv_opengl_shader_cache_destroy(shader_cache);
+        lv_gl_shader_manager_destroy(shader_cache);
         #ifdef ENABLE_DESKTOP_MODE
         if (desktop_mode) {
             running = false;

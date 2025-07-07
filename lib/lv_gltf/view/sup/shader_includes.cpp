@@ -9,9 +9,8 @@
 #include <string>
 #include <stdint.h>
 
-//using namespace std;
 bool _vdefines_initialized = false;
-std::vector<lv_shader_key_value_t> v_defines;
+std::vector<lv_gl_shader_t> v_defines;
 
 const  char * src_fragmentShader_override;
 bool src_fragmentShader_has_override = false;
@@ -53,10 +52,10 @@ void __init_vdefines(void)
 {
     if(_vdefines_initialized) return;
     _vdefines_initialized = true;
-    v_defines = std::vector<lv_shader_key_value_t>();
+    v_defines = std::vector<lv_gl_shader_t>();
 }
 
-lv_shader_key_value_t * all_defines(void)
+lv_gl_shader_t * all_defines(void)
 {
     return &v_defines[0];
 }
@@ -77,11 +76,11 @@ void addDefine(const char * defsymbol, const char * defvalue_or_null)
 {
     __init_vdefines();
     for(auto & _kv : v_defines) {
-        if(strcmp(_kv.key, defsymbol) == 0) {
+        if(strcmp(_kv.name, defsymbol) == 0) {
             return;
         }
     }
-    lv_shader_key_value_t _newkv = lv_shader_key_value_t({defsymbol, defvalue_or_null});
+    lv_gl_shader_t _newkv = {defsymbol, defvalue_or_null};
     v_defines.push_back(_newkv);
 }
 
@@ -95,9 +94,9 @@ char * getDefineId(void)
             strcat(_tretstr, "|");
         }
         _firstpass = false;
-        strcat(_tretstr, _kv.key);
-        if(_kv.value) {
-            strcat(_tretstr, _kv.value);
+        strcat(_tretstr, _kv.name);
+        if(_kv.source) {
+            strcat(_tretstr, _kv.name);
         }
     }
     return _tretstr;
@@ -152,9 +151,9 @@ char * get_defines_str(void)
     std::string _ret = std::string(GLSL_VERSION_PREFIX) + std::string("\n");
 
     for(auto & _kv : v_defines) {
-        _ret += "#define " + std::string(_kv.key);
-        if(_kv.value != NULL) {
-            _ret += " " + std::string(_kv.value);
+        _ret += "#define " + std::string(_kv.name);
+        if(_kv.source != NULL) {
+            _ret += " " + std::string(_kv.source);
         }
         _ret += "\n";
     }
@@ -164,15 +163,15 @@ char * get_defines_str(void)
     return _retcstr;
 }
 
-char * process_defines(const lv_shader_key_value_t * __define_set, size_t _num_items)
+char * process_defines(const lv_gl_shader_t * __define_set, size_t _num_items)
 {
     uint32_t _reqlength = strlen(GLSL_VERSION_PREFIX) + 1;
     for(size_t i = 0; i < _num_items; i++) {
         _reqlength += strlen("#define ");
-        _reqlength += strlen(__define_set[i].key);
-        if(__define_set[i].value != NULL) {
+        _reqlength += strlen(__define_set[i].name);
+        if(__define_set[i].source != NULL) {
             _reqlength += strlen(" ");
-            _reqlength += strlen(__define_set[i].value);
+            _reqlength += strlen(__define_set[i].source);
         }
         _reqlength += strlen("\n");
     }
@@ -182,10 +181,10 @@ char * process_defines(const lv_shader_key_value_t * __define_set, size_t _num_i
     strcat(ret, "\n");
     for(size_t i = 0; i < _num_items; i++) {
         strcat(ret, "#define ");
-        strcat(ret, __define_set[i].key);
-        if(__define_set[i].value != NULL) {
+        strcat(ret, __define_set[i].name);
+        if(__define_set[i].source != NULL) {
             strcat(ret, " ");
-            strcat(ret, __define_set[i].value);
+            strcat(ret, __define_set[i].source);
         }
         strcat(ret, "\n");
     }
@@ -197,14 +196,14 @@ char * process_includes(const char * c_src, const char * _defines)
 {
     std::string _src = std::string(c_src);
     std::string  rep = replaceWord(_src, GLSL_VERSION_PREFIX, _defines);
-    size_t num_items = sizeof(src_includes) / sizeof(lv_shader_key_value_t);
+    size_t num_items = sizeof(src_includes) / sizeof(lv_gl_shader_t);
     char * _srch = (char *)malloc(255);
     for(size_t i = 0; i < num_items; i++) {
         _srch[0] = '\0';
         strcat(_srch, "\n#include <");
-        strcat(_srch, src_includes[i].key);
+        strcat(_srch, src_includes[i].name);
         strcat(_srch, ">");
-        rep = replaceWord(rep, _srch, src_includes[i].value);
+        rep = replaceWord(rep, _srch, src_includes[i].source);
     }
     free(_srch);
     char * retval = (char *)malloc(rep.length() + 1);

@@ -4,8 +4,7 @@
 #include <drivers/glfw/lv_opengles_debug.h>
 #include "lib/lv_gltf/view/sup/include/shader_v1.h"
 
-lv_opengl_shader_cache_t _shader_cache;
-gl_environment_textures _environment;
+lv_gl_shader_manager_env_textures_t _environment;
 static uint32_t cached_clear_tex = 0;
 
 double d_min(double a, double b)
@@ -40,14 +39,13 @@ float lerp_towards(float start, float end, float t, float min_change)
 
 void setup_shadercache(const char * hdr_filepath, int degrees_x10)
 {
-    _shader_cache = lv_opengl_shader_cache_create(src_includes, sizeof(src_includes) / sizeof(lv_shader_key_value_t),
+    shader_cache = lv_gl_shader_manager_create(src_includes, sizeof(src_includes) / sizeof(*src_includes),
                                                   src_vertex(), src_frag());
-    shader_cache = &_shader_cache;
     lv_timer_handler();
     lv_task_handler();
     lv_refr_now(NULL);
     _environment = lv_gltf_view_ibl_sampler_setup(NULL, hdr_filepath, degrees_x10);
-    _shader_cache.lastEnv = &_environment;
+    shader_cache->last_env = &_environment;
 }
 
 void demo_set_overrides(void)

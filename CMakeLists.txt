@@ -59,10 +59,9 @@ set(LVGL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/lvgl ${CMAKE_SOURCE_DIR}/lvgl/src)
 set(PROTO_INCLUDE_DIRS lib/lv_gltf/data/deps/)
 
 # Create library targets
-add_library(lvgl_opengl_shader_cache
-            lib/lv_opengl_shader_cache/lv_opengl_shader_cache.cpp)
-target_include_directories(lvgl_opengl_shader_cache
-                           PRIVATE ${LVGL_INCLUDE_DIRS})
+add_library(lv_gl_shader lib/lv_gl_shader/lv_gl_shader_manager.c
+                         lib/lv_gl_shader/lv_gl_shader_program.c)
+target_include_directories(lv_gl_shader PRIVATE ${LVGL_INCLUDE_DIRS})
 
 add_library(
   lvgl_gltfdata
@@ -72,7 +71,7 @@ add_library(
 
 target_include_directories(lvgl_gltfdata PRIVATE fastgltf ${LVGL_INCLUDE_DIRS}
                                                  ${PROTO_INCLUDE_DIRS})
-target_link_libraries(lvgl_gltfdata PRIVATE lvgl_opengl_shader_cache fastgltf)
+target_link_libraries(lvgl_gltfdata PRIVATE lv_gl_shader fastgltf)
 
 target_compile_definitions(lvgl_gltfdata PRIVATE LVGL_ENABLE_WEBP_IMAGES)
 
@@ -88,8 +87,7 @@ add_library(
 
 target_include_directories(lvgl_gltfview PRIVATE ${LVGL_INCLUDE_DIRS}
                                                  ${PROTO_INCLUDE_DIRS})
-target_link_libraries(lvgl_gltfview PRIVATE lvgl_opengl_shader_cache fastgltf
-                                            webp)
+target_link_libraries(lvgl_gltfview PRIVATE lv_gl_shader fastgltf webp)
 target_link_libraries(lvgl_gltfview PRIVATE lvgl_gltfdata fastgltf)
 
 # Main executable

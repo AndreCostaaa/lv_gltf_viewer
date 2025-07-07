@@ -118,7 +118,7 @@ void injest_discover_defines(lv_gltf_data_t * data_obj, void * node, void * prim
         }
         else {
             addDefine("MATERIAL_METALLICROUGHNESS", NULL);
-            addDefine("LINEAR_OUTPUT", NULL );
+            addDefine("LINEAR_OUTPUT", NULL);
         }
 
         if(data_obj->node_by_light_index->size() > 0) {
@@ -696,7 +696,7 @@ void make_small_magenta_texture(uint32_t new_magenta_tex)
  * @param index The index of the image to load.
  * @return true if the image was loaded successfully, false otherwise.
  */
-bool injest_image(lv_opengl_shader_cache_t * shaders, lv_gltf_data_t * data_obj, fastgltf::Image & image,
+bool injest_image(lv_gl_shader_manager_t * shaders, lv_gltf_data_t * data_obj, fastgltf::Image & image,
                   uint32_t index)
 {
     const auto & asset = GET_ASSET(data_obj);
@@ -704,7 +704,7 @@ bool injest_image(lv_opengl_shader_cache_t * shaders, lv_gltf_data_t * data_obj,
         return static_cast<GLsizei>(1 + floor(log2(width > height ? width : height)));
     };
     std::string _tex_id =  std::string(lv_gltf_get_filename(data_obj)) + "_IMG" + std::to_string(index);
-    uint64_t hash = c_stringHash(_tex_id.c_str(), 0);
+    uint64_t hash = lv_gl_shader_hash(_tex_id.c_str());
 
     GLuint texture = shaders->getCachedTexture(shaders, hash);
     if(texture == GL_NONE) {
@@ -945,7 +945,7 @@ char * fallback_load_file_to_buffer(const char * filename, size_t * outSize)
 }
 
 void data_load_file_or_bytes(const char * gltf_path_or_bytes, size_t size_if_path_is_data, lv_gltf_data_t * _retdata,
-                             lv_opengl_shader_cache_t * shaders)
+                             lv_gl_shader_manager_t * shaders)
 {
 
     static constexpr auto supportedExtensions =
@@ -1191,12 +1191,12 @@ void data_load_file_or_bytes(const char * gltf_path_or_bytes, size_t size_if_pat
 }
 
 void lv_gltf_data_load_bytes(const void * gltf_bytes, size_t gltf_data_size, lv_gltf_data_t * ret_data,
-                             lv_opengl_shader_cache_t * shaders)
+                             lv_gl_shader_manager_t * shaders)
 {
     data_load_file_or_bytes((const char *)gltf_bytes, gltf_data_size, ret_data, shaders);
 }
 
-void lv_gltf_data_load_file(const char * gltf_path, lv_gltf_data_t * ret_data, lv_opengl_shader_cache_t * shaders)
+void lv_gltf_data_load_file(const char * gltf_path, lv_gltf_data_t * ret_data, lv_gl_shader_manager_t * shaders)
 {
     data_load_file_or_bytes(gltf_path, 0, ret_data, shaders);
 }

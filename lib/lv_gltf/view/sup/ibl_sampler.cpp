@@ -9,7 +9,8 @@
 
 
 #include "include/ibl_sampler.h"
-#include "../../../lv_opengl_shader_cache/lv_opengl_shader_cache.h"
+#include "../../../lv_gl_shader/lv_gl_shader_manager.h"
+#include "../../../lv_gl_shader/lv_gl_shader_program.h"
 
 #include <unistd.h> /* usleep */
 #include <string>
@@ -60,10 +61,8 @@ iblSampler::iblSampler(void)
     inputTextureID = GL_NONE;
     cubemapTextureID = GL_NONE;
     framebuffer = GL_NONE;
-
-    _shaderCache = lv_opengl_shader_cache_create(env_src_includes, sizeof(env_src_includes) / sizeof(lv_shader_key_value_t),
-                                                 NULL, NULL);
-    shaderCache = &_shaderCache;
+    shader_manager =  lv_gl_shader_manager_create(env_src_includes, sizeof(env_src_includes) / sizeof(*env_src_includes),
+                                                  NULL, NULL);
 
     callback = NULL;
 }
@@ -300,26 +299,27 @@ void iblSampler::panoramaToCubeMap(void)
         GL_CALL(glViewport(0, 0, textureSize, textureSize));
         GL_CALL(glClearColor(1.0, 0.0, 0.0, 0.0));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-        lv_shader_program_t * shader = shaderCache->get_shader_program(shaderCache,
-                                                                       shaderCache->select_shader(shaderCache, "panorama_to_cubemap.frag", nullptr, 0),
-                                                                       shaderCache->select_shader(shaderCache, "fullscreen.vert", nullptr, 0));
+        lv_gl_shader_program_t * program = shader_manager->get_shader_program(shader_manager,
+                                                                              shader_manager->select_shader(shader_manager, "panorama_to_cubemap.frag", nullptr, 0),
+                                                                              shader_manager->select_shader(shader_manager, "fullscreen.vert", nullptr, 0));
+        GLuint program_id = lv_gl_shader_program_get_id(program);
         GLint success;
         //GL_CALL(glGetShaderiv(shader->program, GL_COMPILE_STATUS, &success));
-        GL_CALL(glGetProgramiv(shader->program, GL_LINK_STATUS, &success));
+        GL_CALL(glGetProgramiv(program_id, GL_LINK_STATUS, &success));
         if(!success) {
             // Handle shader compilation error
             std::cout << "ENV RENDER ERROR: Some error compiling the cubemap shader, IBL will be corrupted.\n";
         }
-        GL_CALL(glUseProgram(shader->program));
+        GL_CALL(glUseProgram(program_id));
         //  TEXTURE0 = active.
         GL_CALL(glActiveTexture(GL_TEXTURE0 + 0));
         // Bind texture ID to active texture
         GL_CALL(glBindTexture(GL_TEXTURE_2D, inputTextureID));
         // map shader uniform to texture unit (TEXTURE0)
         GLuint location;
-        GL_CALL(location = glGetUniformLocation(shader->program, "u_panorama"));
+        GL_CALL(location = glGetUniformLocation(program_id, "u_panorama"));
         GL_CALL(glUniform1i(location, 0)); // texture unit 0 (TEXTURE0)
-        shader->update_uniform_1i(shader, "u_currentFace", i);
+        program->update_uniform_1i(program, "u_currentFace", i);
         //fullscreen triangle
 
         GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 3));
@@ -352,28 +352,29 @@ void iblSampler::applyFilter(
         GL_CALL(glViewport(0, 0, currentTextureSize, currentTextureSize));
         GL_CALL(glClearColor(0.0, 1.0, 0.0, 0.0));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-        lv_shader_program_t * shader = shaderCache->get_shader_program(shaderCache,
-                                                                       shaderCache->select_shader(shaderCache, "ibl_filtering.frag", nullptr, 0),
-                                                                       shaderCache->select_shader(shaderCache, "fullscreen.vert", nullptr, 0));
-        GL_CALL(glUseProgram(shader->program));
+        lv_gl_shader_program_t * program = shader_manager->get_shader_program(shader_manager,
+                                                                              shader_manager->select_shader(shader_manager, "ibl_filtering.frag", nullptr, 0),
+                                                                              shader_manager->select_shader(shader_manager, "fullscreen.vert", nullptr, 0));
+        GLuint program_id = lv_gl_shader_program_get_id(program);
+        GL_CALL(glUseProgram(program_id));
         //  TEXTURE0 = active.
         GL_CALL(glActiveTexture(GL_TEXTURE0));
         // Bind texture ID to active texture
         GL_CALL(glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextureID));
         // map shader uniform to texture unit (TEXTURE0)
-        uint32_t location = glGetUniformLocation(shader->program, "u_cubemapTexture");
+        uint32_t location = glGetUniformLocation(program_id, "u_cubemapTexture");
         GL_CALL(glUniform1i(location, 0)); // texture unit 0
-        shader->update_uniform_1f(shader, "u_roughness", roughness);
-        shader->update_uniform_1i(shader, "u_sampleCount", sampleCount);
+        program->update_uniform_1f(program, "u_roughness", roughness);
+        program->update_uniform_1i(program, "u_sampleCount", sampleCount);
         //shader->update_uniform_1i(shader, "u_width", currentTextureSize);  // Software rendered mode looks better with this and horrible with below
-        shader->update_uniform_1i(shader, "u_width",
-                                  textureSize);  // Standard mode looks best with this and somewhat worse with above
-        shader->update_uniform_1f(shader, "u_lodBias", _lodBias);
-        shader->update_uniform_1i(shader, "u_distribution", distribution);
-        shader->update_uniform_1i(shader, "u_currentFace", i);
-        shader->update_uniform_1i(shader, "u_isGeneratingLUT", 0);
-        shader->update_uniform_1i(shader, "u_floatTexture", 0);
-        shader->update_uniform_1f(shader, "u_intensityScale", scaleValue);
+        program->update_uniform_1i(program, "u_width",
+                                   textureSize);  // Standard mode looks best with this and somewhat worse with above
+        program->update_uniform_1f(program, "u_lodBias", _lodBias);
+        program->update_uniform_1i(program, "u_distribution", distribution);
+        program->update_uniform_1i(program, "u_currentFace", i);
+        program->update_uniform_1i(program, "u_isGeneratingLUT", 0);
+        program->update_uniform_1i(program, "u_floatTexture", 0);
+        program->update_uniform_1f(program, "u_intensityScale", scaleValue);
         //fullscreen triangle
         GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 3));
         //    usleep(199000);
@@ -439,26 +440,27 @@ void iblSampler::sampleLut(uint32_t distribution, uint32_t targetTexture, uint32
     GL_CALL(glViewport(0, 0, currentTextureSize, currentTextureSize));
     GL_CALL(glClearColor(0.0, 1.0, 1.0, 0.0));
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    lv_shader_program_t * shader = shaderCache->get_shader_program(shaderCache,
-                                                                   shaderCache->select_shader(shaderCache, "ibl_filtering.frag", nullptr, 0),
-                                                                   shaderCache->select_shader(shaderCache, "fullscreen.vert", nullptr, 0));
+    lv_gl_shader_program_t * program = shader_manager->get_shader_program(shader_manager,
+                                                                          shader_manager->select_shader(shader_manager, "ibl_filtering.frag", nullptr, 0),
+                                                                          shader_manager->select_shader(shader_manager, "fullscreen.vert", nullptr, 0));
+    GLuint program_id = lv_gl_shader_program_get_id(program);
 
-    GL_CALL(glUseProgram(shader->program));
+    GL_CALL(glUseProgram(program_id));
     //  TEXTURE0 = active.
     GL_CALL(glActiveTexture(GL_TEXTURE0 + 0));
     // Bind texture ID to active texture
     GL_CALL(glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextureID));
     // map shader uniform to texture unit (TEXTURE0)
-    uint32_t location = glGetUniformLocation(shader->program, "u_cubemapTexture");
+    uint32_t location = glGetUniformLocation(program_id, "u_cubemapTexture");
     GL_CALL(glUniform1i(location, 0)); // texture unit 0
-    shader->update_uniform_1f(shader, "u_roughness", 0.0);
-    shader->update_uniform_1i(shader, "u_sampleCount", lutSampleCount);
+    program->update_uniform_1f(program, "u_roughness", 0.0);
+    program->update_uniform_1i(program, "u_sampleCount", lutSampleCount);
     //shader->update_uniform_1i( shader, "u_sampleCount", 512);
-    shader->update_uniform_1i(shader, "u_width", 0.0);
-    shader->update_uniform_1f(shader, "u_lodBias", 0.0);
-    shader->update_uniform_1i(shader, "u_distribution", distribution);
-    shader->update_uniform_1i(shader, "u_currentFace", 0);
-    shader->update_uniform_1i(shader, "u_isGeneratingLUT", 1);
+    program->update_uniform_1i(program, "u_width", 0.0);
+    program->update_uniform_1f(program, "u_lodBias", 0.0);
+    program->update_uniform_1i(program, "u_distribution", distribution);
+    program->update_uniform_1i(program, "u_currentFace", 0);
+    program->update_uniform_1i(program, "u_isGeneratingLUT", 1);
     //fullscreen triangle
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 3));
 
@@ -540,7 +542,7 @@ void iblSampler::filterAll(void (*_callback)(const char *, float, float))
 
 void iblSampler::destroy_iblSampler(void)
 {
-    lv_opengl_shader_cache_destroy(shaderCache);
+    lv_gl_shader_manager_destroy(shader_manager);
 }
 
 // ------------------------------------------------------------
@@ -560,28 +562,29 @@ void ibl_sampler_env_filter_callback(const char * phase_title, float phase_curre
     }
 }
 
-gl_environment_textures lv_gltf_view_ibl_sampler_setup(gl_environment_textures * _lastEnv, const char * _env_filename,
-                                                       int32_t _env_rotation_degreesX10)
+lv_gl_shader_manager_env_textures_t lv_gltf_view_ibl_sampler_setup(lv_gl_shader_manager_env_textures_t * last_env,
+                                                                   const char * env_file_path,
+                                                                   int32_t env_rotation_x10)
 {
-    gl_environment_textures _ret = gl_environment_textures();
-    if((_lastEnv != NULL) && (_lastEnv->loaded == true)) {
+    lv_gl_shader_manager_env_textures_t _ret;
+    if((last_env != NULL) && (last_env->loaded == true)) {
         _ret.loaded = true;
-        _ret.angle = _lastEnv->angle;
-        _ret.diffuse = _lastEnv->diffuse;
-        _ret.specular = _lastEnv->specular;
-        _ret.sheen = _lastEnv->sheen;
-        _ret.ggxLut = _lastEnv->ggxLut;
-        _ret.charlieLut = _lastEnv->charlieLut;
-        _ret.mipCount = _lastEnv->mipCount;
-        _ret.iblIntensityScale = _lastEnv->iblIntensityScale;
+        _ret.angle = last_env->angle;
+        _ret.diffuse = last_env->diffuse;
+        _ret.specular = last_env->specular;
+        _ret.sheen = last_env->sheen;
+        _ret.ggxLut = last_env->ggxLut;
+        _ret.charlieLut = last_env->charlieLut;
+        _ret.mipCount = last_env->mipCount;
+        _ret.iblIntensityScale = last_env->iblIntensityScale;
         return _ret;
     }
     auto environmentFiltering = iblSampler();
-    environmentFiltering.doinit(_env_filename);
+    environmentFiltering.doinit(env_file_path);
     environmentFiltering.filterAll(ibl_sampler_env_filter_callback);
 
     _ret.loaded             = true;
-    _ret.angle = (float)_env_rotation_degreesX10 / 10.0f;
+    _ret.angle = (float)env_rotation_x10 / 10.0f;
     _ret.diffuse            = environmentFiltering.lambertianTextureID;
     _ret.specular           = environmentFiltering.ggxTextureID;
     _ret.sheen              = environmentFiltering.sheenTextureID;

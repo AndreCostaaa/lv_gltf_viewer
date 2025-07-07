@@ -10,7 +10,8 @@ uint32_t get_viewer_datasize(void)
     return sizeof(lv_gltf_view_t);
 }
 
-uint32_t standard_render_func(lv_opengl_shader_cache_t * shader_cache, lv_gltf_view_t * gltf_view, lv_gltf_data_t *gltf_data, ...)
+uint32_t standard_render_func(lv_opengl_shader_cache_t * shader_cache, lv_gltf_view_t * gltf_view,
+                              lv_gltf_data_t * gltf_data, ...)
 {
     //uint32_t fps_lock_delay_msec = lv_gltf_view_get_fps_goal_delay(gltf_view, 60.0);
     //if (fps_lock_delay_msec > 0) {
@@ -18,16 +19,15 @@ uint32_t standard_render_func(lv_opengl_shader_cache_t * shader_cache, lv_gltf_v
     //}
 
     bool first_was_dirty = lv_gltf_view_check_dirty(gltf_view);
-    uint32_t retval = lv_gltf_view_render( shader_cache, gltf_view, gltf_data, true, 0, 0, 0, 0 );
+    uint32_t retval = lv_gltf_view_render(shader_cache, gltf_view, gltf_data, true, 0, 0, 0, 0);
     bool first_was_cached = lv_gltf_view_check_frame_was_cached(gltf_view);
-    if (!first_was_cached) 
-    {
+    if(!first_was_cached) {
         va_list args;
         va_start(args, gltf_data);
-        lv_gltf_data_t *additional_gltf_data;
-        while ((additional_gltf_data = va_arg(args, lv_gltf_data_t *)) != NULL) {
-            if (first_was_dirty) lv_gltf_view_mark_dirty(gltf_view);
-            lv_gltf_view_render( shader_cache, gltf_view, additional_gltf_data, false, 0, 0, 0, 0 );
+        lv_gltf_data_t * additional_gltf_data;
+        while((additional_gltf_data = va_arg(args, lv_gltf_data_t *)) != NULL) {
+            if(first_was_dirty) lv_gltf_view_mark_dirty(gltf_view);
+            lv_gltf_view_render(shader_cache, gltf_view, additional_gltf_data, false, 0, 0, 0, 0);
         }
         va_end(args);
     }
