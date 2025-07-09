@@ -3,6 +3,7 @@
 
 #include "../data/lv_gltf_data.h"
 #include "../data/lv_gltf_data_internal.h"
+#include "lv_gltf_view.h"
 #include <misc/lv_types.h>
 
 typedef enum {
@@ -55,7 +56,7 @@ typedef struct  {
     bool renderOpaqueBuffer;
 } _ViewerState;
 
-typedef uint32_t (*render_func_t)(lv_opengl_shader_cache_t *, lv_gltf_view_t *, lv_gltf_data_t *, ...);
+typedef uint32_t (*render_func_t)(lv_gl_shader_manager_t *, lv_gltf_view_t *, lv_gltf_data_t *, ...);
 
 typedef struct {
     float pitch;

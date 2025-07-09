@@ -28,15 +28,15 @@ extern "C" {
  **********************/
 
 typedef struct {
-    bool loaded;
-    unsigned int diffuse;
-    unsigned int specular;
-    unsigned int sheen;
-    unsigned int ggxLut;
-    unsigned int charlieLut;
-    unsigned int mipCount;
+    uint32_t diffuse;
+    uint32_t specular;
+    uint32_t sheen;
+    uint32_t ggxLut;
+    uint32_t charlieLut;
+    uint32_t mipCount;
     float iblIntensityScale;
     float angle;
+    bool loaded;
 } lv_gl_shader_manager_env_textures_t;
 
 typedef struct lv_opengl_shader_cache_struct {
@@ -44,33 +44,17 @@ typedef struct lv_opengl_shader_cache_struct {
     lv_rb_t textures_map;
     lv_rb_t compiled_shaders_map;
     lv_rb_t programs_map;
-
-    uint32_t (*select_shader)(struct lv_opengl_shader_cache_struct *,
-                              const char *, lv_gl_shader_t *, size_t);
-
-    lv_gl_shader_program_t * (*get_shader_program)(
-        struct lv_opengl_shader_cache_struct *, uint32_t, uint32_t);
-
-    void (*set_texture_cache_item)(struct lv_opengl_shader_cache_struct *,
-                                   uint32_t, GLuint);
-
-    GLuint(*getCachedTexture)(struct lv_opengl_shader_cache_struct *,
-                              uint32_t);
-
-    unsigned int bg_index_buf;
-    unsigned int bg_vertex_buf;
-    unsigned int bg_program;
-    unsigned int bg_vao;
+    GLuint bg_index_buf;
+    GLuint bg_vertex_buf;
+    GLuint bg_program;
+    GLuint bg_vao;
     /* The last displayed environment, it gets reused if not null and loaded. */
-    lv_gl_shader_manager_env_textures_t *
-    last_env;
+    lv_gl_shader_manager_env_textures_t * last_env;
 } lv_gl_shader_manager_t;
 
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-
-
 
 /**********************
  *      MACROS

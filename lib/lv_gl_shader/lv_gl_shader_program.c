@@ -79,21 +79,6 @@ GLuint lv_gl_shader_program_get_id(lv_gl_shader_program_t * program)
     return program->id;
 }
 
-void debug_list_uniforms(GLuint program)
-{
-    GLint uniform_count;
-    GL_CALL(glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &uniform_count));
-
-    for(GLint i = 0; i < uniform_count; i++) {
-        GLchar name[256];
-        GLsizei length;
-        GLint size;
-        GLenum type;
-        GL_CALL(glGetActiveUniform(program, i, sizeof(name), &length, &size, &type, name));
-        GLint location = glGetUniformLocation(program, name);
-        LV_LOG_USER("Uniform[%d] %s (location: %d)\n", i, name, location);
-    }
-}
 /**********************
  *   STATIC FUNCTIONS
  **********************/
@@ -124,7 +109,6 @@ static void update_uniform_1f(lv_gl_shader_program_t * program, const char * pro
     if(location == GL_INVALID_INDEX) {
         LV_LOG_ERROR("Uniform '%s' not found in program %d", prop,
                      program->id);
-        debug_list_uniforms(program->id);
         return;
     }
     GL_CALL(glUniform1f(location, value));

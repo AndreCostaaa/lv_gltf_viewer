@@ -299,9 +299,10 @@ void iblSampler::panoramaToCubeMap(void)
         GL_CALL(glViewport(0, 0, textureSize, textureSize));
         GL_CALL(glClearColor(1.0, 0.0, 0.0, 0.0));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-        lv_gl_shader_program_t * program = shader_manager->get_shader_program(shader_manager,
-                                                                              shader_manager->select_shader(shader_manager, "panorama_to_cubemap.frag", nullptr, 0),
-                                                                              shader_manager->select_shader(shader_manager, "fullscreen.vert", nullptr, 0));
+
+        uint32_t frag_shader = lv_gl_shader_manager_select_shader(shader_manager, "panorama_to_cubemap.frag", nullptr, 0);
+        uint32_t vert_shader = lv_gl_shader_manager_select_shader(shader_manager, "fullscreen.vert", nullptr, 0);
+        lv_gl_shader_program_t * program = lv_gl_shader_manager_get_program(shader_manager, frag_shader, vert_shader);
         GLuint program_id = lv_gl_shader_program_get_id(program);
         GLint success;
         //GL_CALL(glGetShaderiv(shader->program, GL_COMPILE_STATUS, &success));
@@ -352,9 +353,10 @@ void iblSampler::applyFilter(
         GL_CALL(glViewport(0, 0, currentTextureSize, currentTextureSize));
         GL_CALL(glClearColor(0.0, 1.0, 0.0, 0.0));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-        lv_gl_shader_program_t * program = shader_manager->get_shader_program(shader_manager,
-                                                                              shader_manager->select_shader(shader_manager, "ibl_filtering.frag", nullptr, 0),
-                                                                              shader_manager->select_shader(shader_manager, "fullscreen.vert", nullptr, 0));
+
+        uint32_t frag_shader = lv_gl_shader_manager_select_shader(shader_manager, "ibl_filtering.frag", nullptr, 0);
+        uint32_t vert_shader = lv_gl_shader_manager_select_shader(shader_manager, "fullscreen.vert", nullptr, 0);
+        lv_gl_shader_program_t * program = lv_gl_shader_manager_get_program(shader_manager, frag_shader, vert_shader);
         GLuint program_id = lv_gl_shader_program_get_id(program);
         GL_CALL(glUseProgram(program_id));
         //  TEXTURE0 = active.
@@ -440,9 +442,10 @@ void iblSampler::sampleLut(uint32_t distribution, uint32_t targetTexture, uint32
     GL_CALL(glViewport(0, 0, currentTextureSize, currentTextureSize));
     GL_CALL(glClearColor(0.0, 1.0, 1.0, 0.0));
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    lv_gl_shader_program_t * program = shader_manager->get_shader_program(shader_manager,
-                                                                          shader_manager->select_shader(shader_manager, "ibl_filtering.frag", nullptr, 0),
-                                                                          shader_manager->select_shader(shader_manager, "fullscreen.vert", nullptr, 0));
+
+    uint32_t frag_shader = lv_gl_shader_manager_select_shader(shader_manager, "ibl_filtering.frag", nullptr, 0);
+    uint32_t vert_shader = lv_gl_shader_manager_select_shader(shader_manager, "fullscreen.vert", nullptr, 0);
+    lv_gl_shader_program_t * program = lv_gl_shader_manager_get_program(shader_manager, frag_shader, vert_shader);
     GLuint program_id = lv_gl_shader_program_get_id(program);
 
     GL_CALL(glUseProgram(program_id));
