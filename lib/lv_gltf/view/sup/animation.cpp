@@ -21,9 +21,10 @@ std::map<fastgltf::Node *, std::vector<uint32_t>> __channel_set_cache;
  * @return The Vec3 value at the specified timestamp.
  */
 
-FVEC3 animation_get_vec3_at_timestamp(lv_gltf_data_t * _data, fastgltf::AnimationSampler * sampler, float _seconds)
+fastgltf::math::fvec3 animation_get_vec3_at_timestamp(lv_gltf_data_t * data, fastgltf::AnimationSampler * sampler,
+                                                      float _seconds)
 {
-    const auto & asset = GET_ASSET(_data);
+    const auto & asset = lv_gltf_data_get_asset(data);
     auto & _inAcc = asset->accessors[sampler->inputAccessor];
     auto & _outAcc = asset->accessors[sampler->outputAccessor];
     std::size_t _inAccCount = _inAcc.count;
@@ -60,12 +61,12 @@ FVEC3 animation_get_vec3_at_timestamp(lv_gltf_data_t * _data, fastgltf::Animatio
         }
     }
 
-    FVEC3 _lowerValue = fastgltf::getAccessorElement<FVEC3>(*asset, _outAcc, _lowerIndex);
+    fastgltf::math::fvec3 _lowerValue = fastgltf::getAccessorElement<fastgltf::math::fvec3>(*asset, _outAcc, _lowerIndex);
     if(_seconds >= _maxTime || _seconds <= 0.0f) {
         return _lowerValue;
     }
     std::size_t _upperIndex = _lowerIndex + 1;
-    FVEC3 _upperValue = fastgltf::getAccessorElement<FVEC3>(*asset, _outAcc, _upperIndex);
+    fastgltf::math::fvec3 _upperValue = fastgltf::getAccessorElement<fastgltf::math::fvec3>(*asset, _outAcc, _upperIndex);
     float _upperTimestamp = fastgltf::getAccessorElement<float>(*asset, _inAcc, _upperIndex);
     return fastgltf::math::lerp(_lowerValue, _upperValue,
                                 (_seconds - _lowerTimestamp) / (_upperTimestamp - _lowerTimestamp));
@@ -79,10 +80,10 @@ FVEC3 animation_get_vec3_at_timestamp(lv_gltf_data_t * _data, fastgltf::Animatio
  * @param _seconds The timestamp in seconds at which to retrieve the Quaternion value.
  * @return The Quaternion value at the specified timestamp.
  */
-fastgltf::math::fquat animation_get_quat_at_timestamp(lv_gltf_data_t * _data, fastgltf::AnimationSampler * sampler,
+fastgltf::math::fquat animation_get_quat_at_timestamp(lv_gltf_data_t * data, fastgltf::AnimationSampler * sampler,
                                                       float _seconds)
 {
-    const auto & asset = GET_ASSET(_data);
+    const auto & asset = lv_gltf_data_get_asset(data);
     auto & _inAcc = asset->accessors[sampler->inputAccessor];
     auto & _outAcc = asset->accessors[sampler->outputAccessor];
     std::size_t _inAccCount = _inAcc.count;
@@ -136,9 +137,9 @@ fastgltf::math::fquat animation_get_quat_at_timestamp(lv_gltf_data_t * _data, fa
  * @param _animNum The index of the animation to query.
  * @return The total duration of the animation in seconds.
  */
-float lv_gltf_animation_get_total_time(lv_gltf_data_t * _data, uint32_t _animNum)
+float lv_gltf_animation_get_total_time(lv_gltf_data_t * data, uint32_t _animNum)
 {
-    const auto & asset = GET_ASSET(_data);
+    const auto & asset = lv_gltf_data_get_asset(data);
     auto & animation = asset->animations[_animNum];
     float _maxTime = -1.0f;
     for(uint64_t i = 0; i < animation.channels.size(); i++) {
@@ -156,13 +157,13 @@ float lv_gltf_animation_get_total_time(lv_gltf_data_t * _data, uint32_t _animNum
  * @param node Reference to the node associated with the animation.
  * @return Pointer to a UintVector containing the channel indices for the animation.
  */
-UintVector * animation_get_channel_set(std::size_t anim_num, lv_gltf_data_t * gltf_data,  fastgltf::Node & node)
+UintVector * animation_get_channel_set(std::size_t anim_num, lv_gltf_data_t * data,  fastgltf::Node & node)
 {
-    const auto & asset = GET_ASSET(gltf_data);
-    const auto & probe = PROBE(gltf_data);
+    const auto & asset = lv_gltf_data_get_asset(data);
+    size_t animation_count = lv_gltf_data_get_animation_count(data);
     if(__channel_set_cache.find(&node) == __channel_set_cache.end()) {
         std::vector<uint32_t> new_cache = std::vector<uint32_t>();
-        if(probe->animationCount > anim_num) {
+        if(animation_count > anim_num) {
             auto & anim = asset->animations[anim_num];
 
             for(uint64_t c = 0; c < anim.channels.size(); c++) {
@@ -187,18 +188,19 @@ UintVector * animation_get_channel_set(std::size_t anim_num, lv_gltf_data_t * gl
  * @param matrix Reference to the transformation matrix to update.
  */
 void animation_matrix_apply(float timestamp, std::size_t anim_num, lv_gltf_data_t * gltf_data,  fastgltf::Node & node,
-                            FMAT4 & matrix)
+                            fastgltf::math::fmat4x4 & matrix)
 {
-    const auto & asset = GET_ASSET(gltf_data);
-    const auto & probe = PROBE(gltf_data);
+    const auto & asset = lv_gltf_data_get_asset(gltf_data);
+
+    size_t animation_count = lv_gltf_data_get_animation_count(gltf_data);
     auto _channel_set = animation_get_channel_set(anim_num, gltf_data, node);
     if(_channel_set->size() == 0) {
         return;
     }
-    if(probe->animationCount > anim_num) {
+    if(animation_count > anim_num) {
         auto & anim = asset->animations[anim_num];
-        FVEC3 newPos, newScale;
-        FMAT3 rotmat;
+        fastgltf::math::fvec3 newPos, newScale;
+        fastgltf::math::fmat3x3 rotmat;
         for(const auto & c : (*_channel_set)) {
             switch(anim.channels[c].path) {
                 case fastgltf::AnimationPath::Translation:

@@ -1,23 +1,19 @@
 
 #include "../lv_gltf_data_internal.hpp"
+#include "stdlib/lv_mem.h"
 #include <GLFW/glfw3.h>
 
 #include <fastgltf/types.hpp>
 #include <algorithm>
 
 #define MAX_OVERRIDES 10
-#define _RET return
+#define return        return
 
-
-gltf_probe_info    *    lv_gltf_view_get_probe(lv_gltf_data_t * D)
+mesh_data_t * lv_gltf_get_new_meshdata(lv_gltf_data_t * _data)
 {
-    return ((gltf_probe_info *)(&(D->probe)));
-}
-MeshData * lv_gltf_get_new_meshdata(_DATA _data)
-{
-    MeshData outMesh = {};
+    mesh_data_t outMesh = {};
     _data->meshes->emplace_back(outMesh);
-    return &((*_data->meshes)[_data->meshes->size() - 1 ]);
+    return &((*_data->meshes)[_data->meshes->size() - 1]);
 }
 
 uint32_t lv_gltf_data_get_struct_size(void)
@@ -30,71 +26,60 @@ uint32_t get_primitive_datasize(void)
     return sizeof(Primitive);
 }
 
-void __init_gltf_datastruct(_DATA _DataStructMem, const char * gltf_path)
+lv_gltf_data_t * lv_gltf_data_create_internal(const char * gltf_path,
+                                              fastgltf::Asset asset)
 {
-    lv_gltf_data_t _newDataStruct;
-    _newDataStruct.filename = gltf_path;
-    _newDataStruct.load_success = false;
-
-    _newDataStruct.has_any_cameras = false;
-    _newDataStruct.current_camera_index = -1;
-    _newDataStruct.last_camera_index = -5;
-    _newDataStruct.selected_camera_node = NULL;
-
-    _newDataStruct.last_anim_num = -5;
-    _newDataStruct.cur_anim_maxtime = -1.f;
-    _newDataStruct.local_timestamp = 0.0f;
-
-    _newDataStruct._lastMaterialIndex = 99999;
-    _newDataStruct._lastPassWasTransmission = false;
-
-    _newDataStruct._lastFrameWasAntialiased = false;
-    _newDataStruct._lastFrameNoMotion = false;
-    _newDataStruct.__lastFrameNoMotion = false;
-
-    _newDataStruct.nodes_parsed = false;
-
-    _newDataStruct.view_is_linked = false;
-    _newDataStruct.linked_view_source = NULL;
-
-    memcpy(_DataStructMem, &_newDataStruct, sizeof(lv_gltf_data_t));
-    _DataStructMem->asset = new ASSET();
-
-    _DataStructMem->overrides = new NodeOverrideMap();
-    _DataStructMem->all_overrides = new OverrideVector();
-    _DataStructMem->all_overrides->reserve(MAX_OVERRIDES);
-    _DataStructMem->all_override_count = 0;
-    _DataStructMem->node_by_path = new StringNodeMap();
-    _DataStructMem->node_by_ip = new StringNodeMap();
-    _DataStructMem->index_by_node = new NodeIntMap();
-    _DataStructMem->node_by_index = new NodeVector();
-    _DataStructMem->node_transform_cache = new NodeTransformMap();
-    _DataStructMem->opaque_nodes_by_materialIndex = new MaterialIndexMap();
-    _DataStructMem->blended_nodes_by_materialIndex = new MaterialIndexMap();
-    _DataStructMem->distance_sort_nodes = new NodeDistanceVector();
-    _DataStructMem->ibmBySkinThenNode = new MapofTransformMap();
-    _DataStructMem->validated_skins = new LongVector();
-    _DataStructMem->skin_tex = new IntVector();
-    _DataStructMem->local_mesh_to_center_points_by_primitive = new std::map<uint32_t, std::map<uint32_t, FVEC4>>();
-    _DataStructMem->node_by_light_index = new NodeVector();
-    //_DataStructMem->bufferAllocations = new std::vector<_GLUINT>();
-    _DataStructMem->meshes = new std::vector<MeshData>();
-    _DataStructMem->textures = new std::vector<Texture>();
-    _DataStructMem->cameras = new std::vector<FMAT4>();
-    _DataStructMem->materialBuffers = new std::vector<_GLUINT>();
-    _DataStructMem->shaderUniforms = new std::vector<UniformLocs>();
-    _DataStructMem->shaderSets = new std::vector<gl_renwin_shaderset_t>();
+    lv_gltf_data_t * data = (lv_gltf_data_t *)lv_malloc(sizeof(*data));
+    LV_ASSERT_MALLOC(data);
+    new(data) lv_gltf_data_t;
+    new(&data->asset) fastgltf::Asset(std::move(asset));
+    data->filename = gltf_path;
+    data->load_success = false;
+    data->has_any_cameras = false;
+    data->current_camera_index = -1;
+    data->last_camera_index = -5;
+    data->selected_camera_node = NULL;
+    data->last_anim_num = -5;
+    data->cur_anim_maxtime = -1.f;
+    data->local_timestamp = 0.0f;
+    data->_lastMaterialIndex = 99999;
+    data->_lastPassWasTransmission = false;
+    data->_lastFrameWasAntialiased = false;
+    data->_lastFrameNoMotion = false;
+    data->__lastFrameNoMotion = false;
+    data->nodes_parsed = false;
+    data->view_is_linked = false;
+    data->linked_view_source = NULL;
+    data->overrides = new NodeOverrideMap();
+    data->all_overrides = new OverrideVector();
+    data->all_overrides->reserve(MAX_OVERRIDES);
+    data->all_override_count = 0;
+    data->node_by_path = new StringNodeMap();
+    data->node_by_ip = new StringNodeMap();
+    data->index_by_node = new NodeIntMap();
+    data->node_by_index = new NodeVector();
+    data->node_transform_cache = new NodeTransformMap();
+    data->opaque_nodes_by_materialIndex = new MaterialIndexMap();
+    data->blended_nodes_by_materialIndex = new MaterialIndexMap();
+    data->distance_sort_nodes = new NodeDistanceVector();
+    data->ibmBySkinThenNode = new MapofTransformMap();
+    data->validated_skins = new LongVector();
+    data->skin_tex = new IntVector();
+    data->local_mesh_to_center_points_by_primitive =
+        new std::map<uint32_t,
+    std::map<uint32_t, fastgltf::math::fvec4> >();
+    data->node_by_light_index = new NodeVector();
+    data->meshes = new std::vector<mesh_data_t>();
+    data->textures = new std::vector<Texture>();
+    data->cameras = new std::vector<fastgltf::math::fmat4x4>();
+    data->materialBuffers = new std::vector<GLuint>();
+    data->shaderUniforms = new std::vector<UniformLocs>();
+    data->shaderSets = new std::vector<gl_renwin_shaderset_t>();
+    return data;
 }
 
 void lv_gltf_data_destroy(lv_gltf_data_t * _data)
 {
-    __free_data_struct(_data);
-}
-
-void __free_data_struct(_DATA _data)
-{
-    //    if (_data == NULL) return;
-
     _data->all_overrides->clear();
     delete _data->all_overrides;
     _data->all_overrides = nullptr;
@@ -134,8 +119,6 @@ void __free_data_struct(_DATA _data)
     _data->local_mesh_to_center_points_by_primitive->clear();
     delete _data->local_mesh_to_center_points_by_primitive;
     _data->local_mesh_to_center_points_by_primitive = nullptr;
-    // ---
-    //_data->bufferAllocations->clear();delete _data->bufferAllocations;
     _data->node_by_light_index->clear();
     delete _data->node_by_light_index;
     _data->node_by_light_index = nullptr;
@@ -158,261 +141,262 @@ void __free_data_struct(_DATA _data)
     delete _data->shaderSets;
     _data->shaderSets = nullptr;
 
-    glDeleteTextures(_data->skin_tex->size(), (const GLuint *)_data->skin_tex->data());
+    glDeleteTextures(_data->skin_tex->size(),
+                     (const GLuint *)_data->skin_tex->data());
     _data->skin_tex->clear();
     delete _data->skin_tex;
     _data->skin_tex = nullptr; // Avoid dangling pointer
-
-    delete _data->asset; // Properly deallocate
-    _data->asset = nullptr; // Avoid dangling pointer
+    lv_free(_data);
 }
 
-FVEC4 lv_gltf_get_primitive_centerpoint(_DATA ret_data, fastgltf::Mesh & mesh, uint32_t prim_num);
-
-const char   *  lv_gltf_get_filename(_DATA D)
+const char * lv_gltf_get_filename(lv_gltf_data_t * data)
 {
-    _RET(D->filename);
-}
-void      *     get_asset(_DATA D)
-{
-    _RET(D->asset);
-}
-//void            set_asset                   (_DATA D,ASSET A) {D->asset = std::move(A);}
-
-void set_asset(_DATA D, ASSET A)
-{
-    // Ensure D->asset is allocated before assignment
-    if(D->asset) {
-        delete D->asset; // Clean up existing asset if necessary
-    }
-    D->asset = new fastgltf::Asset(std::move(A)); // Use move constructor
+    return (data->filename);
 }
 
-_MESH     *     get_meshdata_num(_DATA D, _UINT I)
+mesh_data_t * get_meshdata_num(lv_gltf_data_t * data, _UINT I)
 {
-    _RET &((*D->meshes)[I]);
+    return &((*data->meshes)[I]);
 }
-void      *     get_texdata_set(_DATA D)
+void * get_texdata_set(lv_gltf_data_t * data)
 {
-    _RET &(D->textures);
+    return &(data->textures);
 }
-double          lv_gltf_data_get_radius(_DATA D)
+double lv_gltf_data_get_radius(lv_gltf_data_t * data)
 {
-    _RET(double)D->bound_radius;
+    return (double)data->bound_radius;
 }
-int64_t         lv_gltf_data_get_int_radiusX1000(_DATA D)
+int64_t lv_gltf_data_get_int_radiusX1000(lv_gltf_data_t * data)
 {
-    _RET(int64_t)(D->bound_radius * 1000);
+    return (int64_t)(data->bound_radius * 1000);
 }
-float     *     lv_gltf_data_get_center(_DATA D)
+float * lv_gltf_data_get_center(lv_gltf_data_t * data)
 {
-    _RET D->vertex_cen;
+    return data->vertex_cen;
 }
-float     *     get_bounds_min(_DATA D)
+float * get_bounds_min(lv_gltf_data_t * data)
 {
-    _RET D->vertex_min;
+    return data->vertex_min;
 }
-float     *     get_bounds_max(_DATA D)
+float * get_bounds_max(lv_gltf_data_t * data)
 {
-    _RET D->vertex_max;
+    return data->vertex_max;
 }
-void      *     get_skintex_set(_DATA D)
+void * get_skintex_set(lv_gltf_data_t * data)
 {
-    _RET D->skin_tex;
+    return data->skin_tex;
 }
-int32_t         get_skintex_at(_DATA D, _UINT I)
+int32_t get_skintex_at(lv_gltf_data_t * data, _UINT I)
 {
-    _RET(*D->skin_tex)[I];
+    return (*data->skin_tex)[I];
 }
-uint64_t        get_shader_program(_DATA D, _UINT I)
+uint64_t get_shader_program(lv_gltf_data_t * data, _UINT I)
 {
-    _RET(*D->shaderSets)[I].program;
+    return (*data->shaderSets)[I].program;
 }
-Texture    *    get_texdata(_DATA D, _UINT I)
+Texture * get_texdata(lv_gltf_data_t * data, _UINT I)
 {
-    _RET &((*D->textures)[I]);
+    return &((*data->textures)[I]);
 }
-UniformLocs  *  get_uniform_ids(_DATA D, _UINT I)
+UniformLocs * get_uniform_ids(lv_gltf_data_t * data, _UINT I)
 {
-    _RET &((*D->shaderUniforms)[I]);
+    return &((*data->shaderUniforms)[I]);
 }
-uint64_t        get_texdata_glid(_DATA D, _UINT I)
+uint64_t get_texdata_glid(lv_gltf_data_t * data, _UINT I)
 {
-    _RET get_texdata(D, I)->texture;
+    return get_texdata(data, I)->texture;
 }
-void            allocate_index(_DATA D, _UINT I)
+void allocate_index(lv_gltf_data_t * data, _UINT I)
 {
-    (*D->node_by_index).resize(I);
+    (*data->node_by_index).resize(I);
 }
-void            set_probe(_DATA D, gltf_probe_info _probe)
+void set_node_at_path(lv_gltf_data_t * data, const std::string & path,
+                      fastgltf::Node * node)
 {
-    D->probe = std::move(_probe);
+    (*data->node_by_path)[path] = node;
 }
-void            set_node_at_path(_DATA D, std::string P, _NODE N)
+void set_node_at_ip(lv_gltf_data_t * data, const std::string & ip,
+                    fastgltf::Node * node)
 {
-    (*D->node_by_path)[P] = N;
+    (*data->node_by_ip)[ip] = node;
 }
-void            set_node_at_ip(_DATA D, std::string I, _NODE N)
+void set_node_index(lv_gltf_data_t * data, size_t index, fastgltf::Node * node)
 {
-    (*D->node_by_ip)[I] = N;
+    (*data->node_by_index)[index] = node;
+    (*data->index_by_node)[node] = index;
 }
-void            set_node_index(_DATA D, _UINT I, _NODE N)
+void * get_prim_from_mesh(mesh_data_t * M, uint64_t I)
 {
-    (*D->node_by_index)[I] = N;
-    (*D->index_by_node)[N] = I;
-}
-void      *     get_prim_from_mesh(MeshData * M, uint64_t I)
-{
-    _RET &(M->primitives[I]);
+    return &(M->primitives[I]);
 }
 
-_MAT4           get_cached_transform(_DATA D, _NODE N)
+fastgltf::math::fmat4x4 get_cached_transform(lv_gltf_data_t * data,
+                                             fastgltf::Node * node)
 {
-    _RET((*D->node_transform_cache)[N]);
+    return ((*data->node_transform_cache)[node]);
 }
-bool            has_cached_transform(_DATA D, _NODE N)
+bool has_cached_transform(lv_gltf_data_t * data, fastgltf::Node * node)
 {
-    _RET(D->node_transform_cache->find(N) != D->node_transform_cache->end());
+    return (data->node_transform_cache->find(node) !=
+            data->node_transform_cache->end());
 }
-void            set_cached_transform(_DATA D, _NODE N, _MAT4 M)
+void set_cached_transform(lv_gltf_data_t * data, fastgltf::Node * node,
+                          fastgltf::math::fmat4x4 M)
 {
-    (*D->node_transform_cache)[N] = M;
+    (*data->node_transform_cache)[node] = M;
 }
-void            clear_transform_cache(_DATA D)
+void clear_transform_cache(lv_gltf_data_t * data)
 {
-    D->node_transform_cache->clear();
+    data->node_transform_cache->clear();
 }
-bool            transform_cache_is_empty(_DATA D)
+bool transform_cache_is_empty(lv_gltf_data_t * data)
 {
-    _RET D->node_transform_cache->size() == 0;
-}
-
-void            recache_centerpoint(_DATA D, _UINT I, int32_t P)
-{
-    (*D->local_mesh_to_center_points_by_primitive)[I][P] = lv_gltf_get_primitive_centerpoint(D, D->asset->meshes[I], P);
-}
-bool            centerpoint_cache_contains(_DATA D, _UINT I, int32_t P)
-{
-    _RET((D->local_mesh_to_center_points_by_primitive->find(I) == D->local_mesh_to_center_points_by_primitive->end()) ||
-         ((*D->local_mesh_to_center_points_by_primitive)[I].find(P) == (*D->local_mesh_to_center_points_by_primitive)[I].end()))
-    ? false : true;
-}
-bool            validated_skins_contains(_DATA D, int64_t I)
-{
-    _RET((std::find(D->validated_skins->begin(), D->validated_skins->end(), I) != D->validated_skins->end()));
-}
-void            validate_skin(_DATA D, int64_t I)
-{
-    D->validated_skins->push_back(I);
-}
-_UINT           get_skins_size(_DATA D)
-{
-    _RET D->validated_skins->size();
-}
-int32_t         get_skin(_DATA D, uint64_t I)
-{
-    _RET(*D->validated_skins)[I];
+    return data->node_transform_cache->size() == 0;
 }
 
-void add_opaque_node_prim(_DATA D, _UINT I, _NODE N, int32_t P)
+void recache_centerpoint(lv_gltf_data_t * data, _UINT I, int32_t P)
 {
-    (*D->opaque_nodes_by_materialIndex)[I].push_back(std::make_pair(N, std::as_const(P)));
+    (*data->local_mesh_to_center_points_by_primitive)[I][P] =
+        lv_gltf_get_primitive_centerpoint(data, data->asset.meshes[I],
+                                          P);
 }
-MaterialIndexMap::iterator get_opaque_begin(_DATA D)
+bool centerpoint_cache_contains(lv_gltf_data_t * data, _UINT I, int32_t P)
 {
-    _RET D->opaque_nodes_by_materialIndex->begin();
+    return ((data->local_mesh_to_center_points_by_primitive->find(I) ==
+             data->local_mesh_to_center_points_by_primitive->end()) ||
+            ((*data->local_mesh_to_center_points_by_primitive)[I].find(P) ==
+             (*data->local_mesh_to_center_points_by_primitive)[I].end())) ?
+           false :
+           true;
 }
-MaterialIndexMap::iterator get_opaque_end(_DATA D)
+bool validated_skins_contains(lv_gltf_data_t * data, int64_t I)
 {
-    _RET D->opaque_nodes_by_materialIndex->end();
+    return ((std::find(data->validated_skins->begin(),
+                       data->validated_skins->end(),
+                       I) != data->validated_skins->end()));
 }
-
-void add_blended_node_prim(_DATA D, _UINT I, _NODE N, int32_t P)
+void validate_skin(lv_gltf_data_t * data, int64_t I)
 {
-    (*D->blended_nodes_by_materialIndex)[I].push_back(std::make_pair(N, std::as_const(P)));
+    data->validated_skins->push_back(I);
 }
-MaterialIndexMap::iterator get_blended_begin(_DATA D)
+_UINT get_skins_size(lv_gltf_data_t * data)
 {
-    _RET D->blended_nodes_by_materialIndex->begin();
+    return data->validated_skins->size();
 }
-MaterialIndexMap::iterator get_blended_end(_DATA D)
+int32_t get_skin(lv_gltf_data_t * data, uint64_t I)
 {
-    _RET D->blended_nodes_by_materialIndex->end();
-}
-
-void clear_distance_sort(_DATA D)
-{
-    D->distance_sort_nodes->clear();
-}
-void add_distance_sort_prim(_DATA D, NodeIndexDistancePair P)
-{
-    D->distance_sort_nodes->push_back(P);
-}
-NodeDistanceVector::iterator get_distance_sort_begin(_DATA D)
-{
-    _RET D->distance_sort_nodes->begin();
-}
-NodeDistanceVector::iterator get_distance_sort_end(_DATA D)
-{
-    _RET D->distance_sort_nodes->end();
+    return (*data->validated_skins)[I];
 }
 
-gl_renwin_shaderset_t * get_shader_set(_DATA D, _UINT I)
+void add_opaque_node_prim(lv_gltf_data_t * data, size_t index,
+                          fastgltf::Node * node, int32_t P)
 {
-    _RET &((*D->shaderSets)[I]);
+    (*data->opaque_nodes_by_materialIndex)[index].push_back(
+        std::make_pair(node, std::as_const(P)));
+}
+MaterialIndexMap::iterator get_opaque_begin(lv_gltf_data_t * data)
+{
+    return data->opaque_nodes_by_materialIndex->begin();
+}
+MaterialIndexMap::iterator get_opaque_end(lv_gltf_data_t * data)
+{
+    return data->opaque_nodes_by_materialIndex->end();
 }
 
-_VEC3 get_cached_centerpoint(_DATA D, _UINT I, int32_t P, _MAT4 M)
+void add_blended_node_prim(lv_gltf_data_t * data, size_t index,
+                           fastgltf::Node * node, int32_t P)
 {
-    FVEC4 tv = FVEC4((*D->local_mesh_to_center_points_by_primitive)[I][P]);
+    (*data->blended_nodes_by_materialIndex)[index].push_back(
+        std::make_pair(node, std::as_const(P)));
+}
+MaterialIndexMap::iterator get_blended_begin(lv_gltf_data_t * data)
+{
+    return data->blended_nodes_by_materialIndex->begin();
+}
+MaterialIndexMap::iterator get_blended_end(lv_gltf_data_t * data)
+{
+    return data->blended_nodes_by_materialIndex->end();
+}
+
+void clear_distance_sort(lv_gltf_data_t * data)
+{
+    data->distance_sort_nodes->clear();
+}
+
+void add_distance_sort_prim(lv_gltf_data_t * data, NodeIndexDistancePair P)
+{
+    data->distance_sort_nodes->push_back(P);
+}
+NodeDistanceVector::iterator get_distance_sort_begin(lv_gltf_data_t * data)
+{
+    return data->distance_sort_nodes->begin();
+}
+NodeDistanceVector::iterator get_distance_sort_end(lv_gltf_data_t * data)
+{
+    return data->distance_sort_nodes->end();
+}
+
+gl_renwin_shaderset_t * get_shader_set(lv_gltf_data_t * data, _UINT I)
+{
+    return &((*data->shaderSets)[I]);
+}
+
+fastgltf::math::fvec3 get_cached_centerpoint(lv_gltf_data_t * data, _UINT I,
+                                             int32_t P, _MAT4 M)
+{
+    fastgltf::math::fvec4 tv = fastgltf::math::fvec4(
+                                   (*data->local_mesh_to_center_points_by_primitive)[I][P]);
     tv[3] = 1.f;
-    tv = M * tv ;
-    return FVEC3(tv[0], tv[1], tv[2]);
+    tv = M * tv;
+    return fastgltf::math::fvec3(tv[0], tv[1], tv[2]);
 }
 
-void set_shader(_DATA D, uint64_t _index, UniformLocs _uniforms, gl_renwin_shaderset_t _shaderset)
+void set_shader(lv_gltf_data_t * data, uint64_t _index, UniformLocs _uniforms,
+                gl_renwin_shaderset_t _shaderset)
 {
-    (*D->shaderUniforms)[_index] = _uniforms;
-    (*D->shaderSets)[_index] = _shaderset;
+    (*data->shaderUniforms)[_index] = _uniforms;
+    (*data->shaderSets)[_index] = _shaderset;
 }
 
-void init_shaders(_DATA D, uint64_t _max_index)
+void init_shaders(lv_gltf_data_t * data, uint64_t _max_index)
 {
-    auto _prevsize = D->shaderSets->size();
-    D->shaderSets->resize(_max_index + 1);
-    D->shaderUniforms->resize(_max_index + 1);
+    auto _prevsize = data->shaderSets->size();
+    data->shaderSets->resize(_max_index + 1);
+    data->shaderUniforms->resize(_max_index + 1);
     if(_prevsize < _max_index) {
         for(uint64_t _ii = _prevsize; _ii <= _max_index; _ii++) {
-            (*D->shaderSets)[_ii] = gl_renwin_shaderset_t();
-            (*D->shaderSets)[_ii].ready = false;
+            (*data->shaderSets)[_ii] = gl_renwin_shaderset_t();
+            (*data->shaderSets)[_ii].ready = false;
         }
     }
 }
 
-void set_bounds_info(_DATA D, _VEC3 _vmin, _VEC3 _vmax, _VEC3 _vcen, float _radius)
+void set_bounds_info(lv_gltf_data_t * data, fastgltf::math::fvec3 _vmin,
+                     fastgltf::math::fvec3 _vmax, fastgltf::math::fvec3 _vcen,
+                     float _radius)
 {
     {
         auto _d = _vmin.data();
-        D->vertex_min[0] = _d[0];
-        D->vertex_min[1] = _d[1];
-        D->vertex_min[2] = _d[2];
+        data->vertex_min[0] = _d[0];
+        data->vertex_min[1] = _d[1];
+        data->vertex_min[2] = _d[2];
     }
     {
         auto _d = _vmax.data();
-        D->vertex_max[0] = _d[0];
-        D->vertex_max[1] = _d[1];
-        D->vertex_max[2] = _d[2];
+        data->vertex_max[0] = _d[0];
+        data->vertex_max[1] = _d[1];
+        data->vertex_max[2] = _d[2];
     }
     {
         auto _d = _vcen.data();
-        D->vertex_cen[0] = _d[0];
-        D->vertex_cen[1] = _d[1];
-        D->vertex_cen[2] = _d[2];
+        data->vertex_cen[0] = _d[0];
+        data->vertex_cen[1] = _d[1];
+        data->vertex_cen[2] = _d[2];
     }
-    D->bound_radius = _radius;
+    data->bound_radius = _radius;
 }
 
-void lv_gltf_data_copy_bounds_info(_DATA to, _DATA from)
+void lv_gltf_data_copy_bounds_info(lv_gltf_data_t * to, lv_gltf_data_t * from)
 {
     {
         to->vertex_min[0] = from->vertex_min[0];
@@ -429,6 +413,5 @@ void lv_gltf_data_copy_bounds_info(_DATA to, _DATA from)
         to->vertex_cen[1] = from->vertex_cen[1];
         to->vertex_cen[2] = from->vertex_cen[2];
     }
-    to->bound_radius = from->bound_radius ;
+    to->bound_radius = from->bound_radius;
 }
-

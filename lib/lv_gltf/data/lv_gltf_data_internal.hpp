@@ -5,9 +5,7 @@
 #include "lv_gltf_data_internal.h"
 #include "lv_gltf_override.h"
 
-
 #include <GL/gl.h>
-
 
 #ifdef __cplusplus
 
@@ -16,96 +14,53 @@
 #include <map>
 #include <fastgltf/types.hpp>
 
-#define FVEC2 fastgltf::math::fvec2
-#define FVEC3 fastgltf::math::fvec3
-#define FVEC4 fastgltf::math::fvec4
-#define FMAT3 fastgltf::math::fmat3x3
-#define FMAT4 fastgltf::math::fmat4x4
-#define ASSET fastgltf::Asset
+// Vector of int32_t's
+using UintVector = std::vector<uint32_t>;
+// Vector of int32_t's
+using IntVector = std::vector<int32_t>;
+// Vector of int64_t's
+using LongVector = std::vector<int64_t>;
+// Pointer to fastgltf::Node
+using NodePtr = fastgltf::Node *;
+// A standard 4x4 transform matrix
+using Transform = fastgltf::math::fmat4x4;
+// Pair of Node pointer and int32_t
+using NodeIndexPair = std::pair<NodePtr, int32_t>;
+// Pair of float and Node/Index pair
+using NodeIndexDistancePair = std::pair<float, NodeIndexPair>;
+// Vector of NodeIndexPair
+using NodePairVector = std::vector<NodeIndexPair>;
+// Vector of NodeIndexDistancePair
+using NodeDistanceVector = std::vector<NodeIndexDistancePair>;
+// Map of uint32_t to NodePairVector
+using MaterialIndexMap = std::map<uint32_t, NodePairVector>;
+// Map of Node Pointers to Transforms
+using NodeTransformMap = std::map<NodePtr, Transform>;
+// Map of 4x4 Transform Maps by int32_t index (skin)
+using MapofTransformMap = std::map<int32_t, NodeTransformMap>;
+// Map of Nodes by string (name)
+using StringNodeMap = std::map<std::string, NodePtr>;
+// Map of Nodes by string (name)
+using NodeIntMap = std::map<NodePtr, uint32_t>;
+// Map of Nodes by string (name)
+using NodeVector = std::vector<NodePtr>;
+// Map of Node Index to Map of Prim Index to CenterXYZ+RadiusW Vec4
+using NodePrimCenterMap =
+	std::map<uint32_t, std::map<uint32_t, fastgltf::math::fvec4> >;
+// Map of Overrides by Node
+using NodeOverrideMap = std::map<NodePtr, lv_gltf_override_t *>;
+// Map of Overrides by Node
+using OverrideVector = std::vector<lv_gltf_override_t>;
 
-struct MeshData {
+typedef struct {
 	GLuint drawsBuffer;
 	std::vector<Primitive> primitives;
-};
-
-using UintVector = std::vector<uint32_t>; // Vector of int32_t's
-using IntVector = std::vector<int32_t>; // Vector of int32_t's
-using LongVector = std::vector<int64_t>; // Vector of int64_t's
-using NodePtr = fastgltf::Node *; // Pointer to fastgltf::Node
-using Transform = fastgltf::math::fmat4x4; // A standard 4x4 transform matrix
-using NodeIndexPair =
-	std::pair<NodePtr, int32_t>; // Pair of Node pointer and int32_t
-using NodeIndexDistancePair =
-	std::pair<float, NodeIndexPair>; // Pair of float and Node/Index pair
-using NodePairVector = std::vector<NodeIndexPair>; // Vector of NodeIndexPair
-using NodeDistanceVector =
-	std::vector<NodeIndexDistancePair>; // Vector of NodeIndexDistancePair
-using MaterialIndexMap =
-	std::map<uint32_t, NodePairVector>; // Map of uint32_t to NodePairVector
-using NodeTransformMap =
-	std::map<NodePtr, Transform>; // Map of Node Pointers to Transforms
-using MapofTransformMap = std::map<
-	int32_t,
-	NodeTransformMap>; // Map of 4x4 Transform Maps by int32_t index (skin)
-using StringNodeMap =
-	std::map<std::string, NodePtr>; // Map of Nodes by string (name)
-using NodeIntMap = std::map<NodePtr, uint32_t>; // Map of Nodes by string (name)
-using NodeVector = std::vector<NodePtr>; // Map of Nodes by string (name)
-using NodePrimCenterMap = std::map<
-	uint32_t,
-	std::map<uint32_t,
-		 fastgltf::math::fvec4> >; // Map of Node Index to Map of Prim Index to CenterXYZ+RadiusW Vec4
-using NodeOverrideMap =
-	std::map<NodePtr, lv_gltf_override_t *>; // Map of Overrides by Node
-using OverrideVector =
-	std::vector<lv_gltf_override_t>; // Map of Overrides by Node
-
-typedef lv_gltf_data_t *_DATA;
-typedef FVEC3 _VEC3;
-typedef FVEC4 _VEC4;
-typedef FMAT4 _MAT4;
-typedef uint64_t _UINT;
-
-typedef MeshData _MESH;
-typedef NodePtr _NODE;
-
-namespace fastgltf
-{
-FASTGLTF_EXPORT template <typename AssetType, typename Callback>
-#if FASTGLTF_HAS_CONCEPTS
-requires std::same_as<std::remove_cvref_t<AssetType>, Asset> &&
-	std::is_invocable_v<Callback, fastgltf::Node &, FMAT4 &, FMAT4 &>
-#endif
-	void
-	findlight_iterateSceneNodes(AssetType &&asset, std::size_t sceneIndex,
-				    math::fmat4x4 *initial, Callback callback)
-{
-	auto &scene = asset.scenes[sceneIndex];
-	auto function = [&](std::size_t nodeIndex,
-			    math::fmat4x4 &parentWorldMatrix,
-			    auto &self) -> void {
-		assert(asset.nodes.size() > nodeIndex);
-		auto &node = asset.nodes[nodeIndex];
-		auto _localMat = getTransformMatrix(node, math::fmat4x4());
-		std::invoke(callback, node, parentWorldMatrix, _localMat);
-		for (auto &child : node.children) {
-			math::fmat4x4 _parentWorldTemp =
-				parentWorldMatrix * _localMat;
-			self(child, _parentWorldTemp, self);
-		}
-	};
-	for (auto &sceneNode : scene.nodeIndices) {
-		auto tmat2 = FMAT4(*initial);
-		function(sceneNode, tmat2, function);
-	}
-}
-}
-struct MeshData;
+} mesh_data_t;
 
 struct lv_gltf_data_struct {
-	ASSET *asset;
+	const char *filename;
+	fastgltf::Asset asset;
 	bool load_success;
-	gltf_probe_info probe;
 	StringNodeMap *node_by_path;
 	StringNodeMap *node_by_ip;
 	NodeIntMap *index_by_node;
@@ -122,49 +77,25 @@ struct lv_gltf_data_struct {
 	IntVector *skin_tex;
 	NodePrimCenterMap *local_mesh_to_center_points_by_primitive;
 
-	//std::vector<_GLUINT> bufferAllocations;
-	std::vector<MeshData> *meshes;
+	std::vector<mesh_data_t> *meshes;
 	std::vector<Texture> *textures;
-	std::vector<FMAT4> *cameras;
-	std::vector<_GLUINT> *materialBuffers;
+	std::vector<fastgltf::math::fmat4x4> *cameras;
+	std::vector<GLuint> *materialBuffers;
 	std::vector<UniformLocs> *shaderUniforms;
 	std::vector<gl_renwin_shaderset_t> *shaderSets;
 
 	size_t all_override_count;
-
 	float vertex_max[3];
 	float vertex_min[3];
 	float vertex_cen[3];
 	float bound_radius;
-	uint32_t vertex_count;
-	uint32_t index_count;
-	uint32_t __prim_type;
-	uint32_t ebo;
-	uint32_t vbo1;
-	uint32_t vbo2;
-	bool has_positions;
-	bool has_normals;
-	bool has_colors;
-	bool has_uv1;
-	bool has_uv2;
-	bool has_joints1;
-	bool has_joints2;
-	bool has_weights1;
-	bool has_weights2;
-	bool has_morphing;
-	bool has_skins;
-	int32_t color_bytes;
-	const char *filename;
 
-	// ---
-
-	//gl_viewer_desc_t _lastViewDesc;
 	bool has_any_cameras;
 	int32_t current_camera_index;
 	int32_t last_camera_index;
 	fastgltf::Node *selected_camera_node;
-	FMAT4 viewMat;
-	FVEC3 viewPos;
+	fastgltf::math::fmat4x4 viewMat;
+	fastgltf::math::fvec3 viewPos;
 
 	int32_t last_anim_num;
 	float cur_anim_maxtime;
@@ -182,10 +113,9 @@ struct lv_gltf_data_struct {
 	lv_gltf_data_t *linked_view_source;
 };
 
-typedef lv_gltf_data_t *_DATA;
 typedef uint64_t _UINT;
 typedef NodePtr _NODE;
-typedef FMAT4 _MAT4;
+typedef fastgltf::math::fmat4x4 _MAT4;
 /**
  * @brief Retrieve the texture data set from the GLTF model data.
  *
@@ -279,7 +209,6 @@ double get_radius(lv_gltf_data_t *D);
  */
 const char *lv_gltf_get_filename(lv_gltf_data_t *D);
 
-
 /**
  * @brief Check if the centerpoint cache contains a specific entry.
  *
@@ -297,7 +226,7 @@ bool centerpoint_cache_contains(lv_gltf_data_t *D, uint64_t I, int32_t P);
  * @param I The index of the primitive to retrieve.
  * @return Pointer to the primitive data.
  */
-void *get_prim_from_mesh(MeshData *M, uint64_t I);
+void *get_prim_from_mesh(mesh_data_t *M, uint64_t I);
 
 /**
  * @brief Retrieve the asset associated with the GLTF model data.
@@ -305,24 +234,14 @@ void *get_prim_from_mesh(MeshData *M, uint64_t I);
  * @param D Pointer to the lv_gltf_data_t object containing the model data.
  * @return Pointer to the asset data.
  */
-void *get_asset(lv_gltf_data_t *D);
+fastgltf::Asset *lv_gltf_data_get_asset(lv_gltf_data_t *data);
 
-#define GET_ASSET(d)		 ((ASSET *)get_asset(d))
-#define PROBE(d)		 ((gltf_probe_info *)lv_gltf_view_get_probe(d))
 #define TEXDSET(x)		 ((std::vector<Texture> *)get_texdata_set(x))
 #define TEXD(x, y)		 ((Texture *)get_texdata(x, y))
 #define TEXDGLID(x, y)		 ((_UINT)get_texdata_glid(x, y))
 #define MATRIXSET(v)		 ((_MatrixSet *)get_matrix_set(v))
 #define SKINTEXS(d)		 ((IntVector *)get_skintex_set(d))
 #define GET_PRIM_FROM_MESH(m, i) ((Primitive *)get_prim_from_mesh(m, i))
-
-/**
- * @brief Set the probe information for the GLTF model data.
- *
- * @param D Pointer to the lv_gltf_data_t object containing the model data.
- * @param _probe The gltf_probe_info structure containing the probe information to set.
- */
-void set_probe(lv_gltf_data_t *D, gltf_probe_info _probe);
 
 /**
  * @brief Allocate an index for a specific entry in the GLTF model data.
@@ -348,7 +267,7 @@ void recache_centerpoint(lv_gltf_data_t *D, uint64_t I, int32_t P);
  * @param I The index of the mesh data to retrieve.
  * @return Pointer to the MeshData structure containing the mesh data.
  */
-MeshData *get_meshdata_num(lv_gltf_data_t *D, uint64_t I);
+mesh_data_t *get_meshdata_num(lv_gltf_data_t *D, uint64_t I);
 
 /**
  * @brief Retrieve the skin texture index for a specific entry in the GLTF model data.
@@ -474,7 +393,8 @@ NodeDistanceVector::iterator get_distance_sort_end(lv_gltf_data_t *D);
  * @param N Pointer to the NodePtr representing the node for which to set the transformation.
  * @param M The transformation matrix to cache.
  */
-void set_cached_transform(lv_gltf_data_t *D, NodePtr N, FMAT4 M);
+void set_cached_transform(lv_gltf_data_t *D, NodePtr N,
+			  fastgltf::math::fmat4x4 M);
 
 /**
  * @brief Clear the transformation cache for the GLTF model data.
@@ -490,7 +410,7 @@ void clear_transform_cache(lv_gltf_data_t *D);
  * @param N Pointer to the NodePtr representing the node for which to retrieve the transformation.
  * @return The cached transformation matrix.
  */
-FMAT4 get_cached_transform(lv_gltf_data_t *D, NodePtr N);
+fastgltf::math::fmat4x4 get_cached_transform(lv_gltf_data_t *D, NodePtr N);
 
 /**
  * @brief Check if a cached transformation matrix exists for a given node.
@@ -542,10 +462,11 @@ void injest_discover_defines(lv_gltf_data_t *data_obj, void *node, void *prim);
  * @param matrix The transformation matrix to apply when calculating the center point.
  * @param meshIndex The index of the mesh from which to retrieve the center point.
  * @param elem The specific element index within the mesh.
- * @return The center point as a FVEC3 structure.
+ * @return The center point as a fastgltf::math::fvec3 structure.
  */
-FVEC3 lv_gltf_get_centerpoint(lv_gltf_data_t *gltf_data, FMAT4 matrix,
-			      uint32_t meshIndex, int32_t elem);
+fastgltf::math::fvec3 lv_gltf_get_centerpoint(lv_gltf_data_t *gltf_data,
+					      fastgltf::math::fmat4x4 matrix,
+					      uint32_t meshIndex, int32_t elem);
 
 /**
  * @brief Set the shader information for a specific index in the GLTF model data.
@@ -573,27 +494,28 @@ void init_shaders(lv_gltf_data_t *D, uint64_t _max_index);
  */
 uint32_t lv_gltf_data_get_struct_size(void);
 
-/**
- * @brief Retrieve the probe information for a GLTF view.
- *
- * @param _data Pointer to the lv_gltf_data_t object from which to get the probe information.
- * @return Pointer to the gltf_probe_info structure containing the probe information.
- */
-gltf_probe_info *lv_gltf_view_get_probe(lv_gltf_data_t *_data);
+void set_bounds_info(lv_gltf_data_t *data, fastgltf::math::fvec3 v_min,
+		     fastgltf::math::fvec3 v_max, fastgltf::math::fvec3 v_cen,
+		     float radius);
 
-void set_bounds_info(_DATA D, _VEC3 _vmin, _VEC3 _vmax, _VEC3 _vcen,
-		     float _radius);
+mesh_data_t *lv_gltf_get_new_meshdata(lv_gltf_data_t *_data);
 
-MeshData *lv_gltf_get_new_meshdata(_DATA _data);
+lv_gltf_data_t *lv_gltf_data_create_internal(const char *gltf_path,
+					     fastgltf::Asset);
 
-void __free_data_struct(_DATA _data);
+lv_gltf_data_t *lv_gltf_data_load_internal(const void *data_source,
+					   size_t data_size,
+					   lv_gl_shader_manager_t *shaders);
 
-void __init_gltf_datastruct(_DATA _DataStructMem, const char *gltf_path);
+void set_node_at_path(lv_gltf_data_t *data, const std::string &path,
+		      fastgltf::Node *node);
+void set_node_at_ip(lv_gltf_data_t *data, const std::string &ip,
+		    fastgltf::Node *node);
+void set_node_index(lv_gltf_data_t *data, size_t index, fastgltf::Node *node);
 
-void set_asset(_DATA D, ASSET A);
-void set_node_at_path(_DATA D, std::string P, _NODE N);
-void set_node_at_ip(_DATA D, std::string I, _NODE N);
-void set_node_index(_DATA D, _UINT I, _NODE N);
+fastgltf::math::fvec4 lv_gltf_get_primitive_centerpoint(lv_gltf_data_t *data,
+							fastgltf::Mesh &mesh,
+							uint32_t prim_num);
 
 #endif
 

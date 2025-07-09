@@ -6,10 +6,45 @@
 #include "../../lv_gl_shader/lv_gl_shader_manager.h"
 
 #ifdef __cplusplus
+
 extern "C" {
 #endif
 
 typedef struct lv_gltf_data_struct lv_gltf_data_t;
+
+size_t lv_gltf_data_get_image_count(const lv_gltf_data_t * data);
+size_t lv_gltf_data_get_texture_count(const lv_gltf_data_t * data);
+size_t lv_gltf_data_get_material_count(const lv_gltf_data_t * data);
+size_t lv_gltf_data_get_camera_count(const lv_gltf_data_t * data);
+size_t lv_gltf_data_get_node_count(const lv_gltf_data_t * data);
+size_t lv_gltf_data_get_mesh_count(const lv_gltf_data_t * data);
+size_t lv_gltf_data_get_scene_count(const lv_gltf_data_t * data);
+size_t lv_gltf_data_get_animation_count(const lv_gltf_data_t * data);
+
+/**
+ * @brief Load the gltf file at the specified filepath
+ *
+ * @param gltf_path The gltf filename
+ * @param ret_data Pointer to the data container that will be populated.
+ * @param shaders Pointer to the shader cache object this file uses.
+ */
+
+lv_gltf_data_t *
+lv_gltf_data_load_from_file(const char * file_path,
+                            lv_gl_shader_manager_t * shader_manager);
+
+/**
+ * @brief Load the gltf file encoded within the supplied byte array
+ *
+ * @param gltf_path The gltf filename
+ * @param gltf_data_size if gltf_path is instead a byte array, pass the size of that array in through this variable (or 0 if it's a file path).
+ * @param ret_data Pointer to the data container that will be populated.
+ * @param shaders Pointer to the shader cache object this file uses.
+ */
+
+lv_gltf_data_t *
+lv_gltf_data_load_from_bytes(const uint8_t * data, size_t data_size,
+                             lv_gl_shader_manager_t * shader_manager);
 
 /**
  * @brief Create a summary of the mesh data.
@@ -61,36 +96,6 @@ void lv_gltf_data_make_images_summary(lv_gltf_data_t * data, char * dest_buffer,
 void lv_gltf_data_make_animations_summary(lv_gltf_data_t * data,
                                           char * dest_buffer,
                                           uint32_t dest_buffer_size);
-
-/**
- * @brief Load the gltf file encoded within the supplied byte array
- *
- * @param gltf_path The gltf filename
- * @param gltf_data_size if gltf_path is instead a byte array, pass the size of that array in through this variable (or 0 if it's a file path).
- * @param ret_data Pointer to the data container that will be populated.
- * @param shaders Pointer to the shader cache object this file uses.
- */
-void lv_gltf_data_load_bytes(const void * gltf_bytes, size_t gltf_data_size,
-                             lv_gltf_data_t * ret_data,
-                             lv_gl_shader_manager_t * shader_manager);
-
-/**
- * @brief Load the gltf file at the specified filepath
- *
- * @param gltf_path The gltf filename
- * @param ret_data Pointer to the data container that will be populated.
- * @param shaders Pointer to the shader cache object this file uses.
- */
-void lv_gltf_data_load_file(const char * gltf_path, lv_gltf_data_t * ret_data,
-                            lv_gl_shader_manager_t * shader_manager);
-
-/**
- * @brief Set the callback function that is called when loading increments.
- *
- * @param load_progress_callback The callback function with these parameters (const char*, const char* , float, float, float, float) and no return value.
- */
-bool lv_gltf_view_set_loadphase_callback(void (*load_progress_callback)(
-                                             const char *, const char *, float, float, float, float));
 
 /**
  * @brief Retrieve the radius of the GLTF data object.

@@ -1,12 +1,12 @@
+#include "data/lv_gltf_data_internal.hpp"
+#include "view/lv_gltf_view.h"
 #include <lvgl.h>
+#include <src/demo.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
-#include "demo.h"
-#include "lib/lv_gltf/data/lv_gltf_override.h"
 #include "lib/lv_gltf/data/lv_gltf_data.h"
-#include "lib/lv_gltf/data/lv_gltf_data_internal.h"
 
 lv_obj_t * grp_loading;
 lv_obj_t * spin_checkbox;
@@ -60,16 +60,13 @@ lv_obj_t * anim_buttons[MAX_ANIM_BUTTONS];
 
 uint32_t ui_get_window_width(void)
 {
-
     return lv_gltf_view_get_width(demo_gltfview) + (INNER_BG_CROP_LEFT + INNER_BG_CROP_RIGHT);
-    //return WINDOW_WIDTH;
 }
 
 
 uint32_t ui_get_window_height(void)
 {
     return lv_gltf_view_get_height(demo_gltfview) + (INNER_BG_CROP_TOP + INNER_BG_CROP_BOTTOM);
-    //return WINDOW_HEIGHT;
 }
 uint32_t ui_get_primary_texture_width(void)
 {
@@ -356,23 +353,23 @@ static void tab_clicked_event_cb(lv_event_t * e)
 
 }
 
-void demo_ui_apply_camera_button_visibility(lv_gltf_data_t * _data)
+void demo_ui_apply_camera_button_visibility(lv_gltf_data_t * data)
 {
-    gltf_probe_info * probe = lv_gltf_view_get_probe(_data);
+    size_t camera_count = lv_gltf_data_get_camera_count(data);
     for(unsigned int i = 0; i < MAX_CAM_BUTTONS; i++)
-        if(use_scenecam && (i < probe->cameraCount)) lv_obj_clear_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
+        if(use_scenecam && (i < camera_count)) lv_obj_clear_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
         else lv_obj_add_flag(cam_buttons[i], LV_OBJ_FLAG_HIDDEN);
-    if(probe->cameraCount > 0) lv_obj_clear_flag(use_scenecam_checkbox, LV_OBJ_FLAG_HIDDEN);
+    if(camera_count > 0) lv_obj_clear_flag(use_scenecam_checkbox, LV_OBJ_FLAG_HIDDEN);
     else lv_obj_add_flag(use_scenecam_checkbox, LV_OBJ_FLAG_HIDDEN);
 }
 
-void demo_ui_apply_anim_button_visibility(lv_gltf_data_t * _data)
+void demo_ui_apply_anim_button_visibility(lv_gltf_data_t * data)
 {
-    gltf_probe_info * probe = lv_gltf_view_get_probe(_data);
+    size_t animation_count = lv_gltf_data_get_animation_count(data);
     for(unsigned int i = 0; i < MAX_ANIM_BUTTONS; i++)
-        if(anim_enabled && i < probe->animationCount) lv_obj_clear_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
+        if(anim_enabled && i < animation_count) lv_obj_clear_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
         else lv_obj_add_flag(anim_buttons[i], LV_OBJ_FLAG_HIDDEN);
-    if(probe->animationCount > 0) lv_obj_clear_flag(anim_checkbox, LV_OBJ_FLAG_HIDDEN);
+    if(animation_count > 0) lv_obj_clear_flag(anim_checkbox, LV_OBJ_FLAG_HIDDEN);
     else lv_obj_add_flag(anim_checkbox, LV_OBJ_FLAG_HIDDEN);
 }
 
@@ -687,7 +684,6 @@ void demo_ui_loading_info_objects(void)
 
     /* Set the loading info update callbacks */
     lv_gltf_view_ibl_set_loadphase_callback(demo_ui_load_progress_callback);
-    lv_gltf_view_set_loadphase_callback(demo_ui_load_progress_callback);
 }
 
 #define TBUF_SIZE 32768

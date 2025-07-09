@@ -1,4 +1,5 @@
 #include "include/shader_includes.h"
+#include "misc/lv_assert.h"
 #include <iostream>
 
 #ifdef __EMSCRIPTEN__
@@ -164,14 +165,14 @@ void setup_uniform_locations(UniformLocs * uniforms,
  * parameters, which can be used for texture mapping in rendering.
  *
  * @param transform The texture transform parameters to be used for constructing the matrix.
- * @return A FMAT3 matrix representing the texture transformation.
+ * @return A fastgltf::math::fmat3x3 matrix representing the texture transformation.
  */
-FMAT3 setup_texture_transform_matrix(fastgltf::TextureTransform transform)
+fastgltf::math::fmat3x3 setup_texture_transform_matrix(fastgltf::TextureTransform transform)
 {
-    FMAT3 rotation = FMAT3(0.f);
-    FMAT3 scale = FMAT3(0.f);
-    FMAT3 translation = FMAT3(0.f);
-    FMAT3 result = FMAT3(0.f);
+    fastgltf::math::fmat3x3 rotation = fastgltf::math::fmat3x3(0.f);
+    fastgltf::math::fmat3x3 scale = fastgltf::math::fmat3x3(0.f);
+    fastgltf::math::fmat3x3 translation = fastgltf::math::fmat3x3(0.f);
+    fastgltf::math::fmat3x3 result = fastgltf::math::fmat3x3(0.f);
 
     float s = std::sin(transform.rotation);
     float c = std::cos(transform.rotation);
@@ -249,16 +250,17 @@ void setup_background_environment(GLuint program, GLuint * vao,
  * This function constructs a matrix that combines the normal, tangent, and bitangent vectors.
  * Currently unused (handled on the GPU), but may be utilized in the future for optimization.
  *
- * @param normal The normal vector (FVEC3) to be used in the matrix.
- * @param tangent_and_w The tangent vector and its w component (FVEC4) to be included in the matrix.
- * @return A FMAT3 matrix representing the tangent, bitangent, and normal transformation.
+ * @param normal The normal vector (fastgltf::math::fvec3) to be used in the matrix.
+ * @param tangent_and_w The tangent vector and its w component (fastgltf::math::fvec4) to be included in the matrix.
+ * @return A fastgltf::math::fmat3x3 matrix representing the tangent, bitangent, and normal transformation.
  */
-FMAT3 setup_tangent_bitangent_normal_matrix(FVEC3 normal, FVEC4 tangent_and_w)
+fastgltf::math::fmat3x3 setup_tangent_bitangent_normal_matrix(fastgltf::math::fvec3 normal,
+                                                              fastgltf::math::fvec4 tangent_and_w)
 {
-    FVEC3 bitangent = fastgltf::math::cross(
-                          normal,
-                          FVEC3(tangent_and_w[0], tangent_and_w[1], tangent_and_w[2]));
-    FMAT3 r = FMAT3(0.f);
+    fastgltf::math::fvec3 bitangent = fastgltf::math::cross(
+                                          normal,
+                                          fastgltf::math::fvec3(tangent_and_w[0], tangent_and_w[1], tangent_and_w[2]));
+    fastgltf::math::fmat3x3 r = fastgltf::math::fmat3x3(0.f);
     r[0][0] = tangent_and_w[0];
     r[0][1] = tangent_and_w[1];
     r[0][2] = tangent_and_w[2];
@@ -735,9 +737,9 @@ void setup_finish_frame(void)
 }
 
 //void setup_view_proj_matrix_from_link(lv_gltf_view_t * viewer, lv_gltf_data_t * link_data){
-//    { auto _t = view;         set_matrix_view(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
-//    { auto _t = perspective;  set_matrix_proj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
-//   { auto _t = viewProj; set_matrix_viewproj(viewer, FMAT4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
+//    { auto _t = view;         set_matrix_view(viewer, fastgltf::math::fmat4x4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
+//    { auto _t = perspective;  set_matrix_proj(viewer, fastgltf::math::fmat4x4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
+//   { auto _t = viewProj; set_matrix_viewproj(viewer, fastgltf::math::fmat4x4(_t[0], _t[1], _t[2], _t[3], _t[4], _t[5], _t[6], _t[7], _t[8], _t[9], _t[10], _t[11], _t[12], _t[13], _t[14], _t[15] ) ); }
 //    set_cam_pos(viewer, view_pos[0], view_pos[1], view_pos[2]);
 //}
 
@@ -751,21 +753,22 @@ void setup_finish_frame(void)
  * @param viewer Pointer to the lv_gltf_view_t structure representing the viewer.
  * @param _cur_cam_num The current camera number to be used for the view-projection matrix.
  * @param view_desc Pointer to the gl_viewer_desc_t structure containing view description parameters.
- * @param view_mat The current view matrix (FMAT4) to be used in the calculation.
- * @param view_pos The position of the viewer in the scene (FVEC3).
+ * @param view_mat The current view matrix (fastgltf::math::fmat4x4) to be used in the calculation.
+ * @param view_pos The position of the viewer in the scene (fastgltf::math::fvec3).
  * @param gltf_data Pointer to the GLTF data structure containing scene information.
  * @param transmission_pass A boolean indicating whether this setup is for the transmission pass.
  */
 void setup_view_proj_matrix_from_camera(
     lv_gltf_view_t * viewer, int32_t _cur_cam_num,
-    gl_viewer_desc_t * view_desc, const FMAT4 view_mat, const FVEC3 view_pos,
+    gl_viewer_desc_t * view_desc, const fastgltf::math::fmat4x4 view_mat, const fastgltf::math::fvec3 view_pos,
     lv_gltf_data_t * gltf_data, bool transmission_pass)
 {
     // The following matrix math is for the projection matrices as defined by the glTF spec:
     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#projection-matrices
 
     _MAT4 projection;
-    const auto & asset = GET_ASSET(gltf_data);
+    const auto & asset = lv_gltf_data_get_asset(gltf_data);
+
     auto width = view_desc->render_width;
     auto height = view_desc->render_height;
     // It's possible the transmission pass should simply use the regular passes aspect despite having different metrics itself.  Testing both ways to see which has less distortion
@@ -866,7 +869,7 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
     float radius = _bradius * 2.5;
     radius *= view_desc->distance;
 
-    _VEC3 rcam_dir = _VEC3(0.0f, 0.0f, 1.0f);
+    fastgltf::math::fvec3 rcam_dir = fastgltf::math::fvec3(0.0f, 0.0f, 1.0f);
 
     // Note because we switched over to fastgltf math and it's right-hand focused, z axis is actually pitch (instead of x-axis), and x axis is yaw, instead of y-axis
     fastgltf::math::fmat3x3 rotation1 =
@@ -881,15 +884,15 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
     rcam_dir = rotation1 * rcam_dir;
     rcam_dir = rotation2 * rcam_dir;
 
-    _VEC3 ncam_dir = fastgltf::math::normalize(rcam_dir);
-    _VEC3 cam_target = _VEC3(view_desc->focal_x, view_desc->focal_y,
-                             view_desc->focal_z);
-    _VEC3 cam_position = _VEC3(cam_target[0] + (ncam_dir[0] * radius),
-                               cam_target[1] + (ncam_dir[1] * radius),
-                               cam_target[2] + (ncam_dir[2] * radius));
+    fastgltf::math::fvec3 ncam_dir = fastgltf::math::normalize(rcam_dir);
+    fastgltf::math::fvec3 cam_target = fastgltf::math::fvec3(view_desc->focal_x, view_desc->focal_y,
+                                                             view_desc->focal_z);
+    fastgltf::math::fvec3 cam_position = fastgltf::math::fvec3(cam_target[0] + (ncam_dir[0] * radius),
+                                                               cam_target[1] + (ncam_dir[1] * radius),
+                                                               cam_target[2] + (ncam_dir[2] * radius));
 
     _MAT4 view_mat = fastgltf::math::lookAtRH(cam_position, cam_target,
-                                              _VEC3(0.0f, 1.0f, 0.0f));
+                                              fastgltf::math::fvec3(0.0f, 1.0f, 0.0f));
 
     // Create Projection Matrix
     _MAT4 projection;
@@ -956,15 +959,19 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
  * @return A gl_renwin_shaderset_t structure representing the compiled and loaded shaders.
  */
 gl_renwin_shaderset_t
-setup_compile_and_load_shaders(lv_opengl_shader_cache_t * shaders)
+setup_compile_and_load_shaders(lv_opengl_shader_cache_t * manager)
 {
     lv_gl_shader_t * all_defs = all_defines();
-    lv_gl_shader_program_t * program = shaders->get_shader_program(
-                                           shaders,
-                                           shaders->select_shader(shaders, "__MAIN__.frag", all_defs,
-                                                                  all_defines_count()),
-                                           shaders->select_shader(shaders, "__MAIN__.vert", all_defs,
-                                                                  all_defines_count()));
+    uint32_t frag_shader_hash = lv_gl_shader_manager_select_shader(
+                                    manager, "__MAIN__.frag", all_defs, all_defines_count());
+
+    uint32_t vert_shader_hash = lv_gl_shader_manager_select_shader(
+                                    manager, "__MAIN__.vert", all_defs, all_defines_count());
+    lv_gl_shader_program_t * program = lv_gl_shader_manager_get_program(
+                                           manager, frag_shader_hash, vert_shader_hash);
+
+    LV_ASSERT_NULL(program);
+
     GLuint program_id = lv_gl_shader_program_get_id(program);
     GL_CALL(glUseProgram(program_id));
     gl_renwin_shaderset_t _shader_prog;
@@ -984,14 +991,17 @@ setup_compile_and_load_shaders(lv_opengl_shader_cache_t * shaders)
  */
 void setup_compile_and_load_bg_shader(lv_gl_shader_manager_t * manager)
 {
-    lv_gl_shader_t * empty_defs = nullptr; //{};
-    //lv_shader_key_value_t empty_defs[0] = {};
     lv_gl_shader_t frag_defs[1] = { { "TONEMAP_KHR_PBR_NEUTRAL", NULL } };
-    lv_gl_shader_program_t * bg_program = manager->get_shader_program(
-                                              manager,
-                                              manager->select_shader(manager, "cubemap.frag", frag_defs, 1),
-                                              manager->select_shader(manager, "cubemap.vert", empty_defs, 0));
-    manager->bg_program = lv_gl_shader_program_get_id(bg_program);
+
+    uint32_t frag_shader_hash = lv_gl_shader_manager_select_shader(
+                                    manager, "cubemap.frag", frag_defs, 1);
+    uint32_t vert_shader_hash = lv_gl_shader_manager_select_shader(
+                                    manager, "cubemap.vert", nullptr, 0);
+
+    lv_gl_shader_program_t * program = lv_gl_shader_manager_get_program(
+                                           manager, frag_shader_hash, vert_shader_hash);
+
+    manager->bg_program = lv_gl_shader_program_get_id(program);
     setup_background_environment(manager->bg_program, &manager->bg_vao,
                                  &manager->bg_index_buf,
                                  &manager->bg_vertex_buf);

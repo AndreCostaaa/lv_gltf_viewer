@@ -32,7 +32,7 @@ constexpr std::string_view reports_get_component_type_name(fastgltf::ComponentTy
     return componentTypeNames[idx];
 }
 
-size_t reports_get_mesh_total_vertex_count(ASSET * const asset, fastgltf::Mesh & mesh)
+size_t reports_get_mesh_total_vertex_count(fastgltf::Asset * const asset, fastgltf::Mesh & mesh)
 {
     size_t _outcount = 0;
     if(mesh.primitives.size() > 0) {
@@ -172,11 +172,10 @@ void lv_gltf_data_make_images_summary(lv_gltf_data_t * data, char * dest_buffer,
 
 std::string reports_make_scenes_summary(lv_gltf_data_t * data)
 {
-    const auto & asset = GET_ASSET(data);
-    const auto & probe = PROBE(data);
+    const auto & asset = data->asset;
     std::string _out = "";
-    _out += std::string("   + Scenes: ") + std::to_string(probe->sceneCount) + "\n";
-    for(auto & scene : asset->scenes) {
+    _out += std::string("   + Scenes: ") + std::to_string(data->asset.scenes.size()) + "\n";
+    for(auto & scene : asset.scenes) {
         _out += std::string("   |   + '") + std::string(scene.name) + "'\n";
     }
     return _out;

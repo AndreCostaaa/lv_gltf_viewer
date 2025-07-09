@@ -129,7 +129,7 @@ void set_matrix_viewproj(_VIEW V, _MAT4 M)
  * @param V Pointer to the viewer instance.
  * @return The camera position as a vector.
  */
-_VEC3 get_cam_pos(_VIEW V)
+fastgltf::math::fvec3 get_cam_pos(_VIEW V)
 {
     _RET(V->cameraPos);
 }

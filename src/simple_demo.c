@@ -51,10 +51,8 @@ int main(void)
 		lv_gltf_view_ibl_sampler_setup(NULL, NULL, 0);
 	shader_manager->last_env = &env;
 
-	lv_gltf_data_t *demo_gltfdata =
-		(lv_gltf_data_t *)lv_malloc(lv_gltf_data_get_struct_size());
-	lv_gltf_data_load_file("gltfs/logo1.glb", demo_gltfdata,
-			       shader_manager);
+	lv_gltf_data_t *demo_gltfdata = lv_gltf_data_load_from_file(
+		"gltfs/logo1.glb", shader_manager);
 	lv_gltf_view_set_fov(demo_gltfview, 45);
 	lv_3dtexture_id_t gltf_texture = lv_gltf_view_render(
 		shader_manager, demo_gltfview, demo_gltfdata, true, 0, 0, 0, 0);

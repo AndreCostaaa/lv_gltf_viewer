@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "data/lv_gltf_data_internal.h"
+#include "data/lv_gltf_override.h"
 #include "view/lv_gltf_view_internal.h"
 #include <lvgl.h>
 #include "lib/lv_gltf/view/lv_gltf_view.h"
