@@ -1,192 +1,176 @@
 #ifndef LV_GLTFDATA_PRIVATE_H
 #define LV_GLTFDATA_PRIVATE_H
 
-#include "../view/lv_gltf_view.h"
-#include "../view/lv_gltf_view_internal.h"
+#include <GL/glew.h>
+#include <GL/gl.h>
 #include <misc/lv_types.h>
 
-typedef struct lv_gltf_override_struct lv_gltf_override_t;
-typedef uint32_t _GLENUM;
-typedef uint32_t _GLUINT;
-typedef int32_t  _GLINT;
-
 typedef struct {
-    uint32_t imageCount;
-    uint32_t textureCount;
-    uint32_t materialCount;
-    uint32_t cameraCount;
-    uint32_t nodeCount;
-    uint32_t meshCount;
-    uint32_t sceneCount;
-    uint32_t animationCount;
-} gltf_probe_info;
-
-typedef struct {
-    _GLUINT count;
-    _GLUINT instanceCount;
-    _GLUINT firstIndex;
-    _GLINT baseVertex;
-    _GLUINT baseInstance;
+    GLuint count;
+    GLuint instanceCount;
+    GLuint firstIndex;
+    GLint baseVertex;
+    GLuint baseInstance;
 } IndirectDrawCommand;
 
 typedef struct {
     IndirectDrawCommand draw;
-    _GLENUM primitiveType;
-    _GLENUM indexType;
-    _GLUINT vertexArray;
+    GLenum primitiveType;
+    GLenum indexType;
+    GLuint vertexArray;
 
-    _GLUINT vertexBuffer;
-    _GLUINT indexBuffer;
+    GLuint vertexBuffer;
+    GLuint indexBuffer;
 
-    _GLUINT materialUniformsIndex;
-    _GLUINT albedoTexture;
-    _GLUINT emissiveTexture;
-    _GLUINT metalRoughTexture;
-    _GLUINT occlusionTexture;
-    _GLUINT normalTexture;
-    _GLUINT diffuseTransmissionTexture;
-    _GLUINT diffuseTransmissionColorTexture;
-    _GLUINT transmissionTexture;
-    _GLUINT transmissionTexcoordIndex;
+    GLuint materialUniformsIndex;
+    GLuint albedoTexture;
+    GLuint emissiveTexture;
+    GLuint metalRoughTexture;
+    GLuint occlusionTexture;
+    GLuint normalTexture;
+    GLuint diffuseTransmissionTexture;
+    GLuint diffuseTransmissionColorTexture;
+    GLuint transmissionTexture;
+    GLuint transmissionTexcoordIndex;
 
-    _GLINT baseColorTexcoordIndex;
-    _GLINT emissiveTexcoordIndex;
+    GLint baseColorTexcoordIndex;
+    GLint emissiveTexcoordIndex;
 
-    _GLINT metallicRoughnessTexcoordIndex;
-    _GLINT occlusionTexcoordIndex;
-    _GLINT normalTexcoordIndex;
-    _GLINT diffuseTransmissionTexcoordIndex;
-    _GLINT diffuseTransmissionColorTexcoordIndex;
+    GLint metallicRoughnessTexcoordIndex;
+    GLint occlusionTexcoordIndex;
+    GLint normalTexcoordIndex;
+    GLint diffuseTransmissionTexcoordIndex;
+    GLint diffuseTransmissionColorTexcoordIndex;
 
-    _GLINT clearcoatTexture;
-    _GLINT clearcoatRoughnessTexture;
-    _GLINT clearcoatNormalTexture;
-    _GLINT clearcoatTexcoordIndex;
-    _GLINT clearcoatRoughnessTexcoordIndex;
-    _GLINT clearcoatNormalTexcoordIndex;
+    GLint clearcoatTexture;
+    GLint clearcoatRoughnessTexture;
+    GLint clearcoatNormalTexture;
+    GLint clearcoatTexcoordIndex;
+    GLint clearcoatRoughnessTexcoordIndex;
+    GLint clearcoatNormalTexcoordIndex;
 
-    _GLUINT thicknessTexture;
-    _GLINT thicknessTexcoordIndex;
+    GLuint thicknessTexture;
+    GLint thicknessTexcoordIndex;
 
-    _GLUINT diffuseTexture;
-    _GLINT diffuseTexcoordIndex;
+    GLuint diffuseTexture;
+    GLint diffuseTexcoordIndex;
 
-    _GLUINT specularGlossinessTexture;
-    _GLINT specularGlossinessTexcoordIndex;
+    GLuint specularGlossinessTexture;
+    GLint specularGlossinessTexcoordIndex;
 
 } Primitive;
 
 typedef struct {
-    _GLUINT texture;
+    GLuint texture;
 } Texture;
 
 typedef struct {
-    _GLINT camera;
-    _GLINT viewProjectionMatrixUniform;
-    _GLINT modelMatrixUniform;
-    _GLINT viewMatrixUniform;
-    _GLINT projectionMatrixUniform;
+    GLint camera;
+    GLint viewProjectionMatrixUniform;
+    GLint modelMatrixUniform;
+    GLint viewMatrixUniform;
+    GLint projectionMatrixUniform;
 
-    _GLINT envIntensity;
-    _GLINT envDiffuseSampler;
-    _GLINT envSpecularSampler;
-    _GLINT envSheenSampler;
-    _GLINT envGgxLutSampler;
-    _GLINT envCharlieLutSampler;
-    _GLINT envMipCount;
+    GLint envIntensity;
+    GLint envDiffuseSampler;
+    GLint envSpecularSampler;
+    GLint envSheenSampler;
+    GLint envGgxLutSampler;
+    GLint envCharlieLutSampler;
+    GLint envMipCount;
 
-    _GLINT exposure;
-    _GLINT roughnessFactor;
+    GLint exposure;
+    GLint roughnessFactor;
 
-    _GLINT baseColorFactor;
-    _GLINT baseColorSampler;
-    _GLINT baseColorUVSet;
-    _GLINT baseColorUVTransform;
+    GLint baseColorFactor;
+    GLint baseColorSampler;
+    GLint baseColorUVSet;
+    GLint baseColorUVTransform;
 
-    _GLINT emissiveFactor;
-    _GLINT emissiveSampler;
-    _GLINT emissiveUVSet;
-    _GLINT emissiveUVTransform;
-    _GLINT emissiveStrength;
+    GLint emissiveFactor;
+    GLint emissiveSampler;
+    GLint emissiveUVSet;
+    GLint emissiveUVTransform;
+    GLint emissiveStrength;
 
-    _GLINT metallicFactor;
-    _GLINT metallicRoughnessSampler;
-    _GLINT metallicRoughnessUVSet;
-    _GLINT metallicRoughnessUVTransform;
+    GLint metallicFactor;
+    GLint metallicRoughnessSampler;
+    GLint metallicRoughnessUVSet;
+    GLint metallicRoughnessUVTransform;
 
-    _GLINT occlusionStrength;
-    _GLINT occlusionSampler;
-    _GLINT occlusionUVSet;
-    _GLINT occlusionUVTransform;
+    GLint occlusionStrength;
+    GLint occlusionSampler;
+    GLint occlusionUVSet;
+    GLint occlusionUVTransform;
 
-    _GLINT normalScale;
-    _GLINT normalSampler;
-    _GLINT normalUVSet;
-    _GLINT normalUVTransform;
+    GLint normalScale;
+    GLint normalSampler;
+    GLint normalUVSet;
+    GLint normalUVTransform;
 
-    _GLINT clearcoatFactor;
-    _GLINT clearcoatRoughnessFactor;
-    _GLINT clearcoatSampler;
-    _GLINT clearcoatUVSet;
-    _GLINT clearcoatUVTransform;
-    _GLINT clearcoatRoughnessSampler;
-    _GLINT clearcoatRoughnessUVSet;
-    _GLINT clearcoatRoughnessUVTransform;
-    _GLINT clearcoatNormalScale;
-    _GLINT clearcoatNormalSampler;
-    _GLINT clearcoatNormalUVSet;
-    _GLINT clearcoatNormalUVTransform;
+    GLint clearcoatFactor;
+    GLint clearcoatRoughnessFactor;
+    GLint clearcoatSampler;
+    GLint clearcoatUVSet;
+    GLint clearcoatUVTransform;
+    GLint clearcoatRoughnessSampler;
+    GLint clearcoatRoughnessUVSet;
+    GLint clearcoatRoughnessUVTransform;
+    GLint clearcoatNormalScale;
+    GLint clearcoatNormalSampler;
+    GLint clearcoatNormalUVSet;
+    GLint clearcoatNormalUVTransform;
 
-    _GLINT thickness;
-    _GLINT thicknessSampler;
-    _GLINT thicknessUVSet;
-    _GLINT thicknessUVTransform;
+    GLint thickness;
+    GLint thicknessSampler;
+    GLint thicknessUVSet;
+    GLint thicknessUVTransform;
 
-    _GLINT diffuseTransmissionSampler;
-    _GLINT diffuseTransmissionUVSet;
-    _GLINT diffuseTransmissionUVTransform;
+    GLint diffuseTransmissionSampler;
+    GLint diffuseTransmissionUVSet;
+    GLint diffuseTransmissionUVTransform;
 
-    _GLINT diffuseTransmissionColorSampler;
-    _GLINT diffuseTransmissionColorUVSet;
-    _GLINT diffuseTransmissionColorUVTransform;
+    GLint diffuseTransmissionColorSampler;
+    GLint diffuseTransmissionColorUVSet;
+    GLint diffuseTransmissionColorUVTransform;
 
-    _GLINT sheenColorFactor;
-    _GLINT sheenRoughnessFactor;
+    GLint sheenColorFactor;
+    GLint sheenRoughnessFactor;
 
-    _GLINT specularColorFactor;
-    _GLINT specularFactor;
+    GLint specularColorFactor;
+    GLint specularFactor;
 
-    _GLINT diffuseTransmissionColorFactor;
-    _GLINT diffuseTransmissionFactor;
+    GLint diffuseTransmissionColorFactor;
+    GLint diffuseTransmissionFactor;
 
-    _GLINT ior;
-    _GLINT alphaCutoff;
+    GLint ior;
+    GLint alphaCutoff;
 
-    _GLINT dispersion;
-    _GLINT screenSize;
-    _GLINT transmissionFactor;
-    //_GLINT transmissionScale;
-    _GLINT transmissionSampler;
-    _GLINT transmissionUVSet;
-    _GLINT transmissionUVTransform;
-    _GLINT transmissionFramebufferSampler;
-    _GLINT transmissionFramebufferSize;
+    GLint dispersion;
+    GLint screenSize;
+    GLint transmissionFactor;
+    //GLint transmissionScale;
+    GLint transmissionSampler;
+    GLint transmissionUVSet;
+    GLint transmissionUVTransform;
+    GLint transmissionFramebufferSampler;
+    GLint transmissionFramebufferSize;
 
-    _GLINT attenuationDistance;
-    _GLINT attenuationColor;
+    GLint attenuationDistance;
+    GLint attenuationColor;
 
-    _GLINT jointsSampler;
+    GLint jointsSampler;
 
-    _GLINT diffuseFactor;
-    //_GLINT specularFactor;
-    _GLINT glossinessFactor;
+    GLint diffuseFactor;
+    //GLint specularFactor;
+    GLint glossinessFactor;
 
-    _GLINT diffuseSampler;
-    _GLINT diffuseUVSet;
-    _GLINT diffuseUVTransform;
-    _GLINT specularGlossinessSampler;
-    _GLINT specularGlossinessUVSet;
-    _GLINT specularGlossinessUVTransform;
+    GLint diffuseSampler;
+    GLint diffuseUVSet;
+    GLint diffuseUVTransform;
+    GLint specularGlossinessSampler;
+    GLint specularGlossinessUVSet;
+    GLint specularGlossinessUVTransform;
 
 } UniformLocs;
 
@@ -199,4 +183,3 @@ typedef struct {
 } gl_renwin_shaderset_t;
 
 #endif /* LV_GLTFDATA_PRIVATE_H */
-

@@ -39,7 +39,7 @@ namespace fastgltf
 FASTGLTF_EXPORT template <typename AssetType, typename Callback>
 #if FASTGLTF_HAS_CONCEPTS
     requires std::same_as<std::remove_cvref_t<AssetType>, Asset>
-    && std::is_invocable_v<Callback, fastgltf::Node &, FMAT4 &, FMAT4 &>
+    && std::is_invocable_v<Callback, fastgltf::Node &, fastgltf::math::fmat4x4 &, fastgltf::math::fmat4x4 &>
 #endif
 inline void custom_iterateSceneNodes(AssetType&& asset, std::size_t sceneIndex, math::fmat4x4 * initial,
                                      Callback callback)
@@ -63,7 +63,7 @@ inline void custom_iterateSceneNodes(AssetType&& asset, std::size_t sceneIndex, 
             }
         }
     };
-    // auto tempmat = FMAT4(*initial);
+    // auto tempmat = fastgltf::math::fmat4x4(*initial);
     //for (auto& sceneNode : scene.nodeIndices) function(sceneNode, &tempmat, function);
     for(auto & sceneNode : scene.nodeIndices) function(sceneNode, *initial, function);
 }
@@ -580,12 +580,12 @@ void draw_primitive(int32_t prim_num,
                     lv_gltf_data_t * gltf_data,
                     fastgltf::Node & node,
                     std::size_t mesh_index,
-                    const FMAT4 & matrix,
+                    const fastgltf::math::fmat4x4 & matrix,
                     lv_gl_shader_manager_env_textures_t env_tex,
                     bool is_transmission_pass)
 {
     auto mesh = get_meshdata_num(gltf_data, mesh_index);
-    const auto & asset = GET_ASSET(gltf_data);
+    const auto & asset = lv_gltf_data_get_asset(gltf_data);
     const auto & vopts = get_viewer_opts(viewer);
     const auto & _prim_data = GET_PRIM_FROM_MESH(mesh, prim_num);
     auto & _prim_gltf_data = asset->meshes[mesh_index].primitives[prim_num];
@@ -628,7 +628,7 @@ void draw_primitive(int32_t prim_num,
 
         bool has_material = asset->materials.size() > (materialIndex - 1);
         if(!has_material) {
-            setup_uniform_color_alpha(uniforms->baseColorFactor, FVEC4(1.0f));
+            setup_uniform_color_alpha(uniforms->baseColorFactor, fastgltf::math::fvec4(1.0f));
             GL_CALL(glUniform1f(uniforms->roughnessFactor, 0.5f));
             GL_CALL(glUniform1f(uniforms->metallicFactor,  0.5f));
             GL_CALL(glUniform1f(uniforms->ior, 1.5f));
@@ -673,7 +673,7 @@ void draw_primitive(int32_t prim_num,
                         // Update each field of the light struct
                         std::string _prefix = "u_Lights[" + std::to_string(i) + "].";
                         auto & lightNode = (*gltf_data->node_by_light_index)[ii];
-                        FMAT4 lightNodeMat = get_cached_transform(gltf_data, lightNode);
+                        fastgltf::math::fmat4x4 lightNodeMat = get_cached_transform(gltf_data, lightNode);
                         const auto & m = lightNodeMat.data();
                         char _targ1[100];
 
@@ -683,13 +683,13 @@ void draw_primitive(int32_t prim_num,
 
                         strncpy(_targ1, (_prefix + "direction").c_str(), sizeof(_targ1) - 1);
                         _targ1[sizeof(_targ1) - 1] = '\0';
-                        FVEC3 tlight_dir = FVEC3(-lightNodeMat[2][0], -lightNodeMat[2][1], -lightNodeMat[2][2]);
+                        fastgltf::math::fvec3 tlight_dir = fastgltf::math::fvec3(-lightNodeMat[2][0], -lightNodeMat[2][1], -lightNodeMat[2][2]);
                         glUniform3fv(glGetUniformLocation(program, _targ1), 1, &tlight_dir[0]);
 
                         strncpy(_targ1, (_prefix + "range").c_str(), sizeof(_targ1) - 1);
                         _targ1[sizeof(_targ1) - 1] = '\0';
                         if(asset->lights[ii].range.has_value()) {
-                            float light_scale = fastgltf::math::length(FVEC3(m[0], m[4], m[8]));
+                            float light_scale = fastgltf::math::length(fastgltf::math::fvec3(m[0], m[4], m[8]));
                             glUniform1f(glGetUniformLocation(program, _targ1), asset->lights[ii].range.value() * light_scale);
                         }
                         else glUniform1f(glGetUniformLocation(program, _targ1), 9999.f);
@@ -922,8 +922,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
                              bool prepare_bg, uint32_t crop_left,  uint32_t crop_right,  uint32_t crop_top,  uint32_t crop_bottom)
 {
 
-    const auto & asset =     GET_ASSET(gltf_data);
-    const auto & probe =     PROBE(gltf_data);
+    const auto & asset = lv_gltf_data_get_asset(gltf_data);
     const auto & vstate =    get_viewer_state(viewer);
     const auto view_desc = lv_gltf_view_get_desc(viewer);
     const auto & vopts =     &(vstate->options);
@@ -984,7 +983,8 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
         gltf_data->nodes_parsed = true;
         std::vector<int64_t> _used = std::vector<int64_t>();
         int64_t _max_index = 0;
-        fastgltf::iterateSceneNodes(*asset, sceneIndex, FMAT4(), [&](fastgltf::Node & node, FMAT4 matrix) {
+        fastgltf::iterateSceneNodes(*asset, sceneIndex, fastgltf::math::fmat4x4(), [&](fastgltf::Node & node,
+        fastgltf::math::fmat4x4 matrix) {
             // TO-DO: replace this iterate with one that doesn't bother with any matrix math.  Since this is a one time loop at start up, it's ok for now.
             LV_UNUSED(matrix);
             if(node.meshIndex) {
@@ -1000,7 +1000,8 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
                             auto & _ibmVal = skin.inverseBindMatrices.value();
                             auto & _ibmAccessor = asset->accessors[_ibmVal];
                             if(_ibmAccessor.bufferViewIndex) {  // To-do: test if this gets confused when bufferViewIndex == 0
-                                fastgltf::iterateAccessorWithIndex<FMAT4>(*asset, _ibmAccessor, [&](FMAT4 _matrix, std::size_t idx) {
+                                fastgltf::iterateAccessorWithIndex<fastgltf::math::fmat4x4>(*asset, _ibmAccessor, [&](fastgltf::math::fmat4x4 _matrix,
+                                std::size_t idx) {
                                     auto & _jointNode = asset->nodes[skin.joints[idx]];
                                     _ibmBySkinThenNode[skinIndex][&_jointNode] = _matrix;
                                 });
@@ -1034,7 +1035,8 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
 
         init_shaders(gltf_data, _max_index);
         setup_compile_and_load_bg_shader(shaders);
-        fastgltf::iterateSceneNodes(*asset, sceneIndex, FMAT4(), [&](fastgltf::Node & node, FMAT4 matrix) {
+        fastgltf::iterateSceneNodes(*asset, sceneIndex, fastgltf::math::fmat4x4(), [&](fastgltf::Node & node,
+        fastgltf::math::fmat4x4 matrix) {
             LV_UNUSED(matrix);
             if(node.meshIndex) {
                 auto & mesh_index = node.meshIndex.value();
@@ -1081,7 +1083,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
 
     _output = vstate->render_state;
     int32_t anim_num = view_desc->anim;
-    if((anim_num >= 0) && ((int64_t)probe->animationCount > anim_num)) {
+    if((anim_num >= 0) && ((int64_t)lv_gltf_data_get_animation_count(gltf_data) > anim_num)) {
         if(std::abs(view_desc->timestep) > 0.0001f) {
             //std::cout << "ACTIVE ANIMATION TRIGGER WINDOW MOTION\n";
             gltf_data->local_timestamp += view_desc->timestep;
@@ -1112,7 +1114,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     bool ___lastFrameNoMotion = gltf_data->__lastFrameNoMotion;
     gltf_data->__lastFrameNoMotion = gltf_data->_lastFrameNoMotion;
     gltf_data->_lastFrameNoMotion = true;
-    int32_t PREF_CAM_NUM = std::min(view_desc->camera, (int32_t)probe->cameraCount - 1);
+    int32_t PREF_CAM_NUM = LV_MIN(view_desc->camera, (int32_t)lv_gltf_data_get_camera_count(gltf_data) - 1);
     if(_motionDirty || (PREF_CAM_NUM != gltf_data->last_camera_index) || transform_cache_is_empty(gltf_data))  {
         //printf("View info: focal x/y/z = %.2f/%.2f/%.2f | pitch/yaw/distance = %.2f/%.2f/%.2f\n", view_desc->focal_x, view_desc->focal_y, view_desc->focal_z, view_desc->pitch, view_desc->yaw, view_desc->distance );
         gltf_data->_lastFrameNoMotion = false;
@@ -1122,10 +1124,11 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
         gltf_data->has_any_cameras = false;
         gltf_data->selected_camera_node = NULL;
         _motionDirty = false;
-        auto tmat = FMAT4();
-        auto cammat = FMAT4();
-        fastgltf::custom_iterateSceneNodes(*asset, sceneIndex, &tmat, [&](fastgltf::Node & node, FMAT4 & parentworldmatrix,
-        FMAT4 & localmatrix) {
+        auto tmat = fastgltf::math::fmat4x4();
+        auto cammat = fastgltf::math::fmat4x4();
+        fastgltf::custom_iterateSceneNodes(*asset, sceneIndex, &tmat, [&](fastgltf::Node & node,
+                                                                          fastgltf::math::fmat4x4 & parentworldmatrix,
+        fastgltf::math::fmat4x4 & localmatrix) {
             bool made_changes = false;
             if(animation_get_channel_set(anim_num, gltf_data, node)->size() > 0) {
                 animation_matrix_apply(gltf_data->local_timestamp, anim_num, gltf_data, node, localmatrix);
@@ -1133,11 +1136,11 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
             }
             if(gltf_data->overrides->find(&node) != gltf_data->overrides->end()) {
                 lv_gltf_override_t * currentOverride = (*gltf_data->overrides)[&node];
-                FVEC3 _pos;
+                fastgltf::math::fvec3 _pos;
                 fastgltf::math::fquat _quat;
-                FVEC3 _scale;
+                fastgltf::math::fvec3 _scale;
                 fastgltf::math::decomposeTransformMatrix(localmatrix, _scale, _quat, _pos);
-                FVEC3 _rot = quaternionToEuler(_quat);
+                fastgltf::math::fvec3 _rot = quaternionToEuler(_quat);
 
                 // Traverse through all linked overrides
                 while(currentOverride != nullptr) {
@@ -1169,7 +1172,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
                     fastgltf::math::scale(
                         fastgltf::math::rotate(
                             fastgltf::math::translate(
-                                FMAT4(),
+                                fastgltf::math::fmat4x4(),
                                 _pos),
                             fastgltf::math::eulerToQuaternion(_rot[0], _rot[1], _rot[2])),
                         _scale);
@@ -1231,8 +1234,8 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
             std::size_t _dpos = 0;
             for(uint64_t j = 0; j < num_joints; j++) {
                 auto & _jointNode = asset->nodes[skin.joints[j]];
-                FMAT4 _finalJointMat = get_cached_transform(gltf_data,
-                                                            &_jointNode) * _ibm[&_jointNode];  // _ibmBySkinThenNode[skinIndex][&_jointNode];
+                fastgltf::math::fmat4x4 _finalJointMat = get_cached_transform(gltf_data,
+                                                                              &_jointNode) * _ibm[&_jointNode];  // _ibmBySkinThenNode[skinIndex][&_jointNode];
                 std::memcpy(&_data[_dpos], _finalJointMat.data(), SIZEOF_16FLOATS); // Copy final joint matrix
                 std::memcpy(&_data[_dpos + 16], fastgltf::math::transpose(fastgltf::math::invert(_finalJointMat)).data(),
                             SIZEOF_16FLOATS);   // Copy normal matrix

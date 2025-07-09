@@ -439,14 +439,6 @@ void lv_gltf_view_ibl_set_loadphase_callback(void (*_load_progress_callback)(con
 void lv_gltf_get_isolated_filename(const char * filename, char * out_buffer, uint32_t max_out_length);
 
 /**
- * @brief Set a callback function to report the loading phase of the GLTF model.
- *
- * @param load_progress_callback The callback function to be called during the loading phase.
- * @return true if the callback was set successfully, false otherwise.
- */
-bool lv_gltf_view_set_loadphase_callback(void (*load_progress_callback)(const char *, const char *, float, float, float,
-                                                                        float));
-/**
  * @brief Get the width of the viewer.
  *
  * @param view Pointer to the lv_gltf_view.

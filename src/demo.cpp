@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "lib/lv_gltf/data/lv_gltf_data_internal.h"
 #include "lib/lv_gltf/data/lv_gltf_override.h"
 #include "lib/lv_gltf/data/lv_gltf_data.h"
 #include "lib/lv_gltf/view/lv_gltf_view.h"
@@ -103,23 +102,23 @@ void reload(char * _filename, const char * _hdr_filename) {
 
     lv_obj_clear_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
 
-    demo_gltfdata = (lv_gltf_data_t*)lv_malloc(lv_gltf_data_get_struct_size() );
-
     if (shader_cache == NULL) setup_shadercache(_hdr_filename, 1800);
-    lv_gltf_data_load_file(_filename, demo_gltfdata, shader_cache);
 
-    if (lv_gltf_view_get_probe(demo_gltfdata)->cameraCount == 0) {
+    demo_gltfdata = lv_gltf_data_load_from_file(_filename, shader_cache);
+
+    const size_t camera_count = lv_gltf_data_get_camera_count(demo_gltfdata);
+    const size_t animation_count = lv_gltf_data_get_animation_count(demo_gltfdata);
+    if (camera_count == 0) {
         use_scenecam = false;
         camera = -1;
     } else {
         use_scenecam = true;
-        if (camera > (int32_t)lv_gltf_view_get_probe(demo_gltfdata)->cameraCount ) {
-            camera = (int32_t)lv_gltf_view_get_probe(demo_gltfdata)->cameraCount;
+        if (camera > (int32_t)camera_count ) {
+            camera = (int32_t) camera_count;
         }
     }
-    if (lv_gltf_view_get_probe(demo_gltfdata)->animationCount == 0) {
+    if (animation_count == 0) {
         anim_enabled = false;
-        //anim = 0;
     } else {
         anim_enabled = true;
         anim = 0;
@@ -130,8 +129,7 @@ void reload(char * _filename, const char * _hdr_filename) {
     #endif
 
     if (needs_system_gltfdata) {
-        system_gltfdata = (lv_gltf_data_t*) lv_malloc(lv_gltf_data_get_struct_size() );
-        lv_gltf_data_load_file(SYSTEM_ASSETS_FILENAME, system_gltfdata, shader_cache);
+        system_gltfdata = lv_gltf_data_load_from_file(SYSTEM_ASSETS_FILENAME, shader_cache);
         //lv_gltf_data_link_view_to(system_gltfdata, demo_gltfdata); // this doesn't actually do anything yet, it was not necessary.  Just draw the next object into the same buffer, the view will be linked.
         lv_gltf_data_copy_bounds_info(system_gltfdata, demo_gltfdata);
         float newradius = lv_gltf_data_get_int_radiusX1000(demo_gltfdata) / 1000.f;
@@ -255,8 +253,10 @@ int main(int argc, char *argv[]) {
                 if (img_dsc.data_size > 0) lv_free((void*)img_dsc.data); // and then free it later
                 */
 
-        if (lv_gltf_view_get_probe(demo_gltfdata)->animationCount > 0) anim = 0;
-        if (lv_gltf_view_get_probe(demo_gltfdata)->cameraCount == 0) {
+        const size_t camera_count = lv_gltf_data_get_camera_count(demo_gltfdata);
+        const size_t animation_count = lv_gltf_data_get_animation_count(demo_gltfdata);
+        if (animation_count > 0) anim = 0;
+        if (camera_count == 0) {
             use_scenecam = false;
             camera = -1;
         }
@@ -284,8 +284,9 @@ int main(int argc, char *argv[]) {
         float _groundpos[3] = {0.f, 0.f, 0.f};
         #endif /* EXPERIMENTAL_GROUNDCAST */
         float cycle_seconds = fabs(spin_rate) > 0 ? 360.f /  fabs(spin_rate) : 0.f;
-        if (lv_gltf_view_get_probe(demo_gltfdata)->animationCount > 0) {
-            if (anim_enabled && (anim < (int32_t)lv_gltf_view_get_probe(demo_gltfdata)->animationCount)){
+
+        if (animation_count > 0) {
+            if (anim_enabled && (anim < (int32_t) animation_count)){
                 printf("USING ANIMATION FOR CYCLE TIMING\n");
                 float anim_total_time = lv_gltf_animation_get_total_time(demo_gltfdata, anim);
                 cycle_seconds = anim_total_time / anim_rate;

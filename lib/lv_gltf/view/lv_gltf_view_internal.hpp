@@ -13,9 +13,9 @@
 #include <fastgltf/types.hpp>
 
 struct _MatrixSet {
-    FMAT4 viewMatrix = FMAT4(1.0f);
-    FMAT4 projectionMatrix = FMAT4(1.0f);
-    FMAT4 viewProjectionMatrix = FMAT4(1.0f);
+    fastgltf::math::fmat4x4 viewMatrix = fastgltf::math::fmat4x4(1.0f);
+    fastgltf::math::fmat4x4 projectionMatrix = fastgltf::math::fmat4x4(1.0f);
+    fastgltf::math::fmat4x4 viewProjectionMatrix = fastgltf::math::fmat4x4(1.0f);
 };
 
 
@@ -23,9 +23,9 @@ struct lv_gltf_view_struct {
     _ViewerState state;
     _MatrixSet mats;
 
-    FVEC4 overrideBaseColorFactor = FVEC4(1.0f);
-    FVEC3 direction = FVEC3(0.0f, 0.0f, -1.0f);
-    FVEC3 cameraPos = FVEC3(0.0f, 0.0f, 0.0f);
+    fastgltf::math::fvec4 overrideBaseColorFactor = fastgltf::math::fvec4(1.0f);
+    fastgltf::math::fvec3 direction = fastgltf::math::fvec3(0.0f, 0.0f, -1.0f);
+    fastgltf::math::fvec3 cameraPos = fastgltf::math::fvec3(0.0f, 0.0f, 0.0f);
     fastgltf::Optional<std::size_t> cameraIndex = std::nullopt;
 
     float envRotationAngle = 0.f;
@@ -41,9 +41,9 @@ typedef uint64_t        _UINT;
 void*                       get_matrix_view(_VIEW V);
 void*                       get_matrix_proj(_VIEW V);
 void*                       get_matrix_viewproj(_VIEW V);
-#define GET_VIEW_MAT(v)     ((FMAT4*)get_matrix_view(v))
-#define GET_PROJ_MAT(v)     ((FMAT4*)get_matrix_proj(v))
-#define GET_VIEWPROJ_MAT(v) ((FMAT4*)get_matrix_viewproj(v))
+#define GET_VIEW_MAT(v)     ((fastgltf::math::fmat4x4*)get_matrix_view(v))
+#define GET_PROJ_MAT(v)     ((fastgltf::math::fmat4x4*)get_matrix_proj(v))
+#define GET_VIEWPROJ_MAT(v) ((fastgltf::math::fmat4x4*)get_matrix_viewproj(v))
 
 _ViewerState*       get_viewer_state(_VIEW V);
 gl_viewer_desc_t*   lv_gltf_view_get_desc(_VIEW V);
@@ -71,11 +71,11 @@ gl_renwin_shaderset_t setup_compile_and_load_shaders(lv_opengl_shader_cache_t * 
 void setup_uniform_locations(UniformLocs* uniforms, uint32_t _shader_prog_program);
 gl_renwin_state_t setup_opaque_output(uint32_t texture_width, uint32_t texture_height);
 UintVector * animation_get_channel_set(std::size_t anim_num, lv_gltf_data_t * gltf_data,  fastgltf::Node& node);
-void animation_matrix_apply(float timestamp, std::size_t anim_num, lv_gltf_data_t * gltf_data,  fastgltf::Node& node, FMAT4& matrix);
+void animation_matrix_apply(float timestamp, std::size_t anim_num, lv_gltf_data_t * gltf_data,  fastgltf::Node& node, fastgltf::math::fmat4x4& matrix);
 
 void setup_view_proj_matrix_from_camera(lv_gltf_view_t *viewer, int32_t _cur_cam_num, 
-                                         gl_viewer_desc_t *view_desc, const FMAT4 view_mat, 
-                                         const FVEC3 view_pos, lv_gltf_data_t * gltf_data, 
+                                         gl_viewer_desc_t *view_desc, const fastgltf::math::fmat4x4 view_mat, 
+                                         const fastgltf::math::fvec3 view_pos, lv_gltf_data_t * gltf_data, 
                                          bool transmission_pass);
 
 void setup_view_proj_matrix(lv_gltf_view_t *viewer, gl_viewer_desc_t *view_desc, 
@@ -110,8 +110,8 @@ bool lv_gltf_compare_viewer_desc(gl_viewer_desc_t* from_state, gl_viewer_desc_t*
  */
 gl_viewer_desc_t* lv_gltf_view_get_desc(lv_gltf_view_t * V);
 
-_VEC3 get_cam_pos(_VIEW V);
-FVEC3 animation_get_vec3_at_timestamp(lv_gltf_data_t * _data, fastgltf::AnimationSampler * sampler, float _seconds);
+fastgltf::math::fvec3 get_cam_pos(_VIEW V);
+fastgltf::math::fvec3 animation_get_vec3_at_timestamp(lv_gltf_data_t * _data, fastgltf::AnimationSampler * sampler, float _seconds);
 
 void set_matrix_view(_VIEW V,_MAT4 M);
 void set_matrix_proj(_VIEW V,_MAT4 M);
