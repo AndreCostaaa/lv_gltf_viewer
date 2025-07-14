@@ -294,11 +294,8 @@ int main(int argc, char *argv[]) {
         long unsigned int frames_this_second = 0;
         long unsigned int frames_rendered_this_second = 0;
         unsigned long int usec_span = 0;
-        unsigned long int usec_per_frame_optimal = 0;
         float seconds_this_second = 0.f;
-        float total_seconds = 0.f;
         float goal_fps = 15.0f;
-        float goal_fps_span = 1.0f / goal_fps;
         time_t last_poll = time(0);
         #ifdef EXPERIMENTAL_GROUNDCAST 
         float _groundpos[3] = {0.f, 0.f, 0.f};
@@ -333,7 +330,6 @@ int main(int argc, char *argv[]) {
         demo_ui_apply_anim_button_visibility(demo_gltfdata);
 
         gettimeofday(&start, NULL);
-        uint32_t totalframenum = 0;
         lv_point_t _mousepoint;
         lv_indev_get_point(mouse, &_mousepoint);
         struct pollfd fds[1];
@@ -367,10 +363,8 @@ int main(int argc, char *argv[]) {
                 sec_span = (float)usec_span / 1000000.0f;
             }
             seconds_this_second += sec_span;
-            total_seconds += sec_span;
 
             //float windowed_seconds = cycle_seconds != 0.f ? total_seconds - ((int)(total_seconds / cycle_seconds) * cycle_seconds) : 0.f;
-            uint32_t framenum = totalframenum % cycle_frames;
 
             demo_nav_gradual_to_goals( );
 
@@ -444,7 +438,6 @@ int main(int argc, char *argv[]) {
                 }
                 frames_this_second = 0;
                 frames_rendered_this_second = 0;
-                usec_per_frame_optimal = (int)(1000000.f / ROLLING_FPS);
             }
 
             lv_3dtexture_id_t gltf_texture = 0;
@@ -503,7 +496,6 @@ int main(int argc, char *argv[]) {
                 glfwPollEvents();
                 usleep(33000);
             }
-            totalframenum += 1;
             if (frameCount > 0) {
                 frameCount -= 1;
                 if (frameCount == 0) demo_os_integrate_signal_window_close();
