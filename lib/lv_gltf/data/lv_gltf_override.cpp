@@ -65,25 +65,23 @@ lv_gltf_override_t * add_by_node(lv_gltf_data_t * gltf_data, _NODE node, Overrid
     _newOverride.next_override = nullptr; // Initialize next_override to null
 
     // Check if an override already exists for this node
-    if(gltf_data->overrides->find(_node) != gltf_data->overrides->end()) {
+    if(gltf_data->overrides.find(_node) != gltf_data->overrides.end()) {
 
         // Get the existing override
-        lv_gltf_override_t * existingOverride = (*gltf_data->overrides)[_node];
+        lv_gltf_override_t * existingOverride = gltf_data->overrides[_node];
 
         // Traverse to the end of the linked list of overrides
         while(existingOverride->next_override != nullptr) existingOverride = existingOverride->next_override;
 
-        gltf_data->all_override_count += 1;
-        (*gltf_data->all_overrides)[gltf_data->all_override_count - 1] = _newOverride;
-        existingOverride->next_override = &(*gltf_data->all_overrides)[gltf_data->all_override_count - 1];
+        gltf_data->all_overrides.push_back(_newOverride);
+        existingOverride->next_override = &gltf_data->all_overrides[gltf_data->all_overrides.size() - 1];
         return existingOverride->next_override;
     }
     else {
         // No existing override, insert the new one
-        gltf_data->all_override_count += 1;
-        (*gltf_data->all_overrides)[gltf_data->all_override_count - 1] = _newOverride;
-        (*gltf_data->overrides)[_node] = &(*gltf_data->all_overrides)[gltf_data->all_override_count - 1];
-        return (*gltf_data->overrides)[_node];
+        gltf_data->all_overrides.push_back(_newOverride);
+        gltf_data->overrides[_node] = &gltf_data->all_overrides[gltf_data->all_overrides.size() - 1];
+        return gltf_data->overrides[_node];
     }
     return nullptr;
 }
@@ -91,48 +89,52 @@ lv_gltf_override_t * add_by_node(lv_gltf_data_t * gltf_data, _NODE node, Overrid
 lv_gltf_override_t * lv_gltf_data_override_add_by_index(lv_gltf_data_t * gltf_data, uint64_t nodeIndex,
                                                         OverrideProp which_prop, uint32_t data_mask)
 {
-    return (nodeIndex < gltf_data->node_by_index->size()) ? nullptr : add_by_node(gltf_data, (*gltf_data->node_by_index)[nodeIndex],
-                                                                              which_prop, data_mask, false);
+    if(nodeIndex < gltf_data->node_by_index.size()) {
+        return nullptr;
+    }
+    return add_by_node(gltf_data, gltf_data->node_by_index[nodeIndex], which_prop, data_mask, false);
 }
 
 lv_gltf_override_t * lv_gltf_data_override_add_by_ip(lv_gltf_data_t * gltf_data, const char * nodeIp,
                                                      OverrideProp which_prop, uint32_t data_mask)
 {
     std::string sNodeIp = std::string(nodeIp);
-    return ((*gltf_data->node_by_ip).find(sNodeIp) == (*gltf_data->node_by_ip).end()) ? nullptr : add_by_node(gltf_data,
-                                                                                                      (*gltf_data->node_by_ip)[sNodeIp], which_prop, data_mask, false);
+    return gltf_data->node_by_ip.find(sNodeIp) == gltf_data->node_by_ip.end() ? nullptr : add_by_node(gltf_data,
+                                                                                                      gltf_data->node_by_ip[sNodeIp], which_prop, data_mask, false);
 }
 
 lv_gltf_override_t * lv_gltf_data_override_add_by_id(lv_gltf_data_t * gltf_data, const char * nodeId,
                                                      OverrideProp which_prop, uint32_t data_mask)
 {
     std::string sNodeId = std::string(nodeId);
-    return ((*gltf_data->node_by_path).find(sNodeId) == (*gltf_data->node_by_path).end()) ? nullptr : add_by_node(gltf_data,
-                                                                                                          (*gltf_data->node_by_path)[sNodeId], which_prop, data_mask, false);
+    return gltf_data->node_by_path.find(sNodeId) == gltf_data->node_by_path.end() ? nullptr : add_by_node(gltf_data,
+                                                                                                          gltf_data->node_by_path[sNodeId], which_prop, data_mask, false);
 }
 
 
 lv_gltf_override_t * lv_gltf_data_readonly_add_by_index(lv_gltf_data_t * gltf_data, uint64_t nodeIndex,
                                                         OverrideProp which_prop)
 {
-    return (nodeIndex < gltf_data->node_by_index->size()) ? nullptr : add_by_node(gltf_data, (*gltf_data->node_by_index)[nodeIndex],
-                                                                              which_prop, 0, true);
+    if(nodeIndex < gltf_data->node_by_index.size()) {
+        return nullptr;
+    }
+    return add_by_node(gltf_data, gltf_data->node_by_index[nodeIndex], which_prop, 0, true);
 }
 
 lv_gltf_override_t * lv_gltf_data_readonly_add_by_ip(lv_gltf_data_t * gltf_data, const char * nodeIp,
                                                      OverrideProp which_prop)
 {
     std::string sNodeIp = std::string(nodeIp);
-    return ((*gltf_data->node_by_ip).find(sNodeIp) == (*gltf_data->node_by_ip).end()) ? nullptr : add_by_node(gltf_data,
-                                                                                                      (*gltf_data->node_by_ip)[sNodeIp], which_prop, 0, true);
+    return gltf_data->node_by_ip.find(sNodeIp) == gltf_data->node_by_ip.end() ? nullptr : add_by_node(gltf_data,
+                                                                                                      gltf_data->node_by_ip[sNodeIp], which_prop, 0, true);
 }
 
 lv_gltf_override_t * lv_gltf_data_readonly_add_by_id(lv_gltf_data_t * gltf_data, const char * nodeId,
                                                      OverrideProp which_prop)
 {
     std::string sNodeId = std::string(nodeId);
-    return ((*gltf_data->node_by_path).find(sNodeId) == (*gltf_data->node_by_path).end()) ? nullptr : add_by_node(gltf_data,
-                                                                                                          (*gltf_data->node_by_path)[sNodeId], which_prop, 0, true);
+    return gltf_data->node_by_path.find(sNodeId) == gltf_data->node_by_path.end() ? nullptr : add_by_node(gltf_data,
+                                                                                                          gltf_data->node_by_path[sNodeId], which_prop, 0, true);
 }
 
 
@@ -150,7 +152,7 @@ bool compareOverrides(const lv_gltf_override_t & a, const lv_gltf_override_t & b
 
 bool lv_gltf_data_override_remove(lv_gltf_data_t * gltf_data, lv_gltf_override_t * overrideToRemove)
 {
-    for(auto pair : *gltf_data->overrides) {
+    for(auto pair : gltf_data->overrides) {
         lv_gltf_override_t * currentOverride = pair.second;
         lv_gltf_override_t * previousOverride = nullptr;
 
@@ -162,14 +164,14 @@ bool lv_gltf_data_override_remove(lv_gltf_data_t * gltf_data, lv_gltf_override_t
                     previousOverride->next_override = currentOverride->next_override;
                 }
                 else {
-                    (*gltf_data->overrides)[pair.first] = currentOverride->next_override;
+                    gltf_data->overrides[pair.first] = currentOverride->next_override;
                 }
-                gltf_data->all_overrides->erase(
-                    std::remove_if(gltf_data->all_overrides->begin(), gltf_data->all_overrides->end(),
+                gltf_data->all_overrides.erase(
+                    std::remove_if(gltf_data->all_overrides.begin(), gltf_data->all_overrides.end(),
                 [&overrideToRemove](const lv_gltf_override_t & item) {
                     return compareOverrides(item, *overrideToRemove);
                 }),
-                gltf_data->all_overrides->end());
+                gltf_data->all_overrides.end());
                 return true; // Successfully removed
             }
             previousOverride = currentOverride;

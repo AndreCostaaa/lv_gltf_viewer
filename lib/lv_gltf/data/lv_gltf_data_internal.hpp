@@ -61,30 +61,25 @@ struct lv_gltf_data_struct {
 	const char *filename;
 	fastgltf::Asset asset;
 	bool load_success;
-	StringNodeMap *node_by_path;
-	StringNodeMap *node_by_ip;
-	NodeIntMap *index_by_node;
-	NodeVector *node_by_index;
-	NodeVector *node_by_light_index;
-	NodeTransformMap *node_transform_cache;
-	MaterialIndexMap *opaque_nodes_by_materialIndex;
-	MaterialIndexMap *blended_nodes_by_materialIndex;
-	NodeDistanceVector *distance_sort_nodes;
-	MapofTransformMap *ibmBySkinThenNode;
-	NodeOverrideMap *overrides;
-	OverrideVector *all_overrides;
-	LongVector *validated_skins;
-	IntVector *skin_tex;
-	NodePrimCenterMap *local_mesh_to_center_points_by_primitive;
+	StringNodeMap node_by_path;
+	StringNodeMap node_by_ip;
+	NodeVector node_by_index;
+	NodeVector node_by_light_index;
+	NodeTransformMap node_transform_cache;
+	MaterialIndexMap opaque_nodes_by_material_index;
+	MaterialIndexMap blended_nodes_by_material_index;
+	NodeDistanceVector distance_sort_nodes;
+	NodeOverrideMap overrides;
+	OverrideVector all_overrides;
+	LongVector validated_skins;
+	IntVector skin_tex;
+	NodePrimCenterMap local_mesh_to_center_points_by_primitive;
 
-	std::vector<mesh_data_t> *meshes;
-	std::vector<Texture> *textures;
-	std::vector<fastgltf::math::fmat4x4> *cameras;
-	std::vector<GLuint> *materialBuffers;
-	std::vector<UniformLocs> *shaderUniforms;
-	std::vector<gl_renwin_shaderset_t> *shaderSets;
+	std::vector<mesh_data_t> meshes;
+	std::vector<Texture> textures;
+	std::vector<UniformLocs> shader_uniforms;
+	std::vector<gl_renwin_shaderset_t> shader_sets;
 
-	size_t all_override_count;
 	float vertex_max[3];
 	float vertex_min[3];
 	float vertex_cen[3];
@@ -93,23 +88,20 @@ struct lv_gltf_data_struct {
 	bool has_any_cameras;
 	int32_t current_camera_index;
 	int32_t last_camera_index;
-	fastgltf::Node *selected_camera_node;
-	fastgltf::math::fmat4x4 viewMat;
-	fastgltf::math::fvec3 viewPos;
+	fastgltf::math::fmat4x4 view_mat;
+	fastgltf::math::fvec3 view_pos;
 
 	int32_t last_anim_num;
 	float cur_anim_maxtime;
 	float local_timestamp;
 
-	uint64_t _lastMaterialIndex;
-	bool _lastPassWasTransmission;
-
-	bool _lastFrameWasAntialiased;
-	bool _lastFrameNoMotion;
-	bool __lastFrameNoMotion;
+	size_t last_material_index;
+	bool last_pass_was_transmission;
+	bool last_frame_was_antialiased;
+	bool _last_frame_no_motion;
+	bool __last_frame_no_motion;
 	bool nodes_parsed;
 
-	bool view_is_linked = false;
 	lv_gltf_data_t *linked_view_source;
 };
 

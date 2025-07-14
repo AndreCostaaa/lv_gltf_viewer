@@ -333,7 +333,7 @@ static void load_mesh_texture_impl(
         return;
     }
     *primitive_tex_prop =
-        data->textures[0][injest_get_any_image_index(texture)].texture;
+        data->textures[injest_get_any_image_index(texture)].texture;
     if(material_prop.transform &&
        material_prop.transform->texCoordIndex.has_value()) {
         *primitive_tex_uv_id =
@@ -533,7 +533,7 @@ bool injest_image(lv_gl_shader_manager_t * shader_manager, lv_gltf_data_t * data
         lv_gl_shader_manager_get_texture(shader_manager, hash);
 
     if(texture_id != GL_NONE) {
-        data->textures->emplace_back(Texture{ texture_id });
+        data->textures.emplace_back(Texture{ texture_id });
         return true;
     }
 
@@ -609,7 +609,7 @@ bool injest_image(lv_gl_shader_manager_t * shader_manager, lv_gltf_data_t * data
     }
     lv_gl_shader_manager_store_texture(shader_manager, hash, texture_id);
     GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
-    data->textures->emplace_back(Texture{ texture_id });
+    data->textures.emplace_back(Texture{ texture_id });
     return true;
 }
 
@@ -750,7 +750,7 @@ static void injest_light(lv_gltf_data_t * data, size_t light_index,
         }
         LV_LOG_INFO("SCENE LIGHT BEING ADDED #%d\n",
                     light_index);
-        data->node_by_light_index->push_back(&node);
+        data->node_by_light_index.push_back(&node);
     });
 }
 

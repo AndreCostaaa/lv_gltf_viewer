@@ -1069,19 +1069,3 @@ void setup_draw_environment_background(lv_gl_shader_manager_t * manager,
     GL_CALL(glBindVertexArray(0));
     return;
 }
-
-/**
- * @brief Link a view to GLTF data.
- *
- * This function links a target GLTF data structure to a source GLTF data structure, allowing for
- * shared access and manipulation of the linked data.
- *
- * @param link_target Pointer to the lv_gltf_data_t structure that will be linked to the source.
- * @param link_source Pointer to the lv_gltf_data_t structure that serves as the source for linking.
- */
-void lv_gltf_data_link_view_to(lv_gltf_data_t * link_target,
-                               lv_gltf_data_t * link_source)
-{
-    link_target->view_is_linked = true;
-    link_target->linked_view_source = link_source;
-}
