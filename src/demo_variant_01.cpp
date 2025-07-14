@@ -156,7 +156,7 @@ void set_rhombo_height(float new_height) {
 
     const float base_scale = 1.f;//inv_tri_spacing_scale;
     const float radius_scale =  1.f;//inv_tri_spacing_scale;
-    for (int i = 0; i < NUM_PIPES_PER_AXIS; i++) {
+    for (uint32_t i = 0; i < NUM_PIPES_PER_AXIS; i++) {
         lv_gltf_data_set_override_data1(ov_vpipes[i], radius_scale);
         lv_gltf_data_set_override_data2(ov_vpipes[i], base_scale * pipe_length);
         lv_gltf_data_set_override_data3(ov_vpipes[i], radius_scale);
@@ -195,7 +195,7 @@ void set_rhombo_width(float new_width) {
 
     const float base_scale = 1.f;//inv_tri_spacing_scale;
     const float radius_scale =  1.f;//inv_tri_spacing_scale;
-    for (int i = 0; i < NUM_PIPES_PER_AXIS; i++) {
+    for (uint32_t i = 0; i < NUM_PIPES_PER_AXIS; i++) {
         lv_gltf_data_set_override_data1(ov_wpipes[i], radius_scale);
         lv_gltf_data_set_override_data2(ov_wpipes[i], base_scale * pipe_length);
         lv_gltf_data_set_override_data3(ov_wpipes[i], radius_scale);
@@ -229,7 +229,7 @@ void set_rhombo_depth(float new_depth) {
 
     const float base_scale = 1.f;//inv_tri_spacing_scale;
     const float radius_scale =  1.f;//inv_tri_spacing_scale;
-    for (int i = 0; i < NUM_PIPES_PER_AXIS; i++) {
+    for (uint32_t i = 0; i < NUM_PIPES_PER_AXIS; i++) {
         lv_gltf_data_set_override_data1(ov_dpipes[i], radius_scale);
         lv_gltf_data_set_override_data2(ov_dpipes[i], base_scale * pipe_length);
         lv_gltf_data_set_override_data3(ov_dpipes[i], radius_scale);
