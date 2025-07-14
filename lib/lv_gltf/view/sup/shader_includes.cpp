@@ -64,7 +64,7 @@ uint32_t all_defines_count(void)
     return v_defines.size();
 }
 
-void clearDefines(void)
+void clear_defines(void)
 {
     __init_vdefines();
     v_defines.erase(v_defines.begin(), v_defines.end());
@@ -72,7 +72,7 @@ void clearDefines(void)
     v_defines.shrink_to_fit();
 }
 
-void addDefine(const char * defsymbol, const char * defvalue_or_null)
+void add_define(const char * defsymbol, const char * defvalue_or_null)
 {
     __init_vdefines();
     for(auto & _kv : v_defines) {

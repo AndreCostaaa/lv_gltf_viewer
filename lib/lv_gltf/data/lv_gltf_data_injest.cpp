@@ -7,6 +7,7 @@
  *      INCLUDES
  *********************/
 
+#include "../view/sup/include/shader_includes.h"
 #include "fastgltf/core.hpp"
 #include "fastgltf/math.hpp"
 #include "fastgltf/tools.hpp"
@@ -77,6 +78,7 @@ typedef struct {
  *  STATIC PROTOTYPES
  **********************/
 
+static void set_bounds_info(lv_gltf_data_t *data, fastgltf::math::fvec3 v_min, fastgltf::math::fvec3 v_max, fastgltf::math::fvec3 v_cen, float radius);
 static lv_gltf_data_t * create_data_from_bytes(const uint8_t * bytes,
                                                size_t data_size);
 
@@ -140,6 +142,26 @@ static void load_mesh_texture(
     const fastgltf::Optional<fastgltf::OcclusionTextureInfo> & material_prop,
     GLuint * primitive_tex_prop, GLint * primitive_tex_uv_id);
 
+static void add_define_if_primitive_attribute_exists(
+    const fastgltf::Asset & asset, const fastgltf::Primitive * primitive,
+    const char * attribute, const char * define);
+
+static void add_texture_defines_impl(const fastgltf::TextureInfo & material_prop,
+                                     const char * define, const char * uv_define);
+
+static void add_texture_defines(
+    const fastgltf::Optional<fastgltf::TextureInfo> & material_prop,
+    const char * define, const char * uv_define);
+
+static void add_texture_defines(
+    const fastgltf::Optional<fastgltf::NormalTextureInfo> & material_prop,
+    const char * define, const char * uv_define);
+
+static void add_texture_defines(
+    const fastgltf::Optional<fastgltf::OcclusionTextureInfo> & material_prop,
+    const char * define, const char * uv_define);
+
+
 /**********************
  *  STATIC VARIABLES
  **********************/
@@ -197,7 +219,7 @@ lv_gltf_data_t * lv_gltf_data_load_internal(const void * data_source,
         first_visible_mesh = false;
     });
 
-    allocate_index(data, data->asset.nodes.size());
+    lv_gltf_data_allocate_index(data, data->asset.nodes.size());
 
     fastgltf::namegen_iterate_scene_nodes(
         data->asset, scene_index,
@@ -217,7 +239,6 @@ lv_gltf_data_t * lv_gltf_data_load_internal(const void * data_source,
             i++;
         }
     }
-    //for (auto& material : asset.materials)  { loadMaterial(viewer, material); }
     uint16_t lightnum = 0;
     for(auto & light : data->asset.lights) {
         injest_light(data, lightnum, light, 0);
@@ -235,6 +256,166 @@ lv_gltf_data_t * lv_gltf_data_load_internal(const void * data_source,
     }
 
     return data;
+}
+
+void lv_gltf_data_injest_discover_defines(lv_gltf_data_t * data,
+                                          fastgltf::Node * node,
+                                          fastgltf::Primitive * prim)
+{
+    const auto & asset = data->asset;
+    clear_defines();
+
+    add_define("_OPAQUE", "0");
+    add_define("_MASK", "1");
+    add_define("_BLEND", "2");
+
+    LV_ASSERT_MSG(
+        prim->findAttribute("POSITION") != prim->attributes.end(),
+        "A mesh primitive is required to hold the POSITION attribute");
+    LV_ASSERT_MSG(
+        prim->indicesAccessor.has_value(),
+        "We specify fastgltf::Options::GenerateMeshIndices, so we should always have indices ");
+
+    if(!prim->materialIndex.has_value()) {
+        add_define("ALPHAMODE", "_OPAQUE");
+    }
+    else {
+        const auto & material =
+            asset.materials[prim->materialIndex.value()];
+        add_define("TONEMAP_KHR_PBR_NEUTRAL", NULL);
+        if(material.unlit) {
+            add_define("MATERIAL_UNLIT", NULL);
+            add_define("LINEAR_OUTPUT", NULL);
+        }
+        else {
+            add_define("MATERIAL_METALLICROUGHNESS", NULL);
+            add_define("LINEAR_OUTPUT", NULL);
+        }
+        const size_t light_count = data->node_by_light_index.size();
+        add_define("USE_IBL", NULL);
+        if(light_count > 10) {
+            LV_LOG_ERROR("Too many scene lights, max is 10");
+        } else if (light_count > 0) {
+            add_define("USE_PUNCTUAL", NULL);
+            char tmp[5];
+            lv_snprintf(tmp, sizeof(tmp), "%zu", light_count);
+            add_define("LIGHT_COUNT", tmp);
+            LV_LOG_INFO("Added %s lights to shader", tmp);
+        }
+        else {
+            add_define("LIGHT_COUNT", "0");
+        }
+
+        // only set cutoff value for mask material
+        if(material.alphaMode == fastgltf::AlphaMode::Mask) {
+            add_define("ALPHAMODE", "_MASK");
+        }
+        else if(material.alphaMode == fastgltf::AlphaMode::Opaque) {
+            add_define("ALPHAMODE", "_OPAQUE");
+        }
+        else {
+            add_define("ALPHAMODE", "_BLEND");
+        }
+        add_texture_defines(material.pbrData.baseColorTexture,
+                            "HAS_BASE_COLOR_MAP",
+                            "HAS_BASECOLOR_UV_TRANSFORM");
+        add_texture_defines(material.pbrData.metallicRoughnessTexture,
+                            "HAS_METALLIC_ROUGHNESS_MAP",
+                            "HAS_METALLICROUGHNESS_UV_TRANSFORM");
+        add_texture_defines(material.occlusionTexture,
+                            "HAS_OCCLUSION_MAP",
+                            "HAS_OCCLUSION_UV_TRANSFORM");
+        add_texture_defines(material.normalTexture, "HAS_NORMAL_MAP",
+                            "HAS_NORMAL_UV_TRANSFORM");
+        add_texture_defines(material.emissiveTexture,
+                            "HAS_EMISSIVE_MAP",
+                            "HAS_EMISSIVE_UV_TRANSFORM");
+        add_define("MATERIAL_EMISSIVE_STRENGTH", NULL);
+        if(material.sheen)
+            add_define("MATERIAL_SHEEN", NULL);
+        if(material.specular)
+            add_define("MATERIAL_SPECULAR", NULL);
+        if(material.specularGlossiness) {
+            add_define("MATERIAL_SPECULARGLOSSINESS", NULL);
+            add_texture_defines(
+                material.specularGlossiness->diffuseTexture,
+                "HAS_DIFFUSE_MAP", "HAS_DIFFUSE_UV_TRANSFORM");
+            add_texture_defines(
+                material.specularGlossiness
+                ->specularGlossinessTexture,
+                "HAS_SPECULARGLOSSINESS_MAP",
+                "HAS_SPECULARGLOSSINESS_UV_TRANSFORM");
+        }
+        if(material.transmission) {
+            add_define("MATERIAL_TRANSMISSION", NULL);
+            add_define("MATERIAL_DISPERSION", NULL);
+            add_define("MATERIAL_VOLUME", NULL);
+            if(material.transmission->transmissionTexture
+               .has_value())
+                add_define("HAS_TRANSMISSION_MAP", NULL);
+            if(material.volume) {
+                add_texture_defines(
+                    material.volume->thicknessTexture,
+                    "HAS_THICKNESS_MAP",
+                    "HAS_THICKNESS_UV_TRANSFORM");
+            }
+        }
+        if(material.clearcoat) {
+            add_define("MATERIAL_CLEARCOAT", NULL);
+            add_texture_defines(
+                material.clearcoat->clearcoatTexture,
+                "HAS_CLEARCOAT_MAP",
+                "HAS_CLEARCOAT_UV_TRANSFORM");
+            add_texture_defines(
+                material.clearcoat->clearcoatRoughnessTexture,
+                "HAS_CLEARCOAT_ROUGHNESS_MAP",
+                "HAS_CLEARCOATROUGHNESS_UV_TRANSFORM");
+            add_texture_defines(
+                material.clearcoat->clearcoatNormalTexture,
+                "HAS_CLEARCOAT_NORMAL_MAP",
+                "HAS_CLEARCOATNORMAL_UV_TRANSFORM");
+        }
+#ifdef FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT
+        if(material.diffuseTransmission) {
+            add_define("MATERIAL_DIFFUSE_TRANSMISSION", NULL);
+            if(material.diffuseTransmission
+               ->diffuseTransmissionTexture.has_value()) {
+                add_define("HAS_DIFFUSE_TRANSMISSION_MAP",
+                           NULL);
+            }
+            if(material.diffuseTransmission
+               ->diffuseTransmissionColorTexture
+               .has_value()) {
+                add_define("HAS_DIFFUSE_TRANSMISSION_COLOR_MAP",
+                           NULL);
+            }
+        }
+#endif
+    }
+    add_define_if_primitive_attribute_exists(asset, prim, "NORMAL",
+                                             "HAS_NORMAL_VEC3");
+    add_define_if_primitive_attribute_exists(asset, prim, "TANGENT",
+                                             "HAS_TANGENT_VEC4");
+    add_define_if_primitive_attribute_exists(asset, prim, "TEXCOORD_0",
+                                             "HAS_TEXCOORD_0_VEC2");
+    add_define_if_primitive_attribute_exists(asset, prim, "TEXCOORD_1",
+                                             "HAS_TEXCOORD_1_VEC2");
+    add_define_if_primitive_attribute_exists(asset, prim, "JOINTS_0",
+                                             "HAS_JOINTS_0_VEC4");
+    add_define_if_primitive_attribute_exists(asset, prim, "JOINTS_1",
+                                             "HAS_JOINTS_1_VEC4");
+    add_define_if_primitive_attribute_exists(asset, prim, "WEIGHTS_0",
+                                             "HAS_WEIGHTS_0_VEC4");
+    add_define_if_primitive_attribute_exists(asset, prim, "WEIGHTS_1",
+                                             "HAS_WEIGHTS_1_VEC4");
+
+    const auto * joints0it = prim->findAttribute("JOINTS_0");
+    const auto * weights0it = prim->findAttribute("WEIGHTS_0");
+    if((node->skinIndex.has_value()) &&
+       (joints0it != prim->attributes.end()) &&
+       (weights0it != prim->attributes.end())) {
+        add_define("USE_SKINNING", NULL);
+    }
 }
 
 /**********************
@@ -323,17 +504,15 @@ static void make_small_magenta_texture(uint32_t new_magenta_tex)
     return;
 }
 
-static void load_mesh_texture_impl(
-
-    lv_gltf_data_t * data, const fastgltf::TextureInfo & material_prop,
-    GLuint * primitive_tex_prop, GLint * primitive_tex_uv_id)
+static void load_mesh_texture_impl(lv_gltf_data_t * data, const fastgltf::TextureInfo & material_prop,
+                                   GLuint * primitive_tex_prop, GLint * primitive_tex_uv_id)
 {
     const auto & texture = data->asset.textures[material_prop.textureIndex];
     if(!injest_check_any_image_index_valid(texture)) {
         return;
     }
     *primitive_tex_prop =
-        data->textures[injest_get_any_image_index(texture)].texture;
+        data->textures[injest_get_any_image_index(texture)];
     if(material_prop.transform &&
        material_prop.transform->texCoordIndex.has_value()) {
         *primitive_tex_uv_id =
@@ -533,7 +712,7 @@ bool injest_image(lv_gl_shader_manager_t * shader_manager, lv_gltf_data_t * data
         lv_gl_shader_manager_get_texture(shader_manager, hash);
 
     if(texture_id != GL_NONE) {
-        data->textures.emplace_back(Texture{ texture_id });
+        data->textures.emplace_back(texture_id);
         return true;
     }
 
@@ -609,7 +788,7 @@ bool injest_image(lv_gl_shader_manager_t * shader_manager, lv_gltf_data_t * data
     }
     lv_gl_shader_manager_store_texture(shader_manager, hash, texture_id);
     GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
-    data->textures.emplace_back(Texture{ texture_id });
+    data->textures.emplace_back(texture_id);
     return true;
 }
 
@@ -1036,4 +1215,79 @@ injest_vec_attribute(uint8_t vec_size, int32_t current_attrib_index,
         current_attrib_index++;
     }
     return current_attrib_index;
+}
+
+static void set_bounds_info(lv_gltf_data_t * data, fastgltf::math::fvec3 v_min, fastgltf::math::fvec3 v_max,
+                            fastgltf::math::fvec3 v_cen, float radius)
+{
+    {
+        auto _d = v_min.data();
+        data->vertex_min[0] = _d[0];
+        data->vertex_min[1] = _d[1];
+        data->vertex_min[2] = _d[2];
+    }
+    {
+        auto _d = v_max.data();
+        data->vertex_max[0] = _d[0];
+        data->vertex_max[1] = _d[1];
+        data->vertex_max[2] = _d[2];
+    }
+    {
+        auto _d = v_cen.data();
+        data->vertex_cen[0] = _d[0];
+        data->vertex_cen[1] = _d[1];
+        data->vertex_cen[2] = _d[2];
+    }
+    data->bound_radius = radius;
+}
+
+static void add_define_if_primitive_attribute_exists(
+    const fastgltf::Asset & asset, const fastgltf::Primitive * primitive,
+    const char * attribute, const char * define)
+{
+    const auto & it = primitive->findAttribute(attribute);
+    if(it == primitive->attributes.end() ||
+       !asset.accessors[it->accessorIndex].bufferViewIndex.has_value()) {
+        return;
+    }
+    add_define(define, NULL);
+}
+
+static void add_texture_defines_impl(const fastgltf::TextureInfo & material_prop,
+                                     const char * define, const char * uv_define)
+{
+    add_define(define, NULL);
+    if(material_prop.transform) {
+        add_define(uv_define, NULL);
+    }
+}
+
+static void add_texture_defines(
+    const fastgltf::Optional<fastgltf::TextureInfo> & material_prop,
+    const char * define, const char * uv_define)
+{
+    if(!material_prop.has_value()) {
+        return;
+    }
+    add_texture_defines_impl(material_prop.value(), define, uv_define);
+}
+
+static void add_texture_defines(
+    const fastgltf::Optional<fastgltf::NormalTextureInfo> & material_prop,
+    const char * define, const char * uv_define)
+{
+    if(!material_prop.has_value()) {
+        return;
+    }
+    add_texture_defines_impl(material_prop.value(), define, uv_define);
+}
+
+static void add_texture_defines(
+    const fastgltf::Optional<fastgltf::OcclusionTextureInfo> & material_prop,
+    const char * define, const char * uv_define)
+{
+    if(!material_prop.has_value()) {
+        return;
+    }
+    add_texture_defines_impl(material_prop.value(), define, uv_define);
 }

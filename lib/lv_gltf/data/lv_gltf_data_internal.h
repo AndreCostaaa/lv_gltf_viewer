@@ -58,11 +58,7 @@ typedef struct {
     GLuint specularGlossinessTexture;
     GLint specularGlossinessTexcoordIndex;
 
-} Primitive;
-
-typedef struct {
-    GLuint texture;
-} Texture;
+} lv_gltf_primitive_t;
 
 typedef struct {
     GLint camera;
@@ -172,14 +168,14 @@ typedef struct {
     GLint specularGlossinessUVSet;
     GLint specularGlossinessUVTransform;
 
-} UniformLocs;
+} lv_gltf_uniform_locs;
 
 typedef struct {
     bool ready;
-    uint32_t program;
+    GLuint program;
     uint32_t bg_program;
     uint32_t vert;
     uint32_t frag;
-} gl_renwin_shaderset_t;
+} lv_gltf_renwin_shaderset_t;
 
 #endif /* LV_GLTFDATA_PRIVATE_H */

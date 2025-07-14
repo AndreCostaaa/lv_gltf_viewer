@@ -35,6 +35,9 @@
 static MapofTransformMap _ibmBySkinThenNode;
 
 
+static void render_materials(lv_gltf_view_t * viewer, lv_gltf_data_t * gltf_data, lv_gl_shader_manager_t * manager,
+                             const MaterialIndexMap & map);
+
 namespace fastgltf
 {
 FASTGLTF_EXPORT template <typename AssetType, typename Callback>
@@ -73,7 +76,7 @@ inline void custom_iterateSceneNodes(AssetType&& asset, std::size_t sceneIndex, 
 namespace fastgltf::math
 {
 /** Creates a right-handed view matrix */
-[[nodiscard]] _MAT4 lookAtRH(const fvec3 & eye, const fvec3 & center, const fvec3 & up) noexcept
+[[nodiscard]] fmat4x4 lookAtRH(const fvec3 & eye, const fvec3 & center, const fvec3 & up) noexcept
 {
     auto dir = normalize(center - eye);
     auto lft = normalize(cross(dir, up));
@@ -91,7 +94,7 @@ namespace fastgltf::math
  * Creates a right-handed perspective matrix, with the near and far clips at -1 and +1, respectively.
  * @param fov The FOV in radians
  */
-[[nodiscard]] _MAT4 perspectiveRH(float fov, float ratio, float zNear, float zFar) noexcept
+[[nodiscard]] fmat4x4 perspectiveRH(float fov, float ratio, float zNear, float zFar) noexcept
 {
     mat<float, 4, 4> ret(0.f);
     auto tanHalfFov = std::tan(fov / 2.f);
@@ -559,7 +562,7 @@ int64_t lv_gltf_view_get_node_handle_by_name(const char * nodename)
 void lv_gltf_view_destroy(lv_gltf_view_t * _viewer)
 {
     __free_viewer_struct(_viewer);  // Currently does nothing, this could be removed
-    clearDefines();
+    clear_defines();
 }
 
 /**
@@ -585,10 +588,10 @@ void draw_primitive(int32_t prim_num,
                     lv_gl_shader_manager_env_textures_t env_tex,
                     bool is_transmission_pass)
 {
-    auto mesh = get_meshdata_num(gltf_data, mesh_index);
+    lv_gltf_mesh_data_t * mesh = lv_gltf_data_get_mesh(gltf_data, mesh_index);
     const auto & asset = lv_gltf_data_get_asset(gltf_data);
     const auto & vopts = get_viewer_opts(viewer);
-    const auto & _prim_data = GET_PRIM_FROM_MESH(mesh, prim_num);
+    const auto & _prim_data = lv_gltf_data_get_primitive_from_mesh(mesh, prim_num);
     auto & _prim_gltf_data = asset->meshes[mesh_index].primitives[prim_num];
     auto & mappings = _prim_gltf_data.mappings;
     std::size_t materialIndex = (!mappings.empty() && mappings[vopts->materialVariant].has_value())
@@ -598,14 +601,15 @@ void draw_primitive(int32_t prim_num,
     gltf_data->last_material_index = 999999;
 
     GL_CALL(glBindVertexArray(_prim_data->vertexArray));
-    if((gltf_data->last_material_index == materialIndex) && (gltf_data->last_pass_was_transmission == is_transmission_pass)) {
+    if((gltf_data->last_material_index == materialIndex) &&
+       (gltf_data->last_pass_was_transmission == is_transmission_pass)) {
         GL_CALL(glUniformMatrix4fv(get_uniform_ids(gltf_data, materialIndex)->modelMatrixUniform, 1, GL_FALSE, &matrix[0][0]));
     }
     else {
         view_desc->error_frames += 1;
         gltf_data->last_material_index = materialIndex;
         gltf_data->last_pass_was_transmission = is_transmission_pass;
-        auto program = get_shader_program(gltf_data, materialIndex);
+        auto program = lv_gltf_data_get_shader_program(gltf_data, materialIndex);
         const auto & uniforms = get_uniform_ids(gltf_data, materialIndex);
         GL_CALL(glUseProgram(program));
 
@@ -674,7 +678,7 @@ void draw_primitive(int32_t prim_num,
                         // Update each field of the light struct
                         std::string _prefix = "u_Lights[" + std::to_string(i) + "].";
                         auto & lightNode = gltf_data->node_by_light_index[ii];
-                        fastgltf::math::fmat4x4 lightNodeMat = get_cached_transform(gltf_data, lightNode);
+                        fastgltf::math::fmat4x4 lightNodeMat = lv_gltf_data_get_cached_transform(gltf_data, lightNode);
                         const auto & m = lightNodeMat.data();
                         char _targ1[100];
 
@@ -866,7 +870,7 @@ void draw_primitive(int32_t prim_num,
 
         if(node.skinIndex.has_value()) {
             GL_CALL(glActiveTexture(GL_TEXTURE0 + _texnum));
-            GL_CALL(glBindTexture(GL_TEXTURE_2D, get_skintex_at(gltf_data, node.skinIndex.value())));
+            GL_CALL(glBindTexture(GL_TEXTURE_2D, lv_gltf_data_get_skin_texture_at(gltf_data, node.skinIndex.value())));
             GL_CALL(glUniform1i(uniforms->jointsSampler, _texnum));
             _texnum++;
         }
@@ -926,14 +930,15 @@ void lv_gltf_view_recache_all_transforms(lv_gltf_view_t * viewer, lv_gltf_data_t
     int32_t PREF_CAM_NUM = std::min(view_desc->camera, (int32_t)lv_gltf_data_get_camera_count(gltf_data) - 1);
     int32_t anim_num = view_desc->anim;
     uint32_t sceneIndex = 0;
-    
+
     gltf_data->last_camera_index = PREF_CAM_NUM;
-    clear_transform_cache(gltf_data);
+    lv_gltf_data_clear_transform_cache(gltf_data);
     gltf_data->current_camera_index = -1;
     gltf_data->has_any_cameras = false;
     auto tmat = fastgltf::math::fmat4x4{};
     auto cammat =  fastgltf::math::fmat4x4{};
-    fastgltf::custom_iterateSceneNodes(*asset, sceneIndex, &tmat, [&](fastgltf::Node & node, fastgltf::math::fmat4x4 & parentworldmatrix,
+    fastgltf::custom_iterateSceneNodes(*asset, sceneIndex, &tmat, [&](fastgltf::Node & node,
+                                                                      fastgltf::math::fmat4x4 & parentworldmatrix,
     fastgltf::math::fmat4x4 & localmatrix) {
         bool made_changes = false;
         bool made_rotation_changes = false;
@@ -943,20 +948,21 @@ void lv_gltf_view_recache_all_transforms(lv_gltf_view_t * viewer, lv_gltf_data_t
         }
         if(gltf_data->overrides.find(&node) != gltf_data->overrides.end()) {
             lv_gltf_override_t * current_override = gltf_data->overrides[&node];
-                                       fastgltf::math::fvec3 local_pos;
+            fastgltf::math::fvec3 local_pos;
             fastgltf::math::fquat local_quat;
-                                       fastgltf::math::fvec3 local_scale;
+            fastgltf::math::fvec3 local_scale;
             fastgltf::math::decomposeTransformMatrix(localmatrix, local_scale, local_quat, local_pos);
-                                       fastgltf::math::fvec3 local_rot = quaternionToEuler(local_quat);
+            fastgltf::math::fvec3 local_rot = quaternionToEuler(local_quat);
 
             // Traverse through all linked overrides
             while(current_override != nullptr) {
                 if(current_override->prop == OP_ROTATION) {
-                    if(current_override->read_only) { 
+                    if(current_override->read_only) {
                         current_override->data1 = local_rot[0];
                         current_override->data2 = local_rot[1];
                         current_override->data3 = local_rot[2];
-                    } else {
+                    }
+                    else {
                         if(current_override->data_mask & OMC_CHAN1) local_rot[0] = current_override->data1;
                         if(current_override->data_mask & OMC_CHAN2) local_rot[1] = current_override->data2;
                         if(current_override->data_mask & OMC_CHAN3) local_rot[2] = current_override->data3;
@@ -965,24 +971,26 @@ void lv_gltf_view_recache_all_transforms(lv_gltf_view_t * viewer, lv_gltf_data_t
                     }
                 }
                 else if(current_override->prop == OP_POSITION) {
-                    if(current_override->read_only) { 
+                    if(current_override->read_only) {
                         current_override->data1 = local_pos[0];
                         current_override->data2 = local_pos[1];
                         current_override->data3 = local_pos[2];
-                    } else {
+                    }
+                    else {
                         if(current_override->data_mask & OMC_CHAN1) local_pos[0] = current_override->data1;
                         if(current_override->data_mask & OMC_CHAN2) local_pos[1] = current_override->data2;
                         if(current_override->data_mask & OMC_CHAN3) local_pos[2] = current_override->data3;
                         made_changes = true;
                     }
-                } else if (current_override->prop == OP_WORLD_POSITION) {
+                }
+                else if(current_override->prop == OP_WORLD_POSITION) {
                     fastgltf::math::fvec3 world_pos;
                     fastgltf::math::fquat world_quat;
                     fastgltf::math::fvec3 world_scale;
                     fastgltf::math::decomposeTransformMatrix(parentworldmatrix * localmatrix, world_scale, world_quat, world_pos);
                     //fastgltf::math::fvec3 world_rot = quaternionToEuler(world_quat);
 
-                    if(current_override->read_only) { 
+                    if(current_override->read_only) {
                         current_override->data1 = world_pos[0];
                         current_override->data2 = world_pos[1];
                         current_override->data3 = world_pos[2];
@@ -994,11 +1002,12 @@ void lv_gltf_view_recache_all_transforms(lv_gltf_view_t * viewer, lv_gltf_data_t
                     }*/
                 }
                 else if(current_override->prop == OP_SCALE) {
-                    if(current_override->read_only) { 
+                    if(current_override->read_only) {
                         current_override->data1 = local_scale[0];
                         current_override->data2 = local_scale[1];
                         current_override->data3 = local_scale[2];
-                    } else {
+                    }
+                    else {
                         if(current_override->data_mask & OMC_CHAN1) local_scale[0] = current_override->data1;
                         if(current_override->data_mask & OMC_CHAN2) local_scale[1] = current_override->data2;
                         if(current_override->data_mask & OMC_CHAN3) local_scale[2] = current_override->data3;
@@ -1021,8 +1030,8 @@ void lv_gltf_view_recache_all_transforms(lv_gltf_view_t * viewer, lv_gltf_data_t
                     local_scale);
         }
 
-        if(made_changes || !has_cached_transform(gltf_data, &node)) {
-            set_cached_transform(gltf_data, &node, parentworldmatrix * localmatrix);
+        if(made_changes || !lv_gltf_data_has_cached_transform(gltf_data, &node)) {
+            lv_gltf_data_set_cached_transform(gltf_data, &node, parentworldmatrix * localmatrix);
         }
         if(node.cameraIndex.has_value() && (gltf_data->current_camera_index < PREF_CAM_NUM)) {
             gltf_data->has_any_cameras = true;
@@ -1114,12 +1123,12 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
             if(node.meshIndex) {
                 auto & mesh_index = node.meshIndex.value();
                 if(node.skinIndex) {
-                    auto skinIndex = node.skinIndex.value();
-                    if(!validated_skins_contains(gltf_data, skinIndex)) {
-                        validate_skin(gltf_data, skinIndex);
-                        auto skin = asset->skins[skinIndex];
+                    auto skin_index = node.skinIndex.value();
+                    if(!lv_gltf_data_validated_skins_contains(gltf_data, skin_index)) {
+                        lv_gltf_data_validate_skin(gltf_data, skin_index);
+                        auto skin = asset->skins[skin_index];
                         std::size_t num_joints = skin.joints.size();
-                        std::cout << "Skin #" << std::to_string(skinIndex) << ": Joints: " << std::to_string(num_joints) << "\n";
+                        std::cout << "Skin #" << std::to_string(skin_index) << ": Joints: " << std::to_string(num_joints) << "\n";
                         if(skin.inverseBindMatrices) {
                             auto & _ibmVal = skin.inverseBindMatrices.value();
                             auto & _ibmAccessor = asset->accessors[_ibmVal];
@@ -1127,29 +1136,29 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
                                 fastgltf::iterateAccessorWithIndex<fastgltf::math::fmat4x4>(*asset, _ibmAccessor, [&](fastgltf::math::fmat4x4 _matrix,
                                 std::size_t idx) {
                                     auto & _jointNode = asset->nodes[skin.joints[idx]];
-                                    _ibmBySkinThenNode[skinIndex][&_jointNode] = _matrix;
+                                    _ibmBySkinThenNode[skin_index][&_jointNode] = _matrix;
                                 });
                             }
                         }
                     }
                 }
-                for(uint64_t mp = 0; mp < asset->meshes[mesh_index].primitives.size(); mp++) {
+                for(size_t mp = 0; mp < asset->meshes[mesh_index].primitives.size(); mp++) {
                     auto & _prim_gltf_data = asset->meshes[mesh_index].primitives[mp];
                     auto & mappings = _prim_gltf_data.mappings;
                     int64_t materialIndex = (!mappings.empty() &&
                                              mappings[vopts->materialVariant]) ?  mappings[vopts->materialVariant].value() + 1 : ((_prim_gltf_data.materialIndex) ?
                                                                                                                                   (_prim_gltf_data.materialIndex.value() + 1) : 0);
                     if(materialIndex < 0) {
-                        add_opaque_node_prim(gltf_data, 0, &node, mp);
+                        lv_gltf_data_add_opaque_node_primitive(gltf_data, 0, &node, mp);
                     }
                     else {
                         auto & material = asset->materials[materialIndex - 1];
                         if(material.transmission) vstate->renderOpaqueBuffer = true;
                         if(material.alphaMode == fastgltf::AlphaMode::Blend || (material.transmission != NULL)) {
-                            add_blended_node_prim(gltf_data, materialIndex + 1, &node, mp);
+                            lv_gltf_data_add_blended_node_primitive(gltf_data, materialIndex + 1, &node, mp);
                         }
                         else {
-                            add_opaque_node_prim(gltf_data, materialIndex + 1, &node, mp);
+                            lv_gltf_data_add_opaque_node_primitive(gltf_data, materialIndex + 1, &node, mp);
                         }
                         _max_index = std::max(_max_index, materialIndex);
                     }
@@ -1157,7 +1166,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
             }
         });
 
-        init_shaders(gltf_data, _max_index);
+        lv_gltf_data_init_shaders(gltf_data, _max_index);
         setup_compile_and_load_bg_shader(shaders);
         fastgltf::iterateSceneNodes(*asset, sceneIndex, fastgltf::math::fmat4x4(), [&](fastgltf::Node & node,
         fastgltf::math::fmat4x4 matrix) {
@@ -1170,13 +1179,13 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
                     int64_t materialIndex = (!mappings.empty() &&
                                              mappings[vopts->materialVariant]) ?  mappings[vopts->materialVariant].value() + 1 : ((_prim_gltf_data.materialIndex) ?
                                                                                                                                   (_prim_gltf_data.materialIndex.value() + 1) : 0);
-                    const auto & _ss = get_shader_set(gltf_data, materialIndex);
+                    const auto & _ss = lv_gltf_data_get_shader_set(gltf_data, materialIndex);
                     if(materialIndex > -1 && _ss->ready == false) {
-                        injest_discover_defines(gltf_data, &node, &_prim_gltf_data);
+                        lv_gltf_data_injest_discover_defines(gltf_data, &node, &_prim_gltf_data);
                         auto _shaderset  = setup_compile_and_load_shaders(shaders);
-                        auto _unilocs = UniformLocs();
+                        auto _unilocs = lv_gltf_uniform_locs();
                         setup_uniform_locations(&_unilocs, _shaderset.program);
-                        set_shader(gltf_data, materialIndex, _unilocs, _shaderset);
+                        lv_gltf_data_set_shader(gltf_data, materialIndex, _unilocs, _shaderset);
                     }
                 }
             }
@@ -1221,8 +1230,8 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     // To-do: check if the override actually affects the transform and that the affected object is visible in the scene
     if(gltf_data->overrides.size() > 0) {
         //bool _motion_was_dirty = _motionDirty;
-        for (size_t ii = 0; ii < gltf_data->all_overrides.size(); ++ii) {
-            if (gltf_data->all_overrides[ii].dirty) {
+        for(size_t ii = 0; ii < gltf_data->all_overrides.size(); ++ii) {
+            if(gltf_data->all_overrides[ii].dirty) {
                 _motionDirty = true;
                 lv_gltf_data_clean_override(&gltf_data->all_overrides[ii]);
             }
@@ -1241,7 +1250,8 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     gltf_data->__last_frame_no_motion = gltf_data->_last_frame_no_motion;
     gltf_data->_last_frame_no_motion = true;
     int32_t PREF_CAM_NUM = LV_MIN(view_desc->camera, (int32_t)lv_gltf_data_get_camera_count(gltf_data) - 1);
-    if(_motionDirty || (PREF_CAM_NUM != gltf_data->last_camera_index) || transform_cache_is_empty(gltf_data))  {
+    if(_motionDirty || (PREF_CAM_NUM != gltf_data->last_camera_index) ||
+       lv_gltf_data_transform_cache_is_empty(gltf_data))  {
         //printf("View info: focal x/y/z = %.2f/%.2f/%.2f | pitch/yaw/distance = %.2f/%.2f/%.2f\n", view_desc->focal_x, view_desc->focal_y, view_desc->focal_z, view_desc->pitch, view_desc->yaw, view_desc->distance );
         gltf_data->_last_frame_no_motion = false;
         _motionDirty = false;
@@ -1256,23 +1266,20 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
         return _output.texture;
     }
 
-    uint32_t _ss = get_skins_size(gltf_data);
+    uint32_t _ss = lv_gltf_data_get_skins_size(gltf_data);
     if(_ss > 0) {
-        glDeleteTextures(SKINTEXS(gltf_data)->size(), (const GLuint *)SKINTEXS(gltf_data)->data());
-        SKINTEXS(gltf_data)->clear();
+        lv_gltf_data_destroy_textures(gltf_data);
         uint64_t i = 0u;
         uint32_t SIZEOF_16FLOATS = sizeof(float) * 16;
         while(i < _ss) {
-            auto skinIndex = get_skin(gltf_data, i);
+            auto skinIndex = lv_gltf_data_get_skin(gltf_data, i);
             auto skin = asset->skins[skinIndex];
             auto _ibm = _ibmBySkinThenNode[skinIndex];
 
             std::size_t num_joints = skin.joints.size();
             std::size_t _tex_width = std::ceil(std::sqrt((float)num_joints * 8.0f));
 
-            GLuint rtex;
-            GL_CALL(glGenTextures(1, &rtex));
-            SKINTEXS(gltf_data)->push_back(rtex);
+            GLuint rtex = lv_gltf_data_create_texture(gltf_data);
             GL_CALL(glBindTexture(GL_TEXTURE_2D, rtex));
             GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
             GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
@@ -1283,8 +1290,8 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
             std::size_t _dpos = 0;
             for(uint64_t j = 0; j < num_joints; j++) {
                 auto & _jointNode = asset->nodes[skin.joints[j]];
-                fastgltf::math::fmat4x4 _finalJointMat = get_cached_transform(gltf_data,
-                                                                              &_jointNode) * _ibm[&_jointNode];  // _ibmBySkinThenNode[skinIndex][&_jointNode];
+                fastgltf::math::fmat4x4 _finalJointMat = lv_gltf_data_get_cached_transform(gltf_data,
+                                                                                           &_jointNode) * _ibm[&_jointNode];  // _ibmBySkinThenNode[skinIndex][&_jointNode];
                 std::memcpy(&_data[_dpos], _finalJointMat.data(), SIZEOF_16FLOATS); // Copy final joint matrix
                 std::memcpy(&_data[_dpos + 16], fastgltf::math::transpose(fastgltf::math::invert(_finalJointMat)).data(),
                             SIZEOF_16FLOATS);   // Copy normal matrix
@@ -1297,17 +1304,21 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
             ++i;
         }
     }
-    clear_distance_sort(gltf_data);
-    for(MaterialIndexMap::iterator kv = get_blended_begin(gltf_data); kv != get_blended_end(gltf_data); kv++) {
-        for(NodePairVector::iterator nodeElem = kv->second.begin(); nodeElem != kv->second.end(); nodeElem++) {
-            auto node = nodeElem->first;
-            add_distance_sort_prim(gltf_data, NodeIndexDistancePair(fastgltf::math::length(gltf_data->view_pos -
-                                                                                           lv_gltf_get_centerpoint(gltf_data, get_cached_transform(gltf_data, node), node->meshIndex.value(), nodeElem->second)),
-                                                                    NodeIndexPair(node, nodeElem->second)));
+
+    NodeDistanceVector distance_sort_nodes;
+
+    for(const auto & kv : gltf_data->blended_nodes_by_material_index) {
+        for(const auto & pair : kv.second) {
+            auto node = pair.first;
+            auto new_node = NodeIndexDistancePair(fastgltf::math::length(gltf_data->view_pos - lv_gltf_data_get_centerpoint(
+                                                                             gltf_data, lv_gltf_data_get_cached_transform(gltf_data, node), node->meshIndex.value(), pair.second)),
+                                                  NodeIndexPair(node, pair.second));
+            distance_sort_nodes.push_back(new_node);
         }
     }
     // Sort __distance_sort_nodes by the first member (distance)
-    std::sort(get_distance_sort_begin(gltf_data), get_distance_sort_end(gltf_data),
+    /*std::sort(gltf_data->distance_sort_nodes.begin(), gltf_data->distance_sort_nodes.end(),*/
+    std::sort(distance_sort_nodes.begin(), distance_sort_nodes.end(),
     [](const NodeIndexDistancePair & a, const NodeIndexDistancePair & b) {
         return a.first < b.first;
     });
@@ -1315,7 +1326,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     gltf_data->last_material_index = 99999;  // Reset the last material index to an unused value once per frame at the start
     if(vstate->renderOpaqueBuffer) {
         if(gltf_data->has_any_cameras) setup_view_proj_matrix_from_camera(viewer, gltf_data->current_camera_index, view_desc,
-                                                                          gltf_data->view_mat, gltf_data->view_pos, gltf_data, true);
+                                                                              gltf_data->view_mat, gltf_data->view_pos, gltf_data, true);
         else setup_view_proj_matrix(viewer, view_desc, gltf_data, true);
         _opaque = vstate->opaque_render_state;
         if(setup_restore_opaque_output(view_desc, _opaque, vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight,
@@ -1328,34 +1339,22 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
         if(opt_draw_bg) setup_draw_environment_background(shaders, viewer,
                                                               view_desc->blur_bg * 0.4f); //    GL_CALL(glUseProgram(_shader_prog.bg_program));
 
-        for(MaterialIndexMap::iterator kv = get_opaque_begin(gltf_data); kv != get_opaque_end(gltf_data); kv++) {
-            for(NodePairVector::iterator nodeElem = kv->second.begin(); nodeElem != kv->second.end(); nodeElem++) {
-                auto node = nodeElem->first;
-                draw_primitive(nodeElem->second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(),
-                               get_cached_transform(gltf_data, node), *(shaders->last_env), true);
-            }
-        }
-        for(NodeDistanceVector::iterator kv = get_distance_sort_begin(gltf_data); kv != get_distance_sort_end(gltf_data);
-            kv++) {
-            const auto & nodeDistancePair = *kv; // Dereference the iterator to get the pair
-            const auto & nodeElem = nodeDistancePair.second; // Access the second member (NodeIndexPair)
-            auto node = nodeElem.first;
-            draw_primitive(nodeElem.second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(),
-                           get_cached_transform(gltf_data, node), *(shaders->last_env), true);
+        render_materials(viewer, gltf_data, shaders, gltf_data->opaque_nodes_by_material_index);
+        for(const auto & node_distance_pair : distance_sort_nodes) {
+            const auto & node_element = node_distance_pair.second;
+            const auto & node = node_element.first;
+            draw_primitive(node_element.second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(),
+                           lv_gltf_data_get_cached_transform(gltf_data, node), *(shaders->last_env), true);
         }
 
         GL_CALL(glBindTexture(GL_TEXTURE_2D, _opaque.texture));
         GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
         GL_CALL(glBindTexture(GL_TEXTURE_2D, GL_NONE));
         setup_finish_frame();
-        // "blit" the multisampled opaque texture into the color buffer, which adds antialiasing
-        //GL_CALL(glBindFramebuffer(GL_READ_FRAMEBUFFER, viewer->opaqueFramebufferScratch));
-        //GL_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, viewer->opaqueFramebuffer));
-        //GL_CALL(glBlitFramebuffer(0, 0, viewer->opaqueFramebufferWidth, viewer->opaqueFramebufferHeight, 0, 0, viewer->opaqueFramebufferWidth, viewer->opaqueFramebufferHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST));
     }
 
     if(gltf_data->has_any_cameras) setup_view_proj_matrix_from_camera(viewer, gltf_data->current_camera_index, view_desc,
-                                                                      gltf_data->view_mat, gltf_data->view_pos, gltf_data, false);
+                                                                          gltf_data->view_mat, gltf_data->view_pos, gltf_data, false);
     else setup_view_proj_matrix(viewer, view_desc, gltf_data, false);
     viewer->envRotationAngle = shaders->last_env->angle;
 
@@ -1368,20 +1367,13 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
             return _output.texture;
         }
         if(opt_draw_bg) setup_draw_environment_background(shaders, viewer, view_desc->blur_bg);
-        for(MaterialIndexMap::iterator kv = get_opaque_begin(gltf_data); kv != get_opaque_end(gltf_data); kv++) {
-            for(NodePairVector::iterator nodeElem = kv->second.begin(); nodeElem != kv->second.end(); nodeElem++) {
-                auto node = nodeElem->first;
-                draw_primitive(nodeElem->second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(),
-                               get_cached_transform(gltf_data, node), *(shaders->last_env), false);
-            }
-        }
-        for(NodeDistanceVector::iterator kv = get_distance_sort_begin(gltf_data); kv != get_distance_sort_end(gltf_data);
-            kv++) {
-            const auto & nodeDistancePair = *kv; // Dereference the iterator to get the pair
-            const auto & nodeElem = nodeDistancePair.second; // Access the second member (NodeIndexPair)
-            auto node = nodeElem.first;
-            draw_primitive(nodeElem.second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(),
-                           get_cached_transform(gltf_data, node), *(shaders->last_env), false);
+        render_materials(viewer, gltf_data, shaders, gltf_data->opaque_nodes_by_material_index);
+
+        for(const auto & node_distance_pair : distance_sort_nodes) {
+            const auto & node_element = node_distance_pair.second; // Access the second member (NodeIndexPair)
+            const auto & node = node_element.first;
+            draw_primitive(node_element.second, view_desc, viewer, gltf_data, *node, node->meshIndex.value(),
+                           lv_gltf_data_get_cached_transform(gltf_data, node), *(shaders->last_env), false);
         }
         if(opt_aa_this_frame) {
             GL_CALL(glBindTexture(GL_TEXTURE_2D, _output.texture));
@@ -1401,156 +1393,16 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     return _output.texture;
 }
 
-/*
 
+static void render_materials(lv_gltf_view_t * viewer, lv_gltf_data_t * gltf_data, lv_gl_shader_manager_t * manager,
+                             const MaterialIndexMap & map)
+{
 
-        // MORPH TARGETS
-        // this is a primitive
-        if (this.targets !== undefined && this.targets.length > 0)
-        {
-            const max2DTextureSize = Math.pow(webGlContext.getParameter(GL.MAX_TEXTURE_SIZE), 2);
-            const maxTextureArraySize = webGlContext.getParameter(GL.MAX_ARRAY_TEXTURE_LAYERS);
-            // Check which attributes are affected by morph targets and
-            // define offsets for the attributes in the morph target texture.
-            const attributeOffsets = {};
-            let attributeOffset = 0;
-
-            // Gather used attributes from all targets (some targets might
-            // use more attributes than others)
-            const attributes = Array.from(this.targets.reduce((acc, target) => {
-                Object.keys(target).map(val => acc.add(val));
-                return acc;
-            }, new Set()));
-
-            const vertexCount = gltf.accessors[this.attributes[attributes[0]]].count;
-            this.defines.push(`NUM_VERTICIES ${vertexCount}`);
-            let targetCount = this.targets.length;
-            if (targetCount * attributes.length > maxTextureArraySize)
-            {
-                targetCount = Math.floor(maxTextureArraySize / attributes.length);
-                console.warn(`Morph targets exceed texture size limit. Only ${targetCount} of ${this.targets.length} are used.`);
-            }
-
-            for (const attribute of attributes)
-            {
-                // Add morph target defines
-                this.defines.push(`HAS_MORPH_TARGET_${attribute} 1`);
-                this.defines.push(`MORPH_TARGET_${attribute}_OFFSET ${attributeOffset}`);
-                // Store the attribute offset so that later the
-                // morph target texture can be assembled.
-                attributeOffsets[attribute] = attributeOffset;
-                attributeOffset += targetCount;
-            }
-            this.defines.push("HAS_MORPH_TARGETS 1");
-
-            if (vertexCount <= max2DTextureSize) {
-                // Allocate the texture buffer. Note that all target attributes must be vec3 types and
-                // all must have the same vertex count as the primitives other attributes.
-                const width = Math.ceil(Math.sqrt(vertexCount));
-                const singleTextureSize = Math.pow(width, 2) * 4;
-                const morphTargetTextureArray = new Float32Array(singleTextureSize * targetCount * attributes.length);
-
-                // Now assemble the texture from the accessors.
-                for (let i = 0; i < targetCount; ++i)
-                {
-                    let target = this.targets[i];
-                    for (let [attributeName, offsetRef] of Object.entries(attributeOffsets)){
-                        if (target[attributeName] != undefined) {
-                            const accessor = gltf.accessors[target[attributeName]];
-                            const offset = offsetRef * singleTextureSize;
-                            if (accessor.componentType != GL.FLOAT && accessor.normalized == false){
-                                console.warn("Unsupported component type for morph targets");
-                                attributeOffsets[attributeName] = offsetRef + 1;
-                                continue;
-                            }
-                            const data = accessor.getNormalizedDeinterlacedView(gltf);
-                            switch(accessor.type)
-                            {
-                            case "VEC2":
-                            case "VEC3":
-                            {
-                                // Add padding to fit vec2/vec3 into rgba
-                                let paddingOffset = 0;
-                                let accessorOffset = 0;
-                                const componentCount = accessor.getComponentCount(accessor.type);
-                                for (let j = 0; j < accessor.count; ++j) {
-                                    morphTargetTextureArray.set(data.subarray(accessorOffset, accessorOffset + componentCount), offset + paddingOffset);
-                                    paddingOffset += 4;
-                                    accessorOffset += componentCount;
-                                }
-                                break;
-                            }
-                            case "VEC4":
-                                morphTargetTextureArray.set(data, offset);
-                                break;
-                            default:
-                                console.warn("Unsupported attribute type for morph targets");
-                                break;
-                            }
-                        }
-                        attributeOffsets[attributeName] = offsetRef + 1;
-                    }
-                }
-
-
-                // Add the morph target texture.
-                // We have to create a WebGL2 texture as the format of the
-                // morph target texture has to be explicitly specified
-                // (gltf image would assume uint8).
-                let texture = webGlContext.createTexture();
-                webGlContext.bindTexture( webGlContext.TEXTURE_2D_ARRAY, texture);
-                // Set texture format and upload data.
-                let internalFormat = webGlContext.RGBA32F;
-                let format = webGlContext.RGBA;
-                let type = webGlContext.FLOAT;
-                let data = morphTargetTextureArray;
-                webGlContext.texImage3D(
-                    webGlContext.TEXTURE_2D_ARRAY,
-                    0, //level
-                    internalFormat,
-                    width,
-                    width,
-                    targetCount * attributes.length, //Layer count
-                    0, //border
-                    format,
-                    type,
-                    data);
-                // Ensure mipmapping is disabled and the sampler is configured correctly.
-                webGlContext.texParameteri( GL.TEXTURE_2D_ARRAY,  GL.TEXTURE_WRAP_S,  GL.CLAMP_TO_EDGE);
-                webGlContext.texParameteri( GL.TEXTURE_2D_ARRAY,  GL.TEXTURE_WRAP_T,  GL.CLAMP_TO_EDGE);
-                webGlContext.texParameteri( GL.TEXTURE_2D_ARRAY,  GL.TEXTURE_MIN_FILTER,  GL.NEAREST);
-                webGlContext.texParameteri( GL.TEXTURE_2D_ARRAY,  GL.TEXTURE_MAG_FILTER,  GL.NEAREST);
-
-                // Now we add the morph target texture as a gltf texture info resource, so that
-                // we can just call webGl.setTexture(..., gltfTextureInfo, ...) in the renderer.
-                const morphTargetImage = new gltfImage(
-                    undefined, // uri
-                    GL.TEXTURE_2D_ARRAY, // type
-                    0, // mip level
-                    undefined, // buffer view
-                    undefined, // name
-                    ImageMimeType.GLTEXTURE, // mimeType
-                    texture // image
-                );
-                gltf.images.push(morphTargetImage);
-
-                gltf.samplers.push(new gltfSampler(GL.NEAREST, GL.NEAREST, GL.CLAMP_TO_EDGE, GL.CLAMP_TO_EDGE, undefined));
-
-                const morphTargetTexture = new gltfTexture(
-                    gltf.samplers.length - 1,
-                    gltf.images.length - 1,
-                    GL.TEXTURE_2D_ARRAY);
-                // The webgl texture is already initialized -> this flag informs
-                // webgl.setTexture about this.
-                morphTargetTexture.initialized = true;
-
-                gltf.textures.push(morphTargetTexture);
-
-                this.morphTargetTextureInfo = new gltfTextureInfo(gltf.textures.length - 1, 0, true);
-                this.morphTargetTextureInfo.samplerName = "u_MorphTargetsSampler";
-                this.morphTargetTextureInfo.generateMips = false;
-            } else {
-                console.warn("Mesh of Morph targets too big. Cannot apply morphing.");
-            }
+    for(const auto & kv : map) {
+        for(const auto & pair : kv.second) {
+            auto node = pair.first;
+            draw_primitive(pair.second, &viewer->desc, viewer, gltf_data, *node, node->meshIndex.value(),
+                           lv_gltf_data_get_cached_transform(gltf_data, node), *(manager->last_env), true);
         }
-*/
+    }
+}

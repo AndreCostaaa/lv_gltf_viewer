@@ -237,7 +237,7 @@ bool __computeRayToGround(lv_gltf_view_t * viewer, float norm_mouseX, float norm
 {
     const auto & _viewmat = GET_VIEW_MAT(viewer);
     //const auto& _desc = lv_gltf_view_get_desc(viewer);
-    _MAT4 __projmat;
+    fastgltf::math::fmat4x4 __projmat;
     //float aspectRatio = 256.0f / 192.0f;
     float nearPlane = 0.1f;
     float farPlane = 100.0f;
@@ -258,7 +258,7 @@ bool __computeRayToGround(lv_gltf_view_t * viewer, float norm_mouseX, float norm
     //    }
     //    mfloat_t _invprojmat[MAT4_SIZE];
     //mat4_inverse(_invprojmat, _projmat);
-    __projmat = fastgltf::math::invert(_MAT4(__projmat));
+    __projmat = fastgltf::math::invert(fastgltf::math::fmat4x4(__projmat));
     //    __projmat = fastgltf::math::fmat4x4(
     //        _invprojmat[0], _invprojmat[1], _invprojmat[2], _invprojmat[3],
     //        _invprojmat[4], _invprojmat[5], _invprojmat[6], _invprojmat[7],

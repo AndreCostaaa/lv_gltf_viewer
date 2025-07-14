@@ -8,33 +8,33 @@ extern "C" {
 #endif
 
 typedef enum {
-	OP_VISIBILITY,
-	OP_POSITION,
-	OP_ROTATION,
-	OP_SCALE,
-	OP_BASE_COLOR,
-	OP_ALPHA_FACTOR,
-	OP_EMIS_COLOR,
-	OP_WORLD_POSITION
+    OP_VISIBILITY,
+    OP_POSITION,
+    OP_ROTATION,
+    OP_SCALE,
+    OP_BASE_COLOR,
+    OP_ALPHA_FACTOR,
+    OP_EMIS_COLOR,
+    OP_WORLD_POSITION
 } OverrideProp;
 
 typedef enum {
-	OMC_CHAN1 = 0x01,
-	OMC_CHAN2 = 0x02,
-	OMC_CHAN3 = 0x04,
-	OMC_CHAN4 = 0x08
+    OMC_CHAN1 = 0x01,
+    OMC_CHAN2 = 0x02,
+    OMC_CHAN3 = 0x04,
+    OMC_CHAN4 = 0x08
 } OverrideMaskChannels;
 
 struct _lv_gltf_override {
-	OverrideProp prop;
-	struct _lv_gltf_override *next_override;
-	uint32_t data_mask;
-	float data1;
-	float data2;
-	float data3;
-	float data4;
-	bool read_only;
-	bool dirty;
+    OverrideProp prop;
+    struct _lv_gltf_override * next_override;
+    uint32_t data_mask;
+    float data1;
+    float data2;
+    float data3;
+    float data4;
+    bool read_only;
+    bool dirty;
 };
 typedef struct _lv_gltf_override lv_gltf_override_t;
 
@@ -44,8 +44,8 @@ typedef struct _lv_gltf_override lv_gltf_override_t;
  * @param override Pointer to the lv_gltf_override_t to change the data channel 1 value of.
  * @param new_value The new value.
  */
-void lv_gltf_data_set_override_data1(lv_gltf_override_t *override,
-				     float new_value);
+void lv_gltf_data_set_override_data1(lv_gltf_override_t * override,
+                                     float new_value);
 
 /**
  * @brief Change the value in data channel 2 of a given override.
@@ -53,8 +53,8 @@ void lv_gltf_data_set_override_data1(lv_gltf_override_t *override,
  * @param override Pointer to the lv_gltf_override_t to change the data channel 2 value of.
  * @param new_value The new value.
  */
-void lv_gltf_data_set_override_data2(lv_gltf_override_t *override,
-				     float new_value);
+void lv_gltf_data_set_override_data2(lv_gltf_override_t * override,
+                                     float new_value);
 
 /**
  * @brief Change the value in data channel 3 of a given override.
@@ -62,8 +62,8 @@ void lv_gltf_data_set_override_data2(lv_gltf_override_t *override,
  * @param override Pointer to the lv_gltf_override_t to change the data channel 3 value of.
  * @param new_value The new value.
  */
-void lv_gltf_data_set_override_data3(lv_gltf_override_t *override,
-				     float new_value);
+void lv_gltf_data_set_override_data3(lv_gltf_override_t * override,
+                                     float new_value);
 
 /**
  * @brief Change the value in data channel 4 of a given override.
@@ -71,15 +71,15 @@ void lv_gltf_data_set_override_data3(lv_gltf_override_t *override,
  * @param override Pointer to the lv_gltf_override_t to change the data channel 4 value of.
  * @param new_value The new value.
  */
-void lv_gltf_data_set_override_data4(lv_gltf_override_t *override,
-				     float new_value);
+void lv_gltf_data_set_override_data4(lv_gltf_override_t * override,
+                                     float new_value);
 
 /**
  * @brief Reset the dirty flag for a given override.
  *
  * @param override Pointer to the lv_gltf_override_t to reset the dirty flag for.
  */
-void lv_gltf_data_clean_override(lv_gltf_override_t *override);
+void lv_gltf_data_clean_override(lv_gltf_override_t * override);
 
 /**
  * @brief Add an override to a GLTF data object by node index.
@@ -91,9 +91,9 @@ void lv_gltf_data_clean_override(lv_gltf_override_t *override);
  * @return Pointer to the newly created lv_gltf_override_t object, or NULL if the operation failed.
  */
 lv_gltf_override_t *
-lv_gltf_data_override_add_by_index(lv_gltf_data_t *gltf_data,
-				   uint64_t nodeIndex, OverrideProp which_prop,
-				   uint32_t data_mask);
+lv_gltf_data_override_add_by_index(lv_gltf_data_t * gltf_data,
+                                   uint64_t nodeIndex, OverrideProp which_prop,
+                                   uint32_t data_mask);
 
 /**
  * @brief Add an override to a GLTF data object by node IP address.
@@ -104,10 +104,10 @@ lv_gltf_data_override_add_by_index(lv_gltf_data_t *gltf_data,
  * @param data_mask A mask indicating which data fields to override.
  * @return Pointer to the newly created lv_gltf_override_t object, or NULL if the operation failed.
  */
-lv_gltf_override_t *lv_gltf_data_override_add_by_ip(lv_gltf_data_t *gltf_data,
-						    const char *nodeIp,
-						    OverrideProp which_prop,
-						    uint32_t data_mask);
+lv_gltf_override_t * lv_gltf_data_override_add_by_ip(lv_gltf_data_t * gltf_data,
+                                                     const char * nodeIp,
+                                                     OverrideProp which_prop,
+                                                     uint32_t data_mask);
 
 /**
  * @brief Add an override to a GLTF data object by node ID.
@@ -118,10 +118,10 @@ lv_gltf_override_t *lv_gltf_data_override_add_by_ip(lv_gltf_data_t *gltf_data,
  * @param data_mask A mask indicating which data fields to override.
  * @return Pointer to the newly created lv_gltf_override_t object, or NULL if the operation failed.
  */
-lv_gltf_override_t *lv_gltf_data_override_add_by_id(lv_gltf_data_t *gltf_data,
-						    const char *nodeId,
-						    OverrideProp which_prop,
-						    uint32_t data_mask);
+lv_gltf_override_t * lv_gltf_data_override_add_by_id(lv_gltf_data_t * gltf_data,
+                                                     const char * nodeId,
+                                                     OverrideProp which_prop,
+                                                     uint32_t data_mask);
 
 /**
  * @brief Add a read-only override (value monitor) to a GLTF data object by node index.
@@ -133,9 +133,9 @@ lv_gltf_override_t *lv_gltf_data_override_add_by_id(lv_gltf_data_t *gltf_data,
  * @return Pointer to the newly created lv_gltf_override_t object, or NULL if the operation failed.
  */
 lv_gltf_override_t *
-lv_gltf_data_readonly_add_by_index(lv_gltf_data_t *gltf_data,
-				   uint64_t nodeIndex, OverrideProp which_prop,
-				   uint32_t data_mask);
+lv_gltf_data_readonly_add_by_index(lv_gltf_data_t * gltf_data,
+                                   uint64_t nodeIndex, OverrideProp which_prop,
+                                   uint32_t data_mask);
 
 /**
  * @brief  Add a read-only override (value monitor) to a GLTF data object by node IP address.
@@ -145,9 +145,9 @@ lv_gltf_data_readonly_add_by_index(lv_gltf_data_t *gltf_data,
  * @param which_prop The property to override.
  * @return Pointer to the newly created lv_gltf_override_t object, or NULL if the operation failed.
  */
-lv_gltf_override_t *lv_gltf_data_readonly_add_by_ip(lv_gltf_data_t *gltf_data,
-						    const char *nodeIp,
-						    OverrideProp which_prop);
+lv_gltf_override_t * lv_gltf_data_readonly_add_by_ip(lv_gltf_data_t * gltf_data,
+                                                     const char * nodeIp,
+                                                     OverrideProp which_prop);
 
 /**
  * @brief  Add a read-only override (value monitor) to a GLTF data object by node ID.
@@ -157,9 +157,9 @@ lv_gltf_override_t *lv_gltf_data_readonly_add_by_ip(lv_gltf_data_t *gltf_data,
  * @param which_prop The property to read.
  * @return Pointer to the newly created lv_gltf_override_t object, or NULL if the operation failed.
  */
-lv_gltf_override_t *lv_gltf_data_readonly_add_by_id(lv_gltf_data_t *gltf_data,
-						    const char *nodeId,
-						    OverrideProp which_prop);
+lv_gltf_override_t * lv_gltf_data_readonly_add_by_id(lv_gltf_data_t * gltf_data,
+                                                     const char * nodeId,
+                                                     OverrideProp which_prop);
 
 /**
  * @brief Remove an override from a GLTF data object.
@@ -170,11 +170,11 @@ lv_gltf_override_t *lv_gltf_data_readonly_add_by_id(lv_gltf_data_t *gltf_data,
  * @param data_mask A mask indicating which data fields to override.
  * @return True on success, False on failure.
  */
-bool lv_gltf_data_override_remove(lv_gltf_data_t *_data,
-				  lv_gltf_override_t *override);
+bool lv_gltf_data_override_remove(lv_gltf_data_t * _data,
+                                  lv_gltf_override_t * override);
 
-bool lv_gltf_data_override_remove(lv_gltf_data_t *gltf_data,
-				  lv_gltf_override_t *override);
+bool lv_gltf_data_override_remove(lv_gltf_data_t * gltf_data,
+                                  lv_gltf_override_t * override);
 
 #ifdef __cplusplus
 } /*extern "C"*/

@@ -71,11 +71,14 @@ add_library(
   lvgl_gltfdata
   lib/lv_gltf/data/lv_gltf_data.cpp
   lib/lv_gltf/data/lv_gltf_data_injest.cpp
-  lib/lv_gltf/data/lv_gltf_override.cpp
-  lib/lv_gltf/data/sup/utils.cpp
-  lib/lv_gltf/data/sup/injest.cpp
-  lib/lv_gltf/data/sup/reports.cpp
-  lib/lv_gltf/data/sup/datatypes.cpp)
+  lib/lv_gltf/data/lv_gltf_data_texture.cpp
+  lib/lv_gltf/data/lv_gltf_data_skin.cpp
+  lib/lv_gltf/data/lv_gltf_data_mesh.cpp
+  lib/lv_gltf/data/lv_gltf_data_primitive.cpp
+  lib/lv_gltf/data/lv_gltf_data_shader.cpp
+  lib/lv_gltf/data/lv_gltf_data_node.cpp
+  lib/lv_gltf/data/lv_gltf_data_cache.cpp
+  lib/lv_gltf/data/lv_gltf_override.cpp)
 
 target_include_directories(lvgl_gltfdata PRIVATE fastgltf ${LVGL_INCLUDE_DIRS}
                                                  ${PROTO_INCLUDE_DIRS})

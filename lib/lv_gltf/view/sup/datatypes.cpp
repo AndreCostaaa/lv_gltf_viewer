@@ -1,5 +1,6 @@
 
 #include "../lv_gltf_view_internal.hpp"
+#include "fastgltf/math.hpp"
 #include <lvgl.h>
 #include "../../data/lv_gltf_data_internal.hpp"
 
@@ -96,7 +97,7 @@ void __free_viewer_struct(_VIEW V)
  * @param V Pointer to the viewer instance.
  * @param M The matrix to set as the view matrix.
  */
-void set_matrix_view(_VIEW V, _MAT4 M)
+void set_matrix_view(_VIEW V, fastgltf::math::fmat4x4 M)
 {
     V->mats.viewMatrix = M;
 }
@@ -107,7 +108,7 @@ void set_matrix_view(_VIEW V, _MAT4 M)
  * @param V Pointer to the viewer instance.
  * @param M The matrix to set as the projection matrix.
  */
-void set_matrix_proj(_VIEW V, _MAT4 M)
+void set_matrix_proj(_VIEW V, fastgltf::math::fmat4x4 M)
 {
     V->mats.projectionMatrix = M;
 }
@@ -118,7 +119,7 @@ void set_matrix_proj(_VIEW V, _MAT4 M)
  * @param V Pointer to the viewer instance.
  * @param M The matrix to set as the view-projection matrix.
  */
-void set_matrix_viewproj(_VIEW V, _MAT4 M)
+void set_matrix_viewproj(_VIEW V, fastgltf::math::fmat4x4 M)
 {
     V->mats.viewProjectionMatrix = M;
 }
@@ -211,17 +212,6 @@ _ViewerState * get_viewer_state(_VIEW V)
     _RET &(V->state);
 }
 
-
-/**
- * @brief Get a pointer to the matrix set.
- *
- * @param V Pointer to the viewer instance.
- * @return Pointer to the matrix set structure.
- */
-_MatrixSet * get_matrix_set(_VIEW V)
-{
-    _RET &(V->mats);
-}
 /**
  * @brief Get the view radius from the viewer.
  *

@@ -1,6 +1,7 @@
 #ifndef LV_GLTFVIEW_PRIVATE_H
 #define LV_GLTFVIEW_PRIVATE_H
 
+#include "fastgltf/math.hpp"
 #include "lv_gltf_view.h"
 #include "lv_gltf_view_internal.h"
 #include <stdbool.h>
@@ -50,7 +51,7 @@ gl_viewer_desc_t*   lv_gltf_view_get_desc(_VIEW V);
 _ViewerOpts*        get_viewer_opts(_VIEW V);
 _ViewerMetrics*     get_viewer_metrics(_VIEW V);
 
-void set_shader     (_VIEW V,_UINT I, UniformLocs _uniforms, gl_renwin_shaderset_t _shaderset);
+void set_shader     (_VIEW V,_UINT I, lv_gltf_uniform_locs _uniforms, lv_gltf_renwin_shaderset_t _shaderset);
 void set_cam_pos    (_VIEW V,float x,float y,float z);
 void __free_viewer_struct(_VIEW V);
 void setup_environment_rotation_matrix(float env_rotation_angle, uint32_t shader_program);
@@ -67,8 +68,8 @@ void lv_gltf_opengl_state_pop(void);
 gl_renwin_state_t setup_primary_output(uint32_t texture_width, uint32_t texture_height, bool mipmaps_enabled);
 void setup_finish_frame(void);
 void setup_compile_and_load_bg_shader(lv_opengl_shader_cache_t * shaders);
-gl_renwin_shaderset_t setup_compile_and_load_shaders(lv_opengl_shader_cache_t * shaders);
-void setup_uniform_locations(UniformLocs* uniforms, uint32_t _shader_prog_program);
+lv_gltf_renwin_shaderset_t setup_compile_and_load_shaders(lv_opengl_shader_cache_t * shaders);
+void setup_uniform_locations(lv_gltf_uniform_locs* uniforms, uint32_t _shader_prog_program);
 gl_renwin_state_t setup_opaque_output(uint32_t texture_width, uint32_t texture_height);
 UintVector * animation_get_channel_set(std::size_t anim_num, lv_gltf_data_t * gltf_data,  fastgltf::Node& node);
 void animation_matrix_apply(float timestamp, std::size_t anim_num, lv_gltf_data_t * gltf_data,  fastgltf::Node& node, fastgltf::math::fmat4x4& matrix);
@@ -113,9 +114,9 @@ gl_viewer_desc_t* lv_gltf_view_get_desc(lv_gltf_view_t * V);
 fastgltf::math::fvec3 get_cam_pos(_VIEW V);
 fastgltf::math::fvec3 animation_get_vec3_at_timestamp(lv_gltf_data_t * _data, fastgltf::AnimationSampler * sampler, float _seconds);
 
-void set_matrix_view(_VIEW V,_MAT4 M);
-void set_matrix_proj(_VIEW V,_MAT4 M);
-void set_matrix_viewproj(_VIEW V,_MAT4 M);
+void set_matrix_view(_VIEW V, fastgltf::math::fmat4x4 M);
+void set_matrix_proj(_VIEW V, fastgltf::math::fmat4x4 M);
+void set_matrix_viewproj(_VIEW V, fastgltf::math::fmat4x4 M);
 
 float lv_gltf_animation_get_total_time(lv_gltf_data_t * data, uint32_t animnum );
 

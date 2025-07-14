@@ -1,4 +1,3 @@
-#include "data/lv_gltf_data_internal.hpp"
 #include "view/lv_gltf_view.h"
 #include <lvgl.h>
 #include <src/demo.h>
@@ -687,8 +686,9 @@ void demo_ui_loading_info_objects(void)
 }
 
 #define TBUF_SIZE 32768
-void demo_ui_fill_in_InfoTab(lv_gltf_data_t * _data)
+void demo_ui_fill_in_InfoTab(lv_gltf_data_t * data)
 {
+    LV_UNUSED(data);
     int _cury = 40;
     const int LABEL_HEIGHT = 16;
     int _ll = 0;
@@ -737,14 +737,6 @@ void demo_ui_fill_in_InfoTab(lv_gltf_data_t * _data)
     char * _tbuf;
     _tbuf  = (char *)malloc(TBUF_SIZE);
 
-    lv_gltf_data_make_scenes_summary(_data, _tbuf, TBUF_SIZE);
-    strcat(_c, _tbuf);
-    lv_gltf_data_make_mesh_summary(_data, _tbuf, TBUF_SIZE);
-    strcat(_c, _tbuf);
-    lv_gltf_data_make_material_summary(_data, _tbuf, TBUF_SIZE);
-    strcat(_c, _tbuf);
-    lv_gltf_data_make_images_summary(_data, _tbuf, TBUF_SIZE);
-    strcat(_c, _tbuf);
     strcat(_c, "Nodes: ");
     strcat(_c, "13");
     strcat(_c, "\n");

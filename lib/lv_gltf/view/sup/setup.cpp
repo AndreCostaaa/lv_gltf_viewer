@@ -1,3 +1,4 @@
+#include "fastgltf/math.hpp"
 #include "include/shader_includes.h"
 #include "misc/lv_assert.h"
 #include <iostream>
@@ -35,7 +36,7 @@
  * @param uniforms Pointer to a UniformLocs structure where the uniform locations will be stored.
  * @param _shader_prog_program The shader program from which to retrieve the uniform locations.
  */
-void setup_uniform_locations(UniformLocs * uniforms,
+void setup_uniform_locations(lv_gltf_uniform_locs * uniforms,
                              uint32_t _shader_prog_program)
 {
     auto _u = [&](const char * _uniform) -> GLint {
@@ -766,7 +767,7 @@ void setup_view_proj_matrix_from_camera(
     // The following matrix math is for the projection matrices as defined by the glTF spec:
     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#projection-matrices
 
-    _MAT4 projection;
+    fastgltf::math::fmat4x4 projection;
     const auto & asset = lv_gltf_data_get_asset(gltf_data);
 
     auto width = view_desc->render_width;
@@ -782,7 +783,7 @@ void setup_view_proj_matrix_from_camera(
     fastgltf::visitor{
         [&](fastgltf::Camera::Perspective & perspective)
         {
-            projection = _MAT4(0.0f);
+            projection = fastgltf::math::fmat4x4(0.0f);
             projection[0][0] =
             1.f /
             (aspect * tan(0.5f * perspective.yfov));
@@ -811,7 +812,7 @@ void setup_view_proj_matrix_from_camera(
         },
         [&](fastgltf::Camera::Orthographic & orthographic)
         {
-            projection = _MAT4(1.0f);
+            projection = fastgltf::math::fmat4x4(1.0f);
             projection[0][0] =
                 (1.f / orthographic.xmag) * aspect;
             projection[1][1] = 1.f / orthographic.ymag;
@@ -848,8 +849,8 @@ void setup_view_proj_matrix_from_camera(
 namespace fastgltf::math
 {
 /** Creates a right-handed view matrix */
-[[nodiscard]] _MAT4 lookAtRH(const fvec3 & eye, const fvec3 & center,
-                             const fvec3 & up) noexcept;
+[[nodiscard]] fastgltf::math::fmat4x4 lookAtRH(const fvec3 & eye, const fvec3 & center,
+                                               const fvec3 & up) noexcept;
 }
 
 void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_desc,
@@ -891,11 +892,11 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
                                                                cam_target[1] + (ncam_dir[1] * radius),
                                                                cam_target[2] + (ncam_dir[2] * radius));
 
-    _MAT4 view_mat = fastgltf::math::lookAtRH(cam_position, cam_target,
-                                              fastgltf::math::fvec3(0.0f, 1.0f, 0.0f));
+    fastgltf::math::fmat4x4 view_mat = fastgltf::math::lookAtRH(cam_position, cam_target,
+                                                                fastgltf::math::fvec3(0.0f, 1.0f, 0.0f));
 
     // Create Projection Matrix
-    _MAT4 projection;
+    fastgltf::math::fmat4x4 projection;
     float fov = view_desc->fov;
 
     float znear = _bradius * 0.05f;
@@ -914,7 +915,7 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
         float orthoSize =
             view_desc->distance * _bradius; // Adjust as needed
 
-        projection = _MAT4(1.0f);
+        projection = fastgltf::math::fmat4x4(1.0f);
         projection[0][0] = -(orthoSize * aspect);
         projection[1][1] = (orthoSize);
         projection[2][2] = 2.f / (znear - zfar);
@@ -923,7 +924,7 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
     }
     else {
         // Perspective view
-        projection = _MAT4(0.0f);
+        projection = fastgltf::math::fmat4x4(0.0f);
         assert(width != 0 && height != 0);
         projection[0][0] =
             1.f /
@@ -958,7 +959,7 @@ void setup_view_proj_matrix(lv_gltf_view_t * viewer, gl_viewer_desc_t * view_des
  * @param shaders Pointer to the lv_opengl_shader_cache_t structure containing the shader cache.
  * @return A gl_renwin_shaderset_t structure representing the compiled and loaded shaders.
  */
-gl_renwin_shaderset_t
+lv_gltf_renwin_shaderset_t
 setup_compile_and_load_shaders(lv_opengl_shader_cache_t * manager)
 {
     lv_gl_shader_t * all_defs = all_defines();
@@ -974,7 +975,7 @@ setup_compile_and_load_shaders(lv_opengl_shader_cache_t * manager)
 
     GLuint program_id = lv_gl_shader_program_get_id(program);
     GL_CALL(glUseProgram(program_id));
-    gl_renwin_shaderset_t _shader_prog;
+    lv_gltf_renwin_shaderset_t _shader_prog;
     _shader_prog.program = program_id;
     _shader_prog.ready = true;
 

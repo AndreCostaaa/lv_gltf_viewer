@@ -12,39 +12,45 @@
 #include "lv_gltf_override.h"
 #include "lv_gltf_data_internal.hpp"
 
-void lv_gltf_data_set_override_data1(lv_gltf_override_t * override, float new_value) {
-    if (override->data1 != new_value) {
+void lv_gltf_data_set_override_data1(lv_gltf_override_t * override, float new_value)
+{
+    if(override->data1 != new_value) {
         override->data1 = new_value;
         override->dirty = true;
     }
 }
 
-void lv_gltf_data_set_override_data2(lv_gltf_override_t * override, float new_value) {
-    if (override->data2 != new_value) {
+void lv_gltf_data_set_override_data2(lv_gltf_override_t * override, float new_value)
+{
+    if(override->data2 != new_value) {
         override->data2 = new_value;
         override->dirty = true;
     }
 }
 
-void lv_gltf_data_set_override_data3(lv_gltf_override_t * override, float new_value) {
-    if (override->data3 != new_value) {
+void lv_gltf_data_set_override_data3(lv_gltf_override_t * override, float new_value)
+{
+    if(override->data3 != new_value) {
         override->data3 = new_value;
         override->dirty = true;
     }
 }
 
-void lv_gltf_data_set_override_data4(lv_gltf_override_t * override, float new_value) {
-    if (override->data4 != new_value) {
+void lv_gltf_data_set_override_data4(lv_gltf_override_t * override, float new_value)
+{
+    if(override->data4 != new_value) {
         override->data4 = new_value;
         override->dirty = true;
     }
 }
 
-void lv_gltf_data_clean_override(lv_gltf_override_t * override) {
+void lv_gltf_data_clean_override(lv_gltf_override_t * override)
+{
     override->dirty = false;
 }
 
-lv_gltf_override_t * add_by_node(lv_gltf_data_t * gltf_data, _NODE node, OverrideProp which_prop, uint32_t data_mask, bool read_only)
+lv_gltf_override_t * add_by_node(lv_gltf_data_t * gltf_data, NodePtr node, OverrideProp which_prop, uint32_t data_mask,
+                                 bool read_only)
 {
     if(node == nullptr) {
         return nullptr;
@@ -167,7 +173,7 @@ bool lv_gltf_data_override_remove(lv_gltf_data_t * gltf_data, lv_gltf_override_t
                     gltf_data->overrides[pair.first] = currentOverride->next_override;
                 }
                 gltf_data->all_overrides.erase(
-                    std::remove_if(gltf_data->all_overrides.begin(), gltf_data->all_overrides.end(),
+                                            std::remove_if(gltf_data->all_overrides.begin(), gltf_data->all_overrides.end(),
                 [&overrideToRemove](const lv_gltf_override_t & item) {
                     return compareOverrides(item, *overrideToRemove);
                 }),

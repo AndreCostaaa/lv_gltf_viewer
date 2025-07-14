@@ -24,8 +24,8 @@ lv_gl_shader_t * all_defines(void);
 uint32_t all_defines_count(void);
 
 size_t lineCount(const char * str);
-void addDefine(const char * defsymbol, const char * defvalue_or_null);
-void clearDefines(void);
+void add_define(const char * defsymbol, const char * defvalue_or_null);
+void clear_defines(void);
 char * getDefineId(void);
 
 #define _STRINGIFY(x)       #x
