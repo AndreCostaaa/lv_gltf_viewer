@@ -36,7 +36,7 @@ struct _lv_gltf_override {
 	bool read_only;
 	bool dirty;
 };
-typedef _lv_gltf_override lv_gltf_override_t;
+typedef struct _lv_gltf_override lv_gltf_override_t;
 
 /**
  * @brief Change the value in data channel 1 of a given override.
