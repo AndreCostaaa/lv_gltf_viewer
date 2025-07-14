@@ -67,10 +67,10 @@ void injest_discover_defines(lv_gltf_data_t * data, void * node, void * prim)
             addDefine("LINEAR_OUTPUT", NULL);
         }
 
-        if(data->node_by_light_index->size() > 0) {
+        if(data->node_by_light_index.size() > 0) {
             addDefine("USE_PUNCTUAL", NULL);
             addDefine("USE_IBL", NULL);
-            size_t lc = data->node_by_light_index->size();
+            size_t lc = data->node_by_light_index.size();
             if(lc == 1) addDefine("LIGHT_COUNT", "1");
             else if(lc == 2) addDefine("LIGHT_COUNT", "2");
             else if(lc == 3) addDefine("LIGHT_COUNT", "3");

@@ -93,10 +93,10 @@ bool lv_gltf_data_utils_get_texture_info(lv_gltf_data_t * data_obj,
                                          bool * has_alpha)
 {
     *byte_count = 0;
-    if(model_texture_index >= data_obj->textures->size()) {
+    if(model_texture_index >= data_obj->textures.size()) {
         return false;
     }
-    uint32_t texid = (*data_obj->textures)[model_texture_index].texture;
+    uint32_t texid = data_obj->textures[model_texture_index].texture;
     // Bind the texture
     GL_CALL(glBindTexture(GL_TEXTURE_2D, texid));
     int32_t gl_color_format;
@@ -155,10 +155,10 @@ bool lv_gltf_data_utils_get_texture_pixels(void * pixels,
     LV_UNUSED(width);
     LV_UNUSED(height);
 
-    if(model_texture_index >= data_obj->textures->size()) {
+    if(model_texture_index >= data_obj->textures.size()) {
         return false;
     }
-    uint32_t texid = (*data_obj->textures)[model_texture_index].texture;
+    uint32_t texid = data_obj->textures[model_texture_index].texture;
     // Bind the texture
     GL_CALL(glBindTexture(GL_TEXTURE_2D, texid));
     glGetTexImage(GL_TEXTURE_2D, mipmapnum, (has_alpha) ? GL_RGBA : GL_RGB,

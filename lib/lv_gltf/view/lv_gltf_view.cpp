@@ -595,16 +595,16 @@ void draw_primitive(int32_t prim_num,
                                 ? mappings[vopts->materialVariant].value() + 1
                                 : ((_prim_gltf_data.materialIndex.has_value()) ? (_prim_gltf_data.materialIndex.value() + 1) : 0);
 
-    gltf_data->_lastMaterialIndex = 999999;
+    gltf_data->last_material_index = 999999;
 
     GL_CALL(glBindVertexArray(_prim_data->vertexArray));
-    if((gltf_data->_lastMaterialIndex == materialIndex) && (gltf_data->_lastPassWasTransmission == is_transmission_pass)) {
+    if((gltf_data->last_material_index == materialIndex) && (gltf_data->last_pass_was_transmission == is_transmission_pass)) {
         GL_CALL(glUniformMatrix4fv(get_uniform_ids(gltf_data, materialIndex)->modelMatrixUniform, 1, GL_FALSE, &matrix[0][0]));
     }
     else {
         view_desc->error_frames += 1;
-        gltf_data->_lastMaterialIndex = materialIndex;
-        gltf_data->_lastPassWasTransmission = is_transmission_pass;
+        gltf_data->last_material_index = materialIndex;
+        gltf_data->last_pass_was_transmission = is_transmission_pass;
         auto program = get_shader_program(gltf_data, materialIndex);
         const auto & uniforms = get_uniform_ids(gltf_data, materialIndex);
         GL_CALL(glUseProgram(program));
@@ -660,8 +660,8 @@ void draw_primitive(int32_t prim_num,
 
             // Update any scene lights present
 
-            if(gltf_data->node_by_light_index->size() > 0) {
-                size_t max_light_nodes = gltf_data->node_by_light_index->size();
+            if(gltf_data->node_by_light_index.size() > 0) {
+                size_t max_light_nodes = gltf_data->node_by_light_index.size();
                 size_t max_scene_lights = asset->lights.size();
                 if(max_scene_lights != max_light_nodes) {
                     std::cerr << "ERROR: Scene light count != scene light node count\n";
@@ -673,7 +673,7 @@ void draw_primitive(int32_t prim_num,
                         size_t i = ii + 1;
                         // Update each field of the light struct
                         std::string _prefix = "u_Lights[" + std::to_string(i) + "].";
-                        auto & lightNode = (*gltf_data->node_by_light_index)[ii];
+                        auto & lightNode = gltf_data->node_by_light_index[ii];
                         fastgltf::math::fmat4x4 lightNodeMat = get_cached_transform(gltf_data, lightNode);
                         const auto & m = lightNodeMat.data();
                         char _targ1[100];
@@ -931,7 +931,6 @@ void lv_gltf_view_recache_all_transforms(lv_gltf_view_t * viewer, lv_gltf_data_t
     clear_transform_cache(gltf_data);
     gltf_data->current_camera_index = -1;
     gltf_data->has_any_cameras = false;
-    gltf_data->selected_camera_node = NULL;
     auto tmat = fastgltf::math::fmat4x4{};
     auto cammat =  fastgltf::math::fmat4x4{};
     fastgltf::custom_iterateSceneNodes(*asset, sceneIndex, &tmat, [&](fastgltf::Node & node, fastgltf::math::fmat4x4 & parentworldmatrix,
@@ -942,8 +941,8 @@ void lv_gltf_view_recache_all_transforms(lv_gltf_view_t * viewer, lv_gltf_data_t
             animation_matrix_apply(gltf_data->local_timestamp, anim_num, gltf_data, node, localmatrix);
             made_changes = true;
         }
-        if(gltf_data->overrides->find(&node) != gltf_data->overrides->end()) {
-            lv_gltf_override_t * current_override = (*gltf_data->overrides)[&node];
+        if(gltf_data->overrides.find(&node) != gltf_data->overrides.end()) {
+            lv_gltf_override_t * current_override = gltf_data->overrides[&node];
                                        fastgltf::math::fvec3 local_pos;
             fastgltf::math::fquat local_quat;
                                        fastgltf::math::fvec3 local_scale;
@@ -1029,16 +1028,15 @@ void lv_gltf_view_recache_all_transforms(lv_gltf_view_t * viewer, lv_gltf_data_t
             gltf_data->has_any_cameras = true;
             gltf_data->current_camera_index += 1;
             if(gltf_data->current_camera_index == PREF_CAM_NUM) {
-                gltf_data->selected_camera_node = &node;
                 cammat = (parentworldmatrix * localmatrix);
             }
         }
     });
     if(gltf_data->has_any_cameras) {
-        gltf_data->viewPos[0] = cammat[3][0];
-        gltf_data->viewPos[1] = cammat[3][1];
-        gltf_data->viewPos[2] = cammat[3][2];
-        gltf_data->viewMat = fastgltf::math::invert(cammat);
+        gltf_data->view_pos[0] = cammat[3][0];
+        gltf_data->view_pos[1] = cammat[3][1];
+        gltf_data->view_pos[2] = cammat[3][2];
+        gltf_data->view_mat = fastgltf::math::invert(cammat);
     }
     else gltf_data->current_camera_index = -1;
 
@@ -1055,7 +1053,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     const auto & vmetrics =  &(vstate->metrics);
     bool opt_draw_bg = prepare_bg && (view_desc->bg_mode == BG_ENVIRONMENT);
     bool opt_aa_this_frame = (view_desc->aa_mode == ANTIALIAS_CONSTANT) || ((view_desc->aa_mode == ANTIALIAS_NOT_MOVING) &&
-                                                                            (gltf_data->_lastFrameNoMotion == true)); //((_lastFrameNoMotion == true) && (_lastFrameWasAntialiased == false)));
+                                                                            (gltf_data->last_frame_no_motion == true)); //((_lastFrameNoMotion == true) && (_lastFrameWasAntialiased == false)));
     if(prepare_bg == false) {
         // If this data object is a secondary render pass, inherit the anti-alias setting for this frame from the first gltf_data drawn
         opt_aa_this_frame = view_desc->frame_was_antialiased;
@@ -1077,7 +1075,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     if(view_desc->width != viewer->_lastViewDesc.width) size_changed = true;
     if(view_desc->height != viewer->_lastViewDesc.height) size_changed = true;
 
-    if((opt_aa_this_frame != gltf_data->_lastFrameWasAntialiased) || size_changed) {
+    if((opt_aa_this_frame != gltf_data->last_frame_was_antialiased) || size_changed) {
         // Antialiasing state has changed since the last render
         if(prepare_bg == true) {
             if(vstate->render_state_ready) {
@@ -1086,7 +1084,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
                                                             opt_aa_this_frame);
             }
         }
-        gltf_data->_lastFrameWasAntialiased = opt_aa_this_frame;
+        gltf_data->last_frame_was_antialiased = opt_aa_this_frame;
     }
 
     if(opt_aa_this_frame) {
@@ -1197,12 +1195,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
         }
     }
     bool _motionDirty = false;
-    if(gltf_data->view_is_linked) {
-        //std::cout << "LINKED VIEW TRIGGER WINDOW MOTION\n";
-        _motionDirty = true;
-    }
     if(view_desc->dirty) {
-        //std::cout << "DIRTY VIEW TRIGGER WINDOW MOTION\n";
         _motionDirty = true;
     }
     view_desc->dirty = false;
@@ -1225,12 +1218,12 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     }
 
     // To-do: check if the override actually affects the transform and that the affected object is visible in the scene
-    if(gltf_data->overrides->size() > 0) {
+    if(gltf_data->overrides.size() > 0) {
         //bool _motion_was_dirty = _motionDirty;
-        for (size_t ii = 0; ii < gltf_data->all_override_count; ++ii) {
-            if ((*gltf_data->all_overrides)[ii].dirty) {
+        for (size_t ii = 0; ii < gltf_data->all_overrides.size(); ++ii) {
+            if (gltf_data->all_overrides[ii].dirty) {
                 _motionDirty = true;
-                lv_gltf_data_clean_override(&(*gltf_data->all_overrides)[ii]);
+                lv_gltf_data_clean_override(&gltf_data->all_overrides[ii]);
             }
         }
         //if (_motionDirty && (_motion_was_dirty == false)) { std::cout << "OVERRIDES TRIGGER WINDOW MOTION\n"; }
@@ -1243,18 +1236,18 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     //}
     lv_gltf_copy_viewer_desc(view_desc, &(viewer->_lastViewDesc));
 
-    bool ___lastFrameNoMotion = gltf_data->__lastFrameNoMotion;
-    gltf_data->__lastFrameNoMotion = gltf_data->_lastFrameNoMotion;
-    gltf_data->_lastFrameNoMotion = true;
+    bool ___lastFrameNoMotion = gltf_data->last_frame_no_motion;
+    gltf_data->last_frame_no_motion = gltf_data->last_frame_no_motion;
+    gltf_data->last_frame_no_motion = true;
     int32_t PREF_CAM_NUM = LV_MIN(view_desc->camera, (int32_t)lv_gltf_data_get_camera_count(gltf_data) - 1);
     if(_motionDirty || (PREF_CAM_NUM != gltf_data->last_camera_index) || transform_cache_is_empty(gltf_data))  {
         //printf("View info: focal x/y/z = %.2f/%.2f/%.2f | pitch/yaw/distance = %.2f/%.2f/%.2f\n", view_desc->focal_x, view_desc->focal_y, view_desc->focal_z, view_desc->pitch, view_desc->yaw, view_desc->distance );
-        gltf_data->_lastFrameNoMotion = false;
+        gltf_data->last_frame_no_motion = false;
         _motionDirty = false;
         lv_gltf_view_recache_all_transforms(viewer, gltf_data);
     }
 
-    if((gltf_data->_lastFrameNoMotion == true) && (gltf_data->__lastFrameNoMotion == true) &&
+    if((gltf_data->last_frame_no_motion == true) && (gltf_data->last_frame_no_motion == true) &&
        (___lastFrameNoMotion == true)) {
         // Nothing changed at all, return the previous output frame
         setup_finish_frame();
@@ -1307,7 +1300,7 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
     for(MaterialIndexMap::iterator kv = get_blended_begin(gltf_data); kv != get_blended_end(gltf_data); kv++) {
         for(NodePairVector::iterator nodeElem = kv->second.begin(); nodeElem != kv->second.end(); nodeElem++) {
             auto node = nodeElem->first;
-            add_distance_sort_prim(gltf_data, NodeIndexDistancePair(fastgltf::math::length(gltf_data->viewPos -
+            add_distance_sort_prim(gltf_data, NodeIndexDistancePair(fastgltf::math::length(gltf_data->view_pos -
                                                                                            lv_gltf_get_centerpoint(gltf_data, get_cached_transform(gltf_data, node), node->meshIndex.value(), nodeElem->second)),
                                                                     NodeIndexPair(node, nodeElem->second)));
         }
@@ -1318,16 +1311,11 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
         return a.first < b.first;
     });
 
-    gltf_data->_lastMaterialIndex = 99999;  // Reset the last material index to an unused value once per frame at the start
+    gltf_data->last_material_index = 99999;  // Reset the last material index to an unused value once per frame at the start
     if(vstate->renderOpaqueBuffer) {
-        if(gltf_data->view_is_linked) {
-            //setup_view_proj_matrix_from_link(viewer, gltf_data->linked_view_source, true);
-        }
-        else {
-            if(gltf_data->has_any_cameras) setup_view_proj_matrix_from_camera(viewer, gltf_data->current_camera_index, view_desc,
-                                                                                  gltf_data->viewMat, gltf_data->viewPos, gltf_data, true);
-            else setup_view_proj_matrix(viewer, view_desc, gltf_data, true);
-        }
+        if(gltf_data->has_any_cameras) setup_view_proj_matrix_from_camera(viewer, gltf_data->current_camera_index, view_desc,
+                                                                          gltf_data->view_mat, gltf_data->view_pos, gltf_data, true);
+        else setup_view_proj_matrix(viewer, view_desc, gltf_data, true);
         _opaque = vstate->opaque_render_state;
         if(setup_restore_opaque_output(view_desc, _opaque, vmetrics->opaqueFramebufferWidth, vmetrics->opaqueFramebufferHeight,
                                        prepare_bg)) {
@@ -1365,14 +1353,9 @@ uint32_t lv_gltf_view_render(lv_opengl_shader_cache_t * shaders, lv_gltf_view_t 
         //GL_CALL(glBlitFramebuffer(0, 0, viewer->opaqueFramebufferWidth, viewer->opaqueFramebufferHeight, 0, 0, viewer->opaqueFramebufferWidth, viewer->opaqueFramebufferHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST));
     }
 
-    if(gltf_data->view_is_linked) {
-        //setup_view_proj_matrix_from_link(viewer, gltf_data->linked_view_source, false);
-    }
-    else {
-        if(gltf_data->has_any_cameras) setup_view_proj_matrix_from_camera(viewer, gltf_data->current_camera_index, view_desc,
-                                                                              gltf_data->viewMat, gltf_data->viewPos, gltf_data, false);
-        else setup_view_proj_matrix(viewer, view_desc, gltf_data, false);
-    }
+    if(gltf_data->has_any_cameras) setup_view_proj_matrix_from_camera(viewer, gltf_data->current_camera_index, view_desc,
+                                                                      gltf_data->view_mat, gltf_data->view_pos, gltf_data, false);
+    else setup_view_proj_matrix(viewer, view_desc, gltf_data, false);
     viewer->envRotationAngle = shaders->last_env->angle;
 
     {
