@@ -59,6 +59,7 @@ int main(void)
 
 	lv_obj_t *gltfview_3dtex = lv_3dtexture_create(lv_screen_active());
 	lv_3dtexture_set_src(gltfview_3dtex, gltf_texture);
+	lv_3dtexture_set_flip(gltfview_3dtex, false, false);
 	lv_obj_set_size(gltfview_3dtex, WINDOW_WIDTH, WINDOW_HEIGHT);
 	lv_obj_align(gltfview_3dtex, LV_ALIGN_RIGHT_MID, 0, 0);
 
