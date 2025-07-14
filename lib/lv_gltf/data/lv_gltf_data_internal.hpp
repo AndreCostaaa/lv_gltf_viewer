@@ -487,13 +487,6 @@ void set_shader(lv_gltf_data_t *D, uint64_t _index, UniformLocs _uniforms,
  */
 void init_shaders(lv_gltf_data_t *D, uint64_t _max_index);
 
-/**
- * @brief Retrieve the size of the structure used in the GLTF data.
- *
- * @return The size of the structure in bytes.
- */
-uint32_t lv_gltf_data_get_struct_size(void);
-
 void set_bounds_info(lv_gltf_data_t *data, fastgltf::math::fvec3 v_min,
 		     fastgltf::math::fvec3 v_max, fastgltf::math::fvec3 v_cen,
 		     float radius);

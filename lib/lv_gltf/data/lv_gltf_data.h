@@ -137,13 +137,6 @@ int64_t lv_gltf_data_get_int_radiusX1000(lv_gltf_data_t * _data);
 void lv_gltf_data_copy_bounds_info(lv_gltf_data_t * to, lv_gltf_data_t * from);
 
 /**
- * @brief Retrieve the size of the GLTF data structure.
- *
- * @return The size of the GLTF data structure in bytes.
- */
-unsigned int lv_gltf_data_get_struct_size(void);
-
-/**
  * @brief Retrieve information about a specific texture in a GLTF model.
  *
  * @param data_obj Pointer to the lv_gltf_data_t object containing the model data.

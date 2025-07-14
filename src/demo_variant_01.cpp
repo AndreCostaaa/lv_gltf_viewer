@@ -547,8 +547,6 @@ void reload(char * _filename, const char * _hdr_filename) {
     lv_obj_add_flag(gltfview_3dtex, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
 
-    demo_gltfdata = (lv_gltf_data_t*)lv_malloc(lv_gltf_data_get_struct_size() );
-
     if (shader_cache == NULL) setup_shadercache(_hdr_filename, 1800);
     demo_gltfdata = lv_gltf_data_load_from_bytes(rhombo_flex_kit, rhombo_flex_kit_len, shader_cache);
 
