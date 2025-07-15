@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "data/lv_gltf_override.h"
+#include "data/lv_gltf_bind.h"
 #include "view/lv_gltf_view_internal.h"
 #include <lvgl.h>
 #include "lib/lv_gltf/view/lv_gltf_view.h"
@@ -120,12 +120,12 @@ extern lv_gltf_data_t * demo_gltfdata;
 extern lv_gltf_view_t * demo_gltfview;
 extern lv_obj_t * gltfview_3dtex;
 
-extern lv_gltf_override_t * ov_boom;
-extern lv_gltf_override_t * ov_stick;
-extern lv_gltf_override_t * ov_bucket;
-extern lv_gltf_override_t * ov_swing;
-extern lv_gltf_override_t * ov_cursor;
-extern lv_gltf_override_t * ov_ground_scale;
+extern lv_gltf_bind_t * ov_boom;
+extern lv_gltf_bind_t * ov_stick;
+extern lv_gltf_bind_t * ov_bucket;
+extern lv_gltf_bind_t * ov_swing;
+extern lv_gltf_bind_t * ov_cursor;
+extern lv_gltf_bind_t * ov_ground_scale;
 
 extern GLFWwindow * glfw_window;
 

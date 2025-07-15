@@ -16,7 +16,6 @@
  *      DEFINES
  *********************/
 
-#define MAX_OVERRIDES 1024
 
 /**********************
  *      TYPEDEFS
@@ -45,7 +44,6 @@ lv_gltf_data_t * lv_gltf_data_create_internal(const char * gltf_path,
     new(data) lv_gltf_data_t;
     new(&data->asset) fastgltf::Asset(std::move(asset));
     data->filename = gltf_path;
-    data->load_success = false;
     data->has_any_cameras = false;
     data->current_camera_index = -1;
     data->last_camera_index = -5;
@@ -57,12 +55,8 @@ lv_gltf_data_t * lv_gltf_data_create_internal(const char * gltf_path,
     data->_last_frame_no_motion = false;
     data->__last_frame_no_motion = false;
     data->nodes_parsed = false;
-    new(&data->overrides) NodeOverrideMap();
-    new(&data->all_overrides) OverrideVector();
-    data->all_overrides.reserve(MAX_OVERRIDES);
-    new(&data->node_by_path) StringNodeMap();
-    new(&data->node_by_ip) StringNodeMap();
-    new(&data->node_by_index) NodeVector();
+    new(&data->node_binds) NodeOverrideMap();
+    new(&data->all_binds) OverrideVector();
     new(&data->node_transform_cache) NodeTransformMap();
     new(&data->opaque_nodes_by_material_index) MaterialIndexMap();
     new(&data->blended_nodes_by_material_index) MaterialIndexMap();

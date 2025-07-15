@@ -588,9 +588,9 @@ static void ov_swing_slider_event_cb(lv_event_t * e)
     const float MAX_SWING = 180.0f * PI_TO_RAD;
     lv_obj_t * slider = lv_event_get_target_obj(e);
     float normval = ((float)lv_slider_get_value(slider) / 1000.0f);
-    ov_swing->data1 = (normval * (MAX_SWING - MIN_SWING)) + MIN_SWING;
-    ov_swing->data2 = 0.f;
-    ov_swing->data3 = 0.f;
+    lv_gltf_bind_set(ov_swing, 0, (normval * (MAX_SWING - MIN_SWING)) + MIN_SWING);
+    lv_gltf_bind_set(ov_swing, 1, 0);
+    lv_gltf_bind_set(ov_swing, 2, 0);
 }
 
 static void ov_boom_slider_event_cb(lv_event_t * e)
@@ -599,7 +599,7 @@ static void ov_boom_slider_event_cb(lv_event_t * e)
     const float MIN_BOOM = -25.0f * PI_TO_RAD;
     lv_obj_t * slider = lv_event_get_target_obj(e);
     float normval = ((float)lv_slider_get_value(slider) / 1000.0f) ;
-    ov_boom->data2 = (normval * (MAX_BOOM - MIN_BOOM)) + MIN_BOOM;
+    lv_gltf_bind_set(ov_swing, 1, (normval * (MAX_BOOM - MIN_BOOM)) + MIN_BOOM);
 }
 
 static void ov_stick_slider_event_cb(lv_event_t * e)
@@ -608,7 +608,7 @@ static void ov_stick_slider_event_cb(lv_event_t * e)
     const float MIN_STICK = 160.0f * PI_TO_RAD;
     lv_obj_t * slider = lv_event_get_target_obj(e);
     float normval = ((float)lv_slider_get_value(slider) / 1000.0f) ;
-    ov_stick->data2 = (normval * (MAX_STICK - MIN_STICK)) + MIN_STICK;
+    lv_gltf_bind_set(ov_swing, 1, (normval * (MAX_STICK - MIN_STICK)) + MIN_STICK);
 }
 /*
 static void ov_bucket_slider_event_cb(lv_event_t * e){

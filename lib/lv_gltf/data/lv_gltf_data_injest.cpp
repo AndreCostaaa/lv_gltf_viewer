@@ -218,18 +218,18 @@ lv_gltf_data_t * lv_gltf_data_load_internal(const void * data_source,
         }
         first_visible_mesh = false;
     });
-
-    lv_gltf_data_allocate_index(data, data->asset.nodes.size());
+    lv_gltf_data_nodes_init(data, data->asset.nodes.size());
 
     fastgltf::namegen_iterate_scene_nodes(
         data->asset, scene_index,
-        [&](fastgltf::Node & node, const std::string & nodePath,
-            const std::string & nodeIp, std::size_t nodeIndex,
-    std::size_t childIndex) {
-        LV_UNUSED(childIndex);
-        set_node_at_path(data, nodePath, &node);
-        set_node_at_ip(data, nodeIp, &node);
-        set_node_index(data, nodeIndex, &node);
+        [&](fastgltf::Node & node, const std::string & node_path,
+            const std::string & node_ip, size_t node_index,
+    std::size_t child_index) {
+            LV_UNUSED(node_index);
+            LV_UNUSED(child_index);
+            lv_gltf_data_node_t data_node;
+            lv_gltf_data_node_init(&data_node, &node, node_ip.c_str(), node_path.c_str());
+            lv_gltf_data_node_add(data, &data_node);
     });
 
     {
@@ -248,7 +248,6 @@ lv_gltf_data_t * lv_gltf_data_load_internal(const void * data_source,
         injest_mesh(data, mesh);
     }
 
-    data->load_success = true;
 
     if(data->asset.defaultScene.has_value()) {
         LV_LOG_INFO("Default scene = #%d",

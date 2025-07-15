@@ -9,7 +9,6 @@
 #include <GLFW/glfw3.h> /* For window size / title */
 #include <lib/lv_gl_shader/lv_gl_shader_manager_internal.h>
 #include <lvgl.h>
-#include "demo.h"
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/time.h>

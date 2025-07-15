@@ -7,7 +7,13 @@
  *      INCLUDES
  *********************/
 
+#include "fastgltf/types.hpp"
+#include "lv_gltf_data.h"
 #include "lv_gltf_data_internal.hpp"
+#include "misc/lv_array.h"
+#include "misc/lv_assert.h"
+#include "misc/lv_types.h"
+#include "stdlib/lv_string.h"
 
 /*********************
  *      DEFINES
@@ -33,24 +39,57 @@
  *   GLOBAL FUNCTIONS
  **********************/
 
-void lv_gltf_data_allocate_index(lv_gltf_data_t * data, size_t index)
+void lv_gltf_data_nodes_init(lv_gltf_data_t *data, size_t size)
 {
-    data->node_by_index.resize(index);
+	lv_array_init(&data->nodes, size, sizeof(lv_gltf_data_node_t));
 }
 
-void set_node_at_path(lv_gltf_data_t * data, const std::string & path,
-                      fastgltf::Node * node)
-{
-    data->node_by_path[path] = node;
+void lv_gltf_data_node_init(lv_gltf_data_node_t *node, fastgltf::Node* fastgltf_node, const char* path, const char* ip) {
+	LV_ASSERT_NULL(node);
+	node->node = fastgltf_node;
+	node->path = lv_strdup(path);
+	node->ip = lv_strdup(ip);
+
+	LV_ASSERT_MALLOC(path);
+	LV_ASSERT_MALLOC(ip);
 }
-void set_node_at_ip(lv_gltf_data_t * data, const std::string & ip,
-                    fastgltf::Node * node)
+
+void lv_gltf_data_node_add(lv_gltf_data_t *data, const lv_gltf_data_node_t* data_node)
 {
-    data->node_by_ip[ip] = node;
+	LV_ASSERT_NULL(data);
+	lv_array_push_back(&data->nodes, data_node);
 }
-void set_node_index(lv_gltf_data_t * data, size_t index, fastgltf::Node * node)
+
+lv_gltf_data_node_t *lv_gltf_data_node_get_by_index(lv_gltf_data_t *data, size_t index)
 {
-    data->node_by_index[index] = node;
+	LV_ASSERT_NULL(data);
+	if(index >= lv_array_size(&data->nodes)){
+		return nullptr;
+	}
+	return (lv_gltf_data_node_t*)lv_array_at(&data->nodes, index);
+}
+
+lv_gltf_data_node_t *lv_gltf_data_node_get_by_ip(lv_gltf_data_t *data, const char *ip)
+{
+	for(size_t i = 0; i < data->nodes.size; ++i){
+		 lv_gltf_data_node_t* entry = (lv_gltf_data_node_t*) lv_array_at(&data->nodes, i);
+		if(lv_streq(entry->ip, ip)){
+			return entry;
+		}
+	}
+	return nullptr;
+}
+
+lv_gltf_data_node_t *lv_gltf_data_node_get_by_path(lv_gltf_data_t *data, const char *path)
+{
+
+	for(size_t i = 0; i < data->nodes.size; ++i){
+		 lv_gltf_data_node_t* entry = (lv_gltf_data_node_t*) lv_array_at(&data->nodes, i);
+		if(lv_streq(entry->path, path)){
+			return entry;
+		}
+	}
+	return nullptr;
 }
 
 /**********************

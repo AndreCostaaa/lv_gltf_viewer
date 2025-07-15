@@ -4,8 +4,9 @@
 #include "fastgltf/math.hpp"
 #include "lv_gltf_data.h"
 #include "lv_gltf_data_internal.h"
-#include "lv_gltf_override.h"
+#include "lv_gltf_bind.h"
 
+#include "misc/lv_array.h"
 #include <GL/gl.h>
 
 #ifdef __cplusplus
@@ -49,29 +50,32 @@ using NodeVector = std::vector<NodePtr>;
 using NodePrimCenterMap =
 	std::map<uint32_t, std::map<uint32_t, fastgltf::math::fvec4> >;
 // Map of Overrides by Node
-using NodeOverrideMap = std::map<NodePtr, lv_gltf_override_t *>;
+using NodeOverrideMap = std::map<fastgltf::Node*, lv_gltf_bind_t *>;
 // Map of Overrides by Node
-using OverrideVector = std::vector<lv_gltf_override_t>;
+using OverrideVector = std::vector<lv_gltf_bind_t>;
 
 typedef struct {
 	GLuint drawsBuffer;
 	std::vector<lv_gltf_primitive_t> primitives;
 } lv_gltf_mesh_data_t;
 
+typedef struct {
+	const char* ip;
+	const char* path;
+	fastgltf::Node* node;
+}lv_gltf_data_node_t;
+
+
 struct lv_gltf_data_struct {
 	const char *filename;
 	fastgltf::Asset asset;
-	bool load_success;
-	StringNodeMap node_by_path;
-	StringNodeMap node_by_ip;
-	NodeVector node_by_index;
+	lv_array_t nodes;
 	NodeVector node_by_light_index;
 	NodeTransformMap node_transform_cache;
 	MaterialIndexMap opaque_nodes_by_material_index;
 	MaterialIndexMap blended_nodes_by_material_index;
-	/*NodeDistanceVector distance_sort_nodes;*/
-	NodeOverrideMap overrides;
-	OverrideVector all_overrides;
+	NodeOverrideMap node_binds;
+	OverrideVector all_binds;
 	LongVector validated_skins;
 	std::vector<GLuint> skin_tex;
 	NodePrimCenterMap local_mesh_to_center_points_by_primitive;
@@ -200,14 +204,6 @@ lv_gltf_primitive_t *lv_gltf_data_get_primitive_from_mesh(lv_gltf_mesh_data_t *M
  * @return Pointer to the asset data.
  */
 fastgltf::Asset *lv_gltf_data_get_asset(lv_gltf_data_t *data);
-
-/**
- * @brief Allocate an index for a specific entry in the GLTF model data.
- *
- * @param D Pointer to the lv_gltf_data_t object containing the model data.
- * @param I The index to allocate.
- */
-void lv_gltf_data_allocate_index(lv_gltf_data_t *data, size_t index);
 
 /**
  * @brief Retrieve mesh data for a specific index from the GLTF model data.
@@ -376,11 +372,11 @@ lv_gltf_data_t *lv_gltf_data_load_internal(const void *data_source,
 					   size_t data_size,
 					   lv_gl_shader_manager_t *shaders);
 
-void set_node_at_path(lv_gltf_data_t *data, const std::string &path,
-		      fastgltf::Node *node);
-void set_node_at_ip(lv_gltf_data_t *data, const std::string &ip,
-		    fastgltf::Node *node);
-void set_node_index(lv_gltf_data_t *data, size_t index, fastgltf::Node *node);
+/*void set_node_at_path(lv_gltf_data_t *data, const std::string &path,*/
+/*		      fastgltf::Node *node);*/
+/*void set_node_at_ip(lv_gltf_data_t *data, const std::string &ip,*/
+/*		    fastgltf::Node *node);*/
+/*void set_node_index(lv_gltf_data_t *data, size_t index, fastgltf::Node *node);*/
 
 fastgltf::math::fvec4 lv_gltf_get_primitive_centerpoint(lv_gltf_data_t *data,
 							fastgltf::Mesh &mesh,
@@ -392,7 +388,10 @@ fastgltf::math::fvec3 get_cached_centerpoint(lv_gltf_data_t *data, size_t index,
 
 void lv_gltf_data_destroy_textures(lv_gltf_data_t* data);
 GLuint lv_gltf_data_create_texture(lv_gltf_data_t* data);
-
+void lv_gltf_data_nodes_init(lv_gltf_data_t *data, size_t size);
+void lv_gltf_data_node_init(lv_gltf_data_node_t *node, fastgltf::Node *fastgltf_node, const char *ip, const char *path);
+void lv_gltf_data_node_add(lv_gltf_data_t *data, const lv_gltf_data_node_t *data_node);
+void lv_gltf_data_node_delete(lv_gltf_data_node_t *node);
 
 /**
  * @brief Retrieve the pixel data for a specific texture in a GLTF model.
@@ -411,6 +410,10 @@ bool lv_gltf_data_get_texture_pixels(void * pixels,
                                            uint32_t model_texture_index,
                                            uint32_t mipmapnum, uint32_t width,
                                            uint32_t height, bool has_alpha);
+
+lv_gltf_data_node_t * lv_gltf_data_node_get_by_index(lv_gltf_data_t* data, size_t index);
+lv_gltf_data_node_t * lv_gltf_data_node_get_by_ip(lv_gltf_data_t* data, const char* ip);
+lv_gltf_data_node_t * lv_gltf_data_node_get_by_path(lv_gltf_data_t* data, const char* path);
 
 #endif
 

@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "lib/lv_gltf/data/lv_gltf_override.h"
+#include "lib/lv_gltf/data/lv_gltf_bind.h"
 #include "lib/lv_gltf/data/lv_gltf_data.h"
 #include "lib/lv_gltf/view/lv_gltf_view.h"
 #include "lib/lv_gltf/view/lv_gltf_view_internal.hpp"
@@ -49,13 +49,13 @@ lv_gltf_view_t * demo_gltfview;
 lv_gl_shader_manager_t * shader_cache = NULL;
 lv_gltf_data_t * system_gltfdata = NULL;
 lv_gltf_data_t * demo_gltfdata = NULL;
-lv_gltf_override_t * ov_boom;
-lv_gltf_override_t * ov_stick;
-lv_gltf_override_t * ov_bucket;
-lv_gltf_override_t * ov_swing;
-lv_gltf_override_t * ov_cursor;
-lv_gltf_override_t * ov_cursor_scale;
-lv_gltf_override_t * ov_ground_scale;
+lv_gltf_bind_t * ov_boom;
+lv_gltf_bind_t * ov_stick;
+lv_gltf_bind_t * ov_bucket;
+lv_gltf_bind_t * ov_swing;
+lv_gltf_bind_t * ov_cursor;
+lv_gltf_bind_t * ov_cursor_scale;
+lv_gltf_bind_t * ov_ground_scale;
 //lv_gltf_override_t * ov_ground_rot;
 
 //static lv_image_dsc_t img_dsc = {0};
@@ -88,17 +88,17 @@ void main() {
 
 void demo_set_overrides_with_excavator_test(void)
 {
-    ov_boom = lv_gltf_data_override_add_by_id(demo_gltfdata,     "/root_base/base_platform/cab_pivot/proximal_armlink",
-                                              OP_ROTATION, OMC_CHAN2);
-    ov_stick = lv_gltf_data_override_add_by_id(demo_gltfdata,
-                                               "/root_base/base_platform/cab_pivot/proximal_armlink/distal_armlink", OP_ROTATION, OMC_CHAN2);
-    ov_bucket = lv_gltf_data_override_add_by_id(demo_gltfdata,
-                                                "/root_base/base_platform/cab_pivot/proximal_armlink/distal_armlink/bucket", OP_ROTATION,
-                                                OMC_CHAN2);  // Not currently valid even with the right model loaded
-    ov_swing = lv_gltf_data_override_add_by_id(demo_gltfdata,    "/root_base/base_platform/cab_pivot", OP_ROTATION,
-                                               OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
-    if(needs_system_gltfdata) ov_cursor = lv_gltf_data_override_add_by_id(system_gltfdata, "/cursor", OP_POSITION,
-                                                                              OMC_CHAN1 | OMC_CHAN2  | OMC_CHAN3);
+    ov_boom = lv_gltf_bind_add_by_path(demo_gltfdata,     "/root_base/base_platform/cab_pivot/proximal_armlink",
+                                              LV_GLTF_BIND_PROP_ROTATION, LV_GLTF_BIND_CHANNEL_1, LV_GLTF_BIND_DIR_WRITE);
+    ov_stick = lv_gltf_bind_add_by_path(demo_gltfdata,
+                                               "/root_base/base_platform/cab_pivot/proximal_armlink/distal_armlink", LV_GLTF_BIND_PROP_ROTATION, LV_GLTF_BIND_CHANNEL_1, LV_GLTF_BIND_DIR_WRITE);
+    ov_bucket = lv_gltf_bind_add_by_path(demo_gltfdata,
+                                                "/root_base/base_platform/cab_pivot/proximal_armlink/distal_armlink/bucket", LV_GLTF_BIND_PROP_ROTATION,
+                                                LV_GLTF_BIND_CHANNEL_1, LV_GLTF_BIND_DIR_WRITE);  // Not currently valid even with the right model loaded
+    ov_swing = lv_gltf_bind_add_by_path(demo_gltfdata,    "/root_base/base_platform/cab_pivot", LV_GLTF_BIND_PROP_ROTATION,
+            LV_GLTF_BIND_CHANNEL_0 | LV_GLTF_BIND_CHANNEL_1 | LV_GLTF_BIND_CHANNEL_2, LV_GLTF_BIND_DIR_WRITE);
+    if(needs_system_gltfdata) ov_cursor = lv_gltf_bind_add_by_path(system_gltfdata, "/cursor", LV_GLTF_BIND_PROP_POSITION,
+            LV_GLTF_BIND_CHANNEL_0 | LV_GLTF_BIND_CHANNEL_1 | LV_GLTF_BIND_CHANNEL_2, LV_GLTF_BIND_DIR_WRITE);
     if((ov_boom != NULL) && (ov_stick != NULL) && (ov_swing != NULL) &&
        (ov_cursor != NULL)) demo_ui_add_override_controls(tab_pages[TAB_VIEW]);
 }
@@ -153,8 +153,8 @@ void reload(char * _filename, const char * _hdr_filename) {
         //lv_gltf_data_link_view_to(system_gltfdata, demo_gltfdata); // this doesn't actually do anything yet, it was not necessary.  Just draw the next object into the same buffer, the view will be linked.
         lv_gltf_data_copy_bounds_info(system_gltfdata, demo_gltfdata);
         double newradius = lv_gltf_data_get_radius(demo_gltfdata);
-        ov_ground_scale = lv_gltf_data_override_add_by_id(system_gltfdata, "/grid", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
-        //ov_ground_rot = lv_gltf_data_override_add_by_id(system_gltfdata, "/grid", OP_ROTATION, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
+        ov_ground_scale = lv_gltf_bind_add_by_path(system_gltfdata, "/grid", LV_GLTF_BIND_PROP_SCALE, LV_GLTF_BIND_CHANNEL_0 | LV_GLTF_BIND_CHANNEL_1 | LV_GLTF_BIND_CHANNEL_2, LV_GLTF_BIND_DIR_WRITE);
+        //ov_ground_rot = lv_gltf_data_override_add_by_id(system_gltfdata, "/grid", LV_GLTF_BIND_PROP_ROTATION, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
         //lv_gltf_data_override_remove(system_gltfdata, ov_ground_rot);
 
         float unitscale = newradius * ((1.f / 2.f) * 3.f);
@@ -162,18 +162,19 @@ void reload(char * _filename, const char * _hdr_filename) {
         if (!show_grid) {
             tscale = 0.f;
         }
-        ov_ground_scale->data1 = tscale;
-        ov_ground_scale->data2 = tscale;
-        ov_ground_scale->data3 = tscale;
+        lv_gltf_bind_set(ov_ground_scale, 0, tscale);
+        lv_gltf_bind_set(ov_ground_scale, 1, tscale);
+        lv_gltf_bind_set(ov_ground_scale, 2, tscale);
 
         tscale = unitscale / 8.f;
-        ov_cursor_scale = lv_gltf_data_override_add_by_id(system_gltfdata, "/cursor/visible", OP_SCALE, OMC_CHAN1 | OMC_CHAN2 | OMC_CHAN3);
+        ov_cursor_scale = lv_gltf_bind_add_by_path(system_gltfdata, "/cursor/visible", LV_GLTF_BIND_PROP_SCALE, LV_GLTF_BIND_CHANNEL_0 | LV_GLTF_BIND_CHANNEL_1 | LV_GLTF_BIND_CHANNEL_2, LV_GLTF_BIND_DIR_WRITE);
         #ifndef EXPERIMENTAL_GROUNDCAST
         tscale = 0.f;
         #endif
-        ov_cursor_scale->data1 = tscale;
-        ov_cursor_scale->data2 = tscale;
-        ov_cursor_scale->data3 = tscale;
+
+        lv_gltf_bind_set(ov_cursor_scale, 0, tscale);
+        lv_gltf_bind_set(ov_cursor_scale, 1, tscale);
+        lv_gltf_bind_set(ov_cursor_scale, 2, tscale);
     }
     lv_obj_add_flag(grp_loading, LV_OBJ_FLAG_HIDDEN);
     if (!stub_mode) lv_obj_clear_flag(gltfview_3dtex, LV_OBJ_FLAG_HIDDEN);
