@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 
+#include "../../lv_gl_shader/lv_gl_shader_manager_internal.h"
 #include <misc/lv_types.h>
 
 #ifndef SHADER_CACHE_H
@@ -17,7 +18,6 @@ typedef struct lv_shader_program_struct lv_shader_program_t;//, *pProgram;
 #endif
 
 
-typedef struct lv_gltf_view_struct lv_gltf_view_t;
 /**
  * @brief Get the isolated filename from a full path.
  *

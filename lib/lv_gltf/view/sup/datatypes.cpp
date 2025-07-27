@@ -4,8 +4,6 @@
 #include <lvgl.h>
 #include "../../data/lv_gltf_data_internal.hpp"
 
-#define _RET return
-
 uint32_t get_viewer_datasize(void)
 {
     return sizeof(lv_gltf_view_t);
@@ -35,7 +33,7 @@ uint32_t standard_render_func(lv_opengl_shader_cache_t * shader_cache, lv_gltf_v
     return retval;
 }
 
-void init_viewer_struct(_VIEW _ViewerMem)
+void init_viewer_struct(lv_gltf_view_t* viewer)
 {
     lv_gltf_view_t _newViewer;
     auto _newMetrics = &_newViewer.state.metrics;
@@ -82,13 +80,13 @@ void init_viewer_struct(_VIEW _ViewerMem)
     _newViewer.envRotationAngle = 0.0f;
 
 
-    *_ViewerMem = _newViewer;
+    *viewer = _newViewer;
 }
 
-void __free_viewer_struct(_VIEW V)
+void __free_viewer_struct(lv_gltf_view_t * view)
 {
     // Nothing to do here
-    LV_UNUSED(V);
+    LV_UNUSED(view);
 }
 
 /**
@@ -97,9 +95,9 @@ void __free_viewer_struct(_VIEW V)
  * @param V Pointer to the viewer instance.
  * @param M The matrix to set as the view matrix.
  */
-void set_matrix_view(_VIEW V, fastgltf::math::fmat4x4 M)
+void set_matrix_view(lv_gltf_view_t * view, fastgltf::math::fmat4x4 M)
 {
-    V->mats.viewMatrix = M;
+    view->mats.viewMatrix = M;
 }
 
 /**
@@ -108,9 +106,9 @@ void set_matrix_view(_VIEW V, fastgltf::math::fmat4x4 M)
  * @param V Pointer to the viewer instance.
  * @param M The matrix to set as the projection matrix.
  */
-void set_matrix_proj(_VIEW V, fastgltf::math::fmat4x4 M)
+void set_matrix_proj(lv_gltf_view_t * view, fastgltf::math::fmat4x4 M)
 {
-    V->mats.projectionMatrix = M;
+    view->mats.projectionMatrix = M;
 }
 
 /**
@@ -119,9 +117,9 @@ void set_matrix_proj(_VIEW V, fastgltf::math::fmat4x4 M)
  * @param V Pointer to the viewer instance.
  * @param M The matrix to set as the view-projection matrix.
  */
-void set_matrix_viewproj(_VIEW V, fastgltf::math::fmat4x4 M)
+void set_matrix_viewproj(lv_gltf_view_t * view, fastgltf::math::fmat4x4 M)
 {
-    V->mats.viewProjectionMatrix = M;
+    view->mats.viewProjectionMatrix = M;
 }
 
 /**
@@ -130,9 +128,9 @@ void set_matrix_viewproj(_VIEW V, fastgltf::math::fmat4x4 M)
  * @param V Pointer to the viewer instance.
  * @return The camera position as a vector.
  */
-fastgltf::math::fvec3 get_cam_pos(_VIEW V)
+fastgltf::math::fvec3 get_cam_pos(lv_gltf_view_t * view)
 {
-    _RET(V->cameraPos);
+    return(view->cameraPos);
 }
 
 /**
@@ -141,9 +139,9 @@ fastgltf::math::fvec3 get_cam_pos(_VIEW V)
  * @param V Pointer to the viewer instance.
  * @return The framebuffer ID or 0 if not ready.
  */
-uint32_t get_output_framebuffer(_VIEW V)
+uint32_t get_output_framebuffer(lv_gltf_view_t * view)
 {
-    _RET !V->state.render_state_ready ? V->state.render_state.framebuffer : 0;
+    return !view->state.render_state_ready ? view->state.render_state.framebuffer : 0;
 }
 
 /**
@@ -152,9 +150,9 @@ uint32_t get_output_framebuffer(_VIEW V)
  * @param V Pointer to the viewer instance.
  * @return Pointer to the view matrix.
  */
-void * get_matrix_view(_VIEW V)
+void * get_matrix_view(lv_gltf_view_t * view)
 {
-    _RET &(V->mats.viewMatrix);
+    return &(view->mats.viewMatrix);
 }
 
 /**
@@ -163,9 +161,9 @@ void * get_matrix_view(_VIEW V)
  * @param V Pointer to the viewer instance.
  * @return Pointer to the projection matrix.
  */
-void * get_matrix_proj(_VIEW V)
+void * get_matrix_proj(lv_gltf_view_t * view)
 {
-    _RET &(V->mats.projectionMatrix);
+    return &(view->mats.projectionMatrix);
 }
 
 /**
@@ -174,9 +172,9 @@ void * get_matrix_proj(_VIEW V)
  * @param V Pointer to the viewer instance.
  * @return Pointer to the view-projection matrix.
  */
-void * get_matrix_viewproj(_VIEW V)
+void * get_matrix_viewproj(lv_gltf_view_t * view)
 {
-    _RET &(V->mats.viewProjectionMatrix);
+    return &(view->mats.viewProjectionMatrix);
 }
 
 /**
@@ -185,9 +183,9 @@ void * get_matrix_viewproj(_VIEW V)
  * @param V Pointer to the viewer instance.
  * @return Pointer to the viewer options structure.
  */
-_ViewerOpts * get_viewer_opts(_VIEW V)
+_ViewerOpts * get_viewer_opts(lv_gltf_view_t * view)
 {
-    _RET &(V->state.options);
+    return &(view->state.options);
 }
 
 /**
@@ -196,9 +194,9 @@ _ViewerOpts * get_viewer_opts(_VIEW V)
  * @param V Pointer to the viewer instance.
  * @return Pointer to the viewer metrics structure.
  */
-_ViewerMetrics * get_viewer_metrics(_VIEW V)
+_ViewerMetrics * get_viewer_metrics(lv_gltf_view_t * view)
 {
-    _RET &(V->state.metrics);
+    return &(view->state.metrics);
 }
 
 /**
@@ -207,9 +205,9 @@ _ViewerMetrics * get_viewer_metrics(_VIEW V)
  * @param V Pointer to the viewer instance.
  * @return Pointer to the viewer state structure.
  */
-_ViewerState * get_viewer_state(_VIEW V)
+_ViewerState * get_viewer_state(lv_gltf_view_t * view)
 {
-    _RET &(V->state);
+    return &(view->state);
 }
 
 /**
@@ -218,9 +216,9 @@ _ViewerState * get_viewer_state(_VIEW V)
  * @param V Pointer to the viewer instance.
  * @return The view radius as a double.
  */
-double get_view_radius(_VIEW V)
+double get_view_radius(lv_gltf_view_t * view)
 {
-    _RET(double)V->bound_radius;
+    return(double)view->bound_radius;
 }
 
 /**
@@ -231,9 +229,9 @@ double get_view_radius(_VIEW V)
  * @param y The Y coordinate of the camera position.
  * @param z The Z coordinate of the camera position.
  */
-void set_cam_pos(_VIEW V, float x, float y, float z)
+void set_cam_pos(lv_gltf_view_t * view, float x, float y, float z)
 {
-    V->cameraPos[0] = x;
-    V->cameraPos[1] = y;
-    V->cameraPos[2] = z;
+    view->cameraPos[0] = x;
+    view->cameraPos[1] = y;
+    view->cameraPos[2] = z;
 }

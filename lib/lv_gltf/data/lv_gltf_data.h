@@ -9,8 +9,6 @@
 extern "C" {
 #endif
 
-typedef struct lv_gltf_data_struct lv_gltf_data_t;
-
 size_t lv_gltf_data_get_image_count(const lv_gltf_data_t * data);
 size_t lv_gltf_data_get_texture_count(const lv_gltf_data_t * data);
 size_t lv_gltf_data_get_material_count(const lv_gltf_data_t * data);

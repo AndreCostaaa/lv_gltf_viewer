@@ -1,4 +1,4 @@
 [submodule "lvgl"]
 	path = lvgl
-	url = https://github.com/FishOfTheNorthStar/lvgl_pr_patch_func.git
-	branch = pr_3_mouse_ex
+	url = https://github.com/AndreCostaaa/lvgl.git
+	branch = feat-gltf

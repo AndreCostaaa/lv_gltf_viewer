@@ -778,7 +778,7 @@
 #define LV_USE_WIN        1
 
 #define LV_USE_3DTEXTURE  1
-#define LV_USE_GLTF  0
+#define LV_USE_GLTF  1
 
 /*==================
  * THEMES
