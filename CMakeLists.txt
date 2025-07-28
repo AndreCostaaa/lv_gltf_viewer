@@ -33,6 +33,10 @@ set(FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT
     ON
     CACHE BOOL "" FORCE)
 
+set(FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT
+    ON
+    CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable(fastgltf)
 
 FetchContent_Declare(
