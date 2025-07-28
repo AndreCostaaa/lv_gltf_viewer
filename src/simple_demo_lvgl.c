@@ -24,9 +24,7 @@ int main(void)
 	/* GLTF setup */
 	lv_obj_t *viewer = lv_gltf_view_create(lv_screen_active());
 	lv_gltf_load_model_from_file(viewer, "gltfs/logo1.glb");
-
 	lv_obj_set_size(viewer, WINDOW_WIDTH, WINDOW_HEIGHT);
-	lv_obj_align(viewer, LV_ALIGN_RIGHT_MID, 0, 0);
 
 	while (1) {
 		uint32_t time_until_next = lv_timer_handler();
@@ -34,7 +32,6 @@ int main(void)
 			time_until_next = LV_DEF_REFR_PERIOD;
 		}
 		lv_delay_ms(time_until_next);
-		lv_obj_invalidate(viewer);
 	}
 	return 0;
 }
