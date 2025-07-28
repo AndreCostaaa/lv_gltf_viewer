@@ -193,7 +193,12 @@ uint32_t lv_gl_shader_manager_select_shader(lv_gl_shader_manager_t * shader,
     char * shader_source = construct_shader(original_shader_source,
                                             permutations, permutations_len);
 
-    hash ^= lv_gl_shader_hash(shader_source);
+    for(size_t i = 0; i < permutations_len; ++i){
+        hash ^= lv_gl_shader_hash(permutations[i].name);
+        if(permutations[i].source){
+            hash ^= lv_gl_shader_hash(permutations[i].source);
+        }
+    }
 
     lv_gl_compiled_shader_t shader_map_key = { hash, 0 };
     lv_rb_node_t * shader_map_node =

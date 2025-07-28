@@ -29,10 +29,9 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 
-lv_gl_shader_manager_t * lv_gl_shader_manager_create(lv_gl_shader_t * shaders,
-                                                     size_t shaders_count,
-                                                     char * _vertSrc,
-                                                     char * _fragSrc);
+lv_gl_shader_manager_t * lv_gl_shader_manager_create(lv_gl_shader_t * sources,
+                                                     size_t len, char * vert_src,
+                                                     char * frag_src);
 void lv_gl_shader_manager_destroy(lv_gl_shader_manager_t * manager);
 uint32_t lv_gl_shader_hash(const char * value);
 
