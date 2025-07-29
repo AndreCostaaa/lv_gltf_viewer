@@ -461,7 +461,7 @@ static char * replace_include(const char * source, const char * pattern,
     while((pos = strstr(result, pattern))) {
         lv_memset((void *)pos, ' ', pattern_len);
     }
-
+    result[new_len] = '\0';
     return result;
 }
 static lv_rb_t create_shader_map(const lv_gl_shader_t * shaders, size_t len)
