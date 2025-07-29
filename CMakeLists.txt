@@ -149,10 +149,13 @@ endif()
 option(ENABLE_ASAN "Enable AddressSanitizer in Debug builds" OFF)
 
 if(ENABLE_ASAN AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_compile_options(gltf_view PRIVATE -fsanitize=address)
-  target_link_options(gltf_view PRIVATE -fsanitize=address)
-  target_compile_options(demo_rhombo_overrides PRIVATE -fsanitize=address)
-  target_link_options(demo_rhombo_overrides PRIVATE -fsanitize=address)
+  # target_compile_options(gltf_view PRIVATE -fsanitize=address)
+  # target_link_options(gltf_view PRIVATE -fsanitize=address)
+  # target_compile_options(demo_rhombo_overrides PRIVATE -fsanitize=address)
+  # target_link_options(demo_rhombo_overrides PRIVATE -fsanitize=address)
+
+  target_compile_options(demo PRIVATE -fsanitize=address)
+  target_link_options(demo PRIVATE -fsanitize=address)
 
 endif()
 
