@@ -47,7 +47,7 @@ int main(void)
 	lv_gltf_view_set_height(demo_gltfview, WINDOW_HEIGHT);
 
 	lv_gl_shader_manager_env_textures_t env =
-		lv_gltf_view_ibl_sampler_setup(NULL, NULL, 0);
+		lv_gltf_view_ibl_sampler_setup(NULL, 0);
 	shader_manager->last_env = &env;
 
 	lv_gltf_data_t *demo_gltfdata = lv_gltf_data_load_from_file(

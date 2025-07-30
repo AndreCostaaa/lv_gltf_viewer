@@ -15,11 +15,6 @@ find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
 
-option(
-  BUILD_DEMO_LVGL
-  "Build demo_lvgl with integrated libraries instead of demo with out-of-tree libraries"
-  OFF)
-
 FetchContent_Declare(
   fastgltf
   GIT_REPOSITORY https://github.com/spnda/fastgltf
@@ -63,79 +58,10 @@ set(CONFIG_LV_USE_THORVG_INTERNAL
     OFF
     CACHE BOOL "disable thorvg internal" FORCE)
 
-if(BUILD_DEMO_LVGL)
-  set(LV_BUILD_CONF_PATH
-      "${CMAKE_CURRENT_SOURCE_DIR}/lv_conf_gltf.h"
-      CACHE PATH "Config path for LVGL" FORCE)
-else()
-  set(LV_BUILD_CONF_PATH
-      "${CMAKE_CURRENT_SOURCE_DIR}/lv_conf.h"
-      CACHE PATH "Config path for LVGL" FORCE)
-endif()
-
 add_subdirectory(lvgl)
 
-# Define common include directories
-set(LVGL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/lvgl ${CMAKE_SOURCE_DIR}/lvgl/src)
-set(PROTO_INCLUDE_DIRS lib/lv_gltf/data/deps/)
+add_executable(demo src/main.c)
 
-# Create library targets
-
-if(BUILD_DEMO_LVGL)
-  add_executable(demo src/simple_demo_lvgl.c)
-
-else()
-  add_library(lv_gl_shader lib/lv_gl_shader/lv_gl_shader_manager.c
-                           lib/lv_gl_shader/lv_gl_shader_program.c)
-  target_include_directories(lv_gl_shader PRIVATE ${LVGL_INCLUDE_DIRS})
-
-  add_library(
-    lvgl_gltfdata
-    lib/lv_gltf/data/lv_gltf_data.cpp
-    lib/lv_gltf/data/lv_gltf_data_injest.cpp
-    lib/lv_gltf/data/lv_gltf_data_texture.cpp
-    lib/lv_gltf/data/lv_gltf_data_skin.cpp
-    lib/lv_gltf/data/lv_gltf_data_mesh.cpp
-    lib/lv_gltf/data/lv_gltf_data_primitive.cpp
-    lib/lv_gltf/data/lv_gltf_data_shader.cpp
-    lib/lv_gltf/data/lv_gltf_data_node.cpp
-    lib/lv_gltf/data/lv_gltf_data_cache.cpp
-    lib/lv_gltf/data/lv_gltf_bind.cpp)
-
-  target_include_directories(
-    lvgl_gltfdata PRIVATE fastgltf ${LVGL_INCLUDE_DIRS} ${PROTO_INCLUDE_DIRS})
-  target_link_libraries(lvgl_gltfdata PRIVATE lv_gl_shader fastgltf)
-
-  target_compile_definitions(lvgl_gltfdata PRIVATE LVGL_ENABLE_WEBP_IMAGES)
-
-  add_library(
-    lvgl_gltfview
-    lib/lv_gltf/view/lv_gltf_view.cpp
-    lib/lv_gltf/view/sup/datatypes.cpp
-    lib/lv_gltf/view/sup/utils.cpp
-    lib/lv_gltf/view/sup/setup.cpp
-    lib/lv_gltf/view/sup/animation.cpp
-    lib/lv_gltf/view/sup/ibl_sampler.cpp
-    lib/lv_gltf/view/sup/shader_includes.cpp)
-
-  target_include_directories(lvgl_gltfview PRIVATE ${LVGL_INCLUDE_DIRS}
-                                                   ${PROTO_INCLUDE_DIRS})
-  target_link_libraries(lvgl_gltfview PRIVATE lv_gl_shader fastgltf webp)
-  target_link_libraries(lvgl_gltfview PRIVATE lvgl_gltfdata fastgltf)
-  add_executable(demo src/simple_demo.c)
-endif()
-
-# Main executable add_executable( gltf_view src/demo.cpp src/demo_ui.c
-# src/demo_cli.c src/demo_nav.c src/demo_os_integrate.c
-# src/demo_file_load_dialog.c src/demo_misc_utils.c src/mouse_cursor_icon.c
-# src/lvgl_icon_40px_ARGB888.c src/sprites1_32x32x7.c)
-
-# Main executable add_executable( demo_rhombo_overrides src/demo_variant_01.cpp
-# src/demo_ui.c src/demo_cli.c src/demo_nav.c src/demo_os_integrate.c
-# src/demo_file_load_dialog.c src/demo_misc_utils.c src/mouse_cursor_icon.c
-# src/lvgl_icon_40px_ARGB888.c src/sprites1_32x32x7.c)
-
-# Build type definitions
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
   add_definitions(-DNDEBUG)
 endif()
@@ -144,67 +70,19 @@ if(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
   add_definitions(-DNDEBUG)
 endif()
 
-# Optional: Enable AddressSanitizer for Debug builds (can be disabled if
-# problematic)
 option(ENABLE_ASAN "Enable AddressSanitizer in Debug builds" OFF)
 
 if(ENABLE_ASAN AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-  # target_compile_options(gltf_view PRIVATE -fsanitize=address)
-  # target_link_options(gltf_view PRIVATE -fsanitize=address)
-  # target_compile_options(demo_rhombo_overrides PRIVATE -fsanitize=address)
-  # target_link_options(demo_rhombo_overrides PRIVATE -fsanitize=address)
-
   target_compile_options(demo PRIVATE -fsanitize=address)
   target_link_options(demo PRIVATE -fsanitize=address)
-
 endif()
 
 # Additional optimization for MinSizeRel
 if(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-  target_link_options(gltf_view PRIVATE -Wl,--gc-sections)
-  target_link_options(demo_rhombo_overrides PRIVATE -Wl,--gc-sections)
+  target_link_options(demo PRIVATE -Wl,--gc-sections)
 endif()
 
-# target_link_libraries( gltf_view PRIVATE lvgl lvgl_gltfview lvgl_gltfdata m
-# OpenGL::GL GLEW::GLEW glfw webp fastgltf)
-
-# target_link_libraries( demo_rhombo_overrides PRIVATE lvgl lvgl_gltfview
-# lvgl_gltfdata m OpenGL::GL GLEW::GLEW glfw webp fastgltf)
-
-if(BUILD_DEMO_LVGL)
-  target_link_libraries(lvgl PUBLIC webp fastgltf)
-  target_link_libraries(demo PUBLIC lvgl m OpenGL::GL GLEW::GLEW glfw)
-  set_target_properties(demo PROPERTIES COMPILE_DEFINITIONS
-                                        "${LVGL_COMPILER_DEFINES}")
-else()
-  target_link_libraries(
-    demo
-    PRIVATE lvgl
-            lvgl_gltfview
-            lvgl_gltfdata
-            m
-            OpenGL::GL
-            GLEW::GLEW
-            glfw
-            webp
-            fastgltf)
-
-  set_target_properties(demo PROPERTIES COMPILE_DEFINITIONS
-                                        "${LVGL_COMPILER_DEFINES}")
-  target_include_directories(demo PRIVATE ./lib/lv_gltf ./lib/lv_gltf/data/deps
-                                          lvgl lvgl/src)
-
-  # target_include_directories( gltf_view PRIVATE ./lib/lv_gltf
-  # ./lib/lv_gltf/data/deps lvgl lvgl/src)
-  #
-  # target_compile_definitions(gltf_view PRIVATE ENABLE_DESKTOP_MODE)
-  # set_target_properties(gltf_view PROPERTIES COMPILE_DEFINITIONS
-  # "${LVGL_COMPILER_DEFINES}")
-
-  # target_include_directories( demo_rhombo_overrides PRIVATE ./lib/lv_gltf
-  # ./lib/lv_gltf/data/deps lvgl lvgl/src)
-  #
-  # set_target_properties(demo_rhombo_overrides PROPERTIES COMPILE_DEFINITIONS
-  # "${LVGL_COMPILER_DEFINES}")
-
-endif()
+target_link_libraries(lvgl PUBLIC webp fastgltf)
+target_link_libraries(demo PUBLIC lvgl m OpenGL::GL GLEW::GLEW glfw)
+set_target_properties(demo PROPERTIES COMPILE_DEFINITIONS
+                                      "${LVGL_COMPILER_DEFINES}")

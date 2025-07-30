@@ -22,8 +22,8 @@ int main(void)
 	lv_glfw_window_add_texture(window, texture_id, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	/* GLTF setup */
-	lv_obj_t *viewer = lv_gltf_view_create(lv_screen_active());
-	lv_gltf_load_model_from_file(viewer, "gltfs/logo1.glb");
+	lv_obj_t *viewer = lv_gltf_create(lv_screen_active());
+	lv_gltf_load_model_from_file(viewer, "gltfs/venom_comp.glb");
 	lv_obj_set_size(viewer, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	while (1) {
