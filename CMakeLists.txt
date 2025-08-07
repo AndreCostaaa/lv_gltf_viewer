@@ -14,6 +14,7 @@ find_package(PkgConfig REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
+pkg_check_modules(EVDEV REQUIRED libevdev)
 
 FetchContent_Declare(
   fastgltf
@@ -40,6 +41,10 @@ FetchContent_Declare(
   GIT_TAG fa6f56496a442eed59b103250021e4b14ebf1427)
 
 FetchContent_MakeAvailable(webp)
+
+list(APPEND PKG_CONFIG_LIB)
+list(APPEND PKG_CONFIG_INC ${EVDEV_INCLUDE_DIRS})
+list(APPEND LV_LINUX_BACKEND_SRC src/lib/indev_backends/evdev.c)
 
 # Compiler settings
 set(CMAKE_C_STANDARD 99)
@@ -82,7 +87,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
   target_link_options(demo PRIVATE -Wl,--gc-sections)
 endif()
 
-target_link_libraries(lvgl PUBLIC webp fastgltf)
-target_link_libraries(demo PUBLIC lvgl m OpenGL::GL GLEW::GLEW glfw)
+target_link_libraries(lvgl PUBLIC webp fastgltf ${EVDEV_LIBRARIES})
+target_link_libraries(demo PUBLIC lvgl m OpenGL::GL GLEW::GLEW glfw
+                                  ${EVDEV_LIBRARIES})
 set_target_properties(demo PROPERTIES COMPILE_DEFINITIONS
                                       "${LVGL_COMPILER_DEFINES}")
