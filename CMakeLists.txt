@@ -14,7 +14,6 @@ find_package(PkgConfig REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
-pkg_check_modules(EVDEV REQUIRED libevdev)
 
 FetchContent_Declare(
   fastgltf
@@ -22,10 +21,6 @@ FetchContent_Declare(
   GIT_TAG 4e2261350888bae7c35a1f39991f6233d57795f5)
 
 set(FASTGLTF_ENABLE_DEPRECATED_EXT
-    ON
-    CACHE BOOL "" FORCE)
-
-set(FASTGLTF_DIFFUSE_TRANSMISSION_SUPPORT
     ON
     CACHE BOOL "" FORCE)
 
@@ -42,10 +37,6 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(webp)
 
-list(APPEND PKG_CONFIG_LIB)
-list(APPEND PKG_CONFIG_INC ${EVDEV_INCLUDE_DIRS})
-list(APPEND LV_LINUX_BACKEND_SRC src/lib/indev_backends/evdev.c)
-
 # Compiler settings
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
@@ -54,11 +45,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -ggdb")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -ggdb")
 set(CONFIG_LV_BUILD_EXAMPLES
-    OFF
-    CACHE BOOL "disable lvgl examples" FORCE)
+    ON
+    CACHE BOOL "enable lvgl examples" FORCE)
 set(CONFIG_LV_BUILD_DEMOS
-    OFF
-    CACHE BOOL "disable lvgl demos" FORCE)
+    ON
+    CACHE BOOL "enable lvgl demos" FORCE)
 set(CONFIG_LV_USE_THORVG_INTERNAL
     OFF
     CACHE BOOL "disable thorvg internal" FORCE)
@@ -87,8 +78,14 @@ if(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
   target_link_options(demo PRIVATE -Wl,--gc-sections)
 endif()
 
-target_link_libraries(lvgl PUBLIC webp fastgltf ${EVDEV_LIBRARIES})
-target_link_libraries(demo PUBLIC lvgl m OpenGL::GL GLEW::GLEW glfw
-                                  ${EVDEV_LIBRARIES})
+target_link_libraries(lvgl PUBLIC webp fastgltf)
+target_link_libraries(
+  demo
+  PUBLIC lvgl
+         lvgl_demos
+         m
+         OpenGL::GL
+         GLEW::GLEW
+         glfw) 
 set_target_properties(demo PROPERTIES COMPILE_DEFINITIONS
                                       "${LVGL_COMPILER_DEFINES}")
