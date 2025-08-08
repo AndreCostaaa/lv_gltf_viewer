@@ -38,6 +38,9 @@ static lv_subject_t distance_subject;
 static lv_subject_t camera_subject;
 static lv_subject_t animation_subject;
 
+static lv_subject_t antialiasing_subject;
+static lv_subject_t background_subject;
+
 static lv_subject_t animation_speed_subject;
 
 typedef void (*lv_gltf_set_float_fn)(lv_obj_t *, float);
@@ -59,6 +62,9 @@ lv_gltf_set_float_fn_union_t distance_fn = { .fn = lv_gltf_set_distance };
 
 lv_gltf_set_int_fn_union_t camera_fn = { .fn = lv_gltf_set_camera };
 lv_gltf_set_int_fn_union_t animation_speed_fn = { .fn = lv_gltf_set_animation_speed };
+
+lv_gltf_set_int_fn_union_t background_mode_fn = { .fn = lv_gltf_set_background_mode };
+lv_gltf_set_int_fn_union_t antialiasing_mode_fn = { .fn = lv_gltf_set_antialiasing_mode };
 
 static lv_gltf_model_t *model;
 
@@ -150,8 +156,10 @@ static lv_obj_t *create_control_row(lv_obj_t *parent)
 	lv_obj_t *row = lv_obj_create(parent);
 	lv_obj_set_size(row, LV_PCT(100), LV_SIZE_CONTENT);
 	lv_obj_set_style_bg_opa(row, LV_OPA_TRANSP, LV_PART_MAIN);
-	lv_obj_set_style_border_width(row, 0, 0);
-	lv_obj_set_style_pad_all(row, 20, 0);
+	lv_obj_set_style_border_width(row, 0, LV_PART_MAIN);
+	lv_obj_set_style_pad_left(row, 20, LV_PART_MAIN);
+	lv_obj_set_style_pad_bottom(row, 10, LV_PART_MAIN);
+	lv_obj_set_style_pad_right(row, 20, LV_PART_MAIN);
 	lv_obj_set_layout(row, LV_LAYOUT_FLEX);
 	lv_obj_set_flex_flow(row, LV_FLEX_FLOW_COLUMN);
 	return row;
@@ -192,6 +200,8 @@ static lv_obj_t *add_dropdown_to_row(lv_obj_t *row)
 	lv_obj_set_style_bg_color(dropdown, lv_color_hex(0x404040), LV_PART_MAIN);
 	lv_obj_set_style_bg_grad_color(dropdown, lv_color_hex(0x4A4A4A), LV_PART_MAIN);
 	lv_obj_set_style_text_color(dropdown, lv_color_white(), LV_PART_MAIN);
+	lv_obj_t* dropdown_list = ((lv_dropdown_t*)dropdown)->list;
+	lv_obj_set_style_clip_corner(dropdown_list, false, LV_PART_MAIN);
 	return dropdown;
 }
 
@@ -246,17 +256,35 @@ static void style_slider(lv_obj_t *slider, lv_color_t accent_color)
 	lv_obj_set_style_shadow_opa(slider, 150, LV_PART_KNOB);
 	lv_obj_set_style_border_width(slider, 2, LV_PART_KNOB);
 	lv_obj_set_style_border_color(slider, accent_color, LV_PART_KNOB);
+
+	lv_obj_set_style_bg_color(slider, lv_color_hex(0x0F0F0F), LV_PART_MAIN | LV_STATE_DISABLED);
+	lv_obj_set_style_border_color(slider, lv_color_hex(0x222222), LV_PART_MAIN | LV_STATE_DISABLED);
+	lv_obj_set_style_opa(slider, 128, LV_PART_MAIN | LV_STATE_DISABLED);
+
+	lv_color_t dimmed_accent = lv_color_mix(accent_color, lv_color_black(), 128);
+	lv_obj_set_style_bg_color(slider, dimmed_accent, LV_PART_INDICATOR | LV_STATE_DISABLED);
+	lv_obj_set_style_opa(slider, 102, LV_PART_INDICATOR | LV_STATE_DISABLED);
+
+	lv_obj_set_style_bg_color(slider, lv_color_hex(0xCCCCCC), LV_PART_KNOB | LV_STATE_DISABLED);
+	lv_obj_set_style_shadow_width(slider, 2, LV_PART_KNOB | LV_STATE_DISABLED);
+	lv_obj_set_style_shadow_opa(slider, 51, LV_PART_KNOB | LV_STATE_DISABLED);
 }
 
 static void control_panel(lv_obj_t *parent, lv_gltf_model_t *model)
 {
 
-	lv_subject_init_int(&camera_subject, 0);
+	lv_subject_init_int(&camera_subject, 1);
 	lv_subject_init_int(&animation_speed_subject, LV_GLTF_ANIM_SPEED_NORMAL);
 	lv_subject_init_int(&animation_subject, lv_gltf_model_get_animation(model));
+	lv_subject_init_int(&antialiasing_subject, lv_gltf_get_antialiasing_mode(viewer));
+	lv_subject_init_int(&background_subject, lv_gltf_get_background_mode(viewer));
 
 	lv_subject_add_observer_obj(&camera_subject, viewer_observer_int_cb, viewer, camera_fn.ptr);
 	lv_subject_add_observer_obj(&animation_speed_subject, viewer_observer_int_cb, viewer, animation_speed_fn.ptr);
+
+	lv_subject_add_observer_obj(&background_subject, viewer_observer_int_cb, viewer, background_mode_fn.ptr);
+	lv_subject_add_observer_obj(&antialiasing_subject, viewer_observer_int_cb, viewer, antialiasing_mode_fn.ptr);
+
 	lv_subject_add_observer(&animation_subject, model_observer_int_cb, NULL);
 
 	lv_subject_init_float(&yaw_subject, lv_gltf_get_yaw(viewer));
@@ -270,7 +298,7 @@ static void control_panel(lv_obj_t *parent, lv_gltf_model_t *model)
 	lv_obj_set_style_border_width(control_panel, 1, 0);
 	lv_obj_set_style_border_color(control_panel, lv_color_hex(0x555555), 0);
 	lv_obj_set_style_radius(control_panel, 8, 0);
-	lv_obj_set_style_pad_all(control_panel, 10, 0);
+	lv_obj_set_style_pad_all(control_panel, 5, 0);
 	lv_obj_set_layout(control_panel, LV_LAYOUT_FLEX);
 	lv_obj_set_flex_flow(control_panel, LV_FLEX_FLOW_COLUMN);
 	lv_obj_set_flex_align(control_panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -359,8 +387,9 @@ static void control_panel(lv_obj_t *parent, lv_gltf_model_t *model)
 	lv_slider_set_max_value(distance_slider, 25);
 	style_slider(distance_slider, SLIDER_COLOR);
 
-	lv_obj_t *animation_ratio_title = row_title(sliders_row, "");
-	lv_label_bind_text(animation_ratio_title, &animation_speed_subject, "Animation Speed\n%d");
+	row_title(sliders_row, "Animation Speed");
+	lv_obj_t *animation_ratio_value = row_title(sliders_row, "");
+	lv_label_bind_text(animation_ratio_value, &animation_speed_subject, "%d (x1000)");
 
 	lv_obj_t *animation_ratio_slider = lv_slider_create(sliders_row);
 	lv_obj_set_width(animation_ratio_slider, LV_PCT(100));
@@ -373,6 +402,19 @@ static void control_panel(lv_obj_t *parent, lv_gltf_model_t *model)
 	lv_obj_bind_state_if_gt(yaw_slider, &camera_subject, LV_STATE_DISABLED, 0);
 	lv_obj_bind_state_if_gt(pitch_slider, &camera_subject, LV_STATE_DISABLED, 0);
 	lv_obj_bind_state_if_gt(distance_slider, &camera_subject, LV_STATE_DISABLED, 0);
+
+
+	lv_obj_t *bg_row = create_control_row(control_panel);
+	row_title(bg_row, "Background");
+	lv_obj_t *background_dropdown = add_dropdown_to_row(bg_row);
+	lv_dropdown_set_options(background_dropdown, "Solid Color\nEnvironnement");
+	lv_dropdown_bind_value(background_dropdown, &background_subject);
+
+	lv_obj_t *antialiasing_row = create_control_row(control_panel);
+	row_title(antialiasing_row, "Anti Aliasing");
+	lv_obj_t *antialiasing_dropdown = add_dropdown_to_row(antialiasing_row);
+	lv_dropdown_set_options(antialiasing_dropdown, "Off\nOn\nDynamic");
+	lv_dropdown_bind_value(antialiasing_dropdown, &antialiasing_subject);
 }
 
 void lv_demo_gltf(const char *path)
@@ -381,6 +423,8 @@ void lv_demo_gltf(const char *path)
 	lv_obj_set_size(viewer, WINDOW_WIDTH, WINDOW_HEIGHT);
 	lv_obj_remove_flag(viewer, LV_OBJ_FLAG_SCROLLABLE);
 	lv_gltf_set_background_mode(viewer, LV_GLTF_BG_ENVIRONMENT);
+	lv_obj_set_style_bg_color(viewer, lv_color_hex(0x78F5a5), LV_PART_MAIN);
+	lv_obj_set_style_bg_opa(viewer, 128, LV_PART_MAIN),
 
 	model = lv_gltf_load_model_from_file(viewer, path);
 	if (lv_gltf_model_get_animation_count(model) > 0) {
