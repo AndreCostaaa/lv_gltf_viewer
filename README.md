@@ -7,7 +7,7 @@ Ensure that [GLFW is installed](https://docs.lvgl.io/master/details/integration/
 ## Getting Started
 
 ```shell
-git clone <TODO>
+git clone https://github.com/AndreCostaaa/lv_gltf_viewer.git
 git submodule update --init
 cmake -B build
 cmake --build build -j$(nproc)
