@@ -3,7 +3,7 @@
 #include <examples/lv_examples.h>
 
 #define WINDOW_WIDTH    1280
-#define WINDOW_HEIGHT   1050
+#define WINDOW_HEIGHT   960
 
 int main(void)
 {
